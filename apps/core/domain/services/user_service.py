@@ -146,15 +146,41 @@ class UserService:
 
     @staticmethod
     @transaction.atomic
-    def eliminar_usuario(
+    def desactivar_usuario(
         user_deleter: User,
         profile: UserProfile,
     ) -> Tuple[bool, Optional[str]]:
-        """Delete a user and profile with permission check"""
+        """Soft delete: deactivate user instead of deleting from database.
+
+        Preserves all history (tasks, comments, time entries, messages).
+        """
         if not can_manage_admin(user_deleter):
-            return False, 'No tienes permiso para eliminar usuarios'
+            return False, 'No tienes permiso para desactivar usuarios'
+
+        if profile.status == 'dismissed':
+            return False, 'Este usuario ya esta desactivado'
 
         name = profile.user.get_full_name()
-        profile.user.delete()
-        create_audit_log(user_deleter, 'USER_DELETE', 'user', profile.id, f'Usuario eliminado: {name}')
+        profile.status = 'dismissed'
+        profile.save(update_fields=['status'])
+        create_audit_log(user_deleter, 'USER_DEACTIVATE', 'user', profile.id, f'Usuario desactivado: {name}')
+        return True, None
+
+    @staticmethod
+    @transaction.atomic
+    def reactivar_usuario(
+        user_activator: User,
+        profile: UserProfile,
+    ) -> Tuple[bool, Optional[str]]:
+        """Reactivate a previously deactivated user."""
+        if not can_manage_admin(user_activator):
+            return False, 'No tienes permiso para reactivar usuarios'
+
+        if profile.status != 'dismissed':
+            return False, 'Este usuario ya esta activo'
+
+        name = profile.user.get_full_name()
+        profile.status = 'active'
+        profile.save(update_fields=['status'])
+        create_audit_log(user_activator, 'USER_REACTIVATE', 'user', profile.id, f'Usuario reactivado: {name}')
         return True, None

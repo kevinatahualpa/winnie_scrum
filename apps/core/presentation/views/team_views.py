@@ -261,23 +261,68 @@ def editar_usuario(request, pk):
 
 @require_POST
 @login_required
-def eliminar_usuario(request, pk):
-    """Delete a team member and their user account.
+def desactivar_usuario(request, pk):
+    """Soft delete a team member (deactivate instead of deleting).
 
-    Only super-admin can delete users. Admins can edit but not delete.
-    Cannot delete yourself or another super-admin.
+    Admins and super-admins can deactivate. Cannot deactivate yourself.
+    Preserves all history.
     """
     profile = get_object_or_404(UserProfile, pk=pk)
 
     if not can_delete_user(request.user, profile.user):
-        messages.error(request, 'No tienes permiso para eliminar este usuario')
+        messages.error(request, 'No tienes permiso para desactivar este usuario')
         return redirect('ver_equipo')
 
-    success, error = UserService.eliminar_usuario(request.user, profile)
+    success, error = UserService.desactivar_usuario(request.user, profile)
 
     if not success:
         messages.error(request, error)
     else:
-        messages.success(request, f'Usuario "{profile.user.get_full_name()}" eliminado')
+        messages.success(request, f'Usuario "{profile.user.get_full_name()}" desactivado')
 
     return redirect('ver_equipo')
+
+
+@require_POST
+@login_required
+def reactivar_usuario(request, pk):
+    """Reactivate a previously deactivated user."""
+    profile = get_object_or_404(UserProfile, pk=pk)
+
+    if not can_manage_admin(request.user):
+        messages.error(request, 'No tienes permiso para reactivar usuarios')
+        return redirect('ver_equipo_desactivados')
+
+    success, error = UserService.reactivar_usuario(request.user, profile)
+
+    if not success:
+        messages.error(request, error)
+    else:
+        messages.success(request, f'Usuario "{profile.user.get_full_name()}" reactivado')
+
+    return redirect('ver_equipo_desactivados')
+
+
+@login_required
+def ver_equipo_desactivados(request):
+    """Show deactivated/dismissed users with option to reactivate."""
+    user = request.user
+    role = get_user_role(user)
+
+    if not can_manage_admin(user):
+        messages.error(request, 'No tienes permiso para ver usuarios desactivados')
+        return redirect('ver_equipo')
+
+    desactivados_qs = UserProfile.objects.select_related(
+        'user', 'area', 'specialty', 'client',
+    ).filter(status='dismissed')
+
+    desactivados = []
+    for m in desactivados_qs:
+        desactivados.append(m)
+
+    return render(request, 'core/team.html', {
+        'dismissed_users': desactivados,
+        'role': role,
+        'show_dismissed': True,
+    })

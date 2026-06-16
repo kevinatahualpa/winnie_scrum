@@ -81,13 +81,15 @@
         </div>
     </nav>
     <div class="sidebar-footer d-flex align-items-center gap-2">
-        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;font-size:0.6rem;background:var(--accent);color:#fff;" aria-hidden="true">
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;font-size:0.75rem;background:var(--accent);color:#fff;font-weight:600;" aria-hidden="true">
             {{ user.first_name|first }}{{ user.last_name|first }}
         </div>
-        <div class="user-info">
+        <div class="user-info min-w-0">
             <div class="user-name">{{ user.get_full_name }}</div>
             <span class="role-badge role-{{ user.profile.role|default:'miembro' }}">{{ user.profile.get_role_display|default:'Miembro' }}</span>
         </div>
-      <a href="{% url 'cerrar_sesion' %}" aria-label="Cerrar sesion" title="Salir" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:auto;background-color:#e95420;color:white;border-radius:6px;text-decoration:none;font-size:1.1rem;transition:all 0.2s;border:none;"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></a>
+        <a href="{% url 'cerrar_sesion' %}" aria-label="Cerrar sesion" title="Salir" class="btn btn-sm btn-ghost flex-shrink-0" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-sign-out-alt" aria-hidden="true" style="font-size:0.85rem;"></i>
+        </a>
     </div>
 </div>
