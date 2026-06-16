@@ -7,11 +7,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const area = document.getElementById('areaFilter')?.value;
         const project = document.getElementById('projectFilter')?.value;
         const role = document.getElementById('roleFilter')?.value;
+        const client = document.getElementById('clientFilter')?.value;
+        // Preserve current tab
+        const currentUrl = new URL(window.location.href);
+        const tab = currentUrl.searchParams.get('tab');
+        if (tab) params.set('tab', tab);
         if (area) params.set('area', area);
         if (project) params.set('project', project);
         if (role) params.set('role', role);
+        if (client) params.set('client', client);
         const qs = params.toString();
-        window.location.href = qs ? `/team/?${qs}` : '/team/';
+        window.location.href = qs ? `/ver_equipo/?${qs}` : '/ver_equipo/';
     }
 
     function updateProjectOptions() {
