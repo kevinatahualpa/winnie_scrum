@@ -337,7 +337,7 @@
                                     <small class="text-muted">Lead: {{ project.lead.get_full_name|default:'-' }} | {{ project.member_count }} miembros</small>
                                     <small class="text-muted">{{ project.progress }}%</small>
                                 </div>
-                                <div class="progress" style="height:2px;"><div class="progress-bar" style="width:{{ project.progress }}%;background:{{ project.color }}"></div></div>
+                                <div class="progress"><div class="progress-bar" style="width:{{ project.progress }}%"></div></div>
                             </div>
                             {% endfor %}
                             {% else %}
@@ -347,42 +347,89 @@
                     </div>
                 </div>
 
-                <!-- Miembros del Area -->
+                <!-- Distribucion de Tareas del Area -->
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Miembros del Area</h6>
-                            <a href="{% url 'ver_equipo' %}" class="btn btn-sm btn-outline-secondary">Ver Equipo</a>
+                            <h6 class="mb-0">Distribucion de Tareas del Area</h6>
+                            <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
                         </div>
                         <div class="card-body p-0">
-                            {% if area_members %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead><tr><th>Nombre</th><th>Rol</th><th>Especialidad</th><th>Tareas</th></tr></thead>
-                                    <tbody>
-                                        {% for member in area_members %}
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:0.6rem;background:{{ member.color }};color:#fff;">{{ member.initials }}</div>
-                                                    {{ member.user.get_full_name }}
-                                                </div>
-                                            </td>
-                                            <td><span class="role-badge role-{{ member.role }}">{{ member.get_role_display }}</span></td>
-                                            <td><small>{{ member.specialty.name|default:'-' }}</small></td>
-                                            <td><small>{{ member.user.assigned_tasks.count }}</small></td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                            {% if total_tasks > 0 %}
+                            <div class="p-3">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Backlog / Por Hacer</small>
+                                        <small class="fw-medium">{{ todo_tasks }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%; background:#f59e0b;"></div></div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">En Progreso</small>
+                                        <small class="fw-medium">{{ in_progress_tasks }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%; background:#3b82f6;"></div></div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Completadas</small>
+                                        <small class="fw-medium">{{ done_tasks }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%; background:#10b981;"></div></div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Bugs Abiertos</small>
+                                        <small class="fw-medium text-danger">{{ bugs }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%; background:#ef4444;"></div></div>
+                                </div>
                             </div>
                             {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin miembros</small></div>
+                            <div class="text-center text-secondary py-4"><small>Sin tareas en el area</small></div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Bugs del Area (solo bugs) -->
+            {% if bugs > 0 %}
+            <div class="row g-2 mt-2">
+                <div class="col-12">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs del Area</h6>
+                            <span class="badge bg-white text-danger">{{ bugs }}</span>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_tasks %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Asignado</th><th>Estado</th></tr></thead>
+                                    <tbody>
+                                        {% for task in recent_tasks %}
+                                        {% if task.type == 'bug' and task.status != 'done' %}
+                                        <tr>
+                                            <td><span class="badge bg-danger me-1">BUG</span>{{ task.title }}</td>
+                                            <td><small>{{ task.project.name }}</small></td>
+                                            <td><small>{{ task.assignee.get_full_name|default:'-' }}</small></td>
+                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center text-secondary py-4"><small>Sin bugs</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- ============================================================
                  JEFE DE PROYECTO
@@ -462,7 +509,7 @@
                                     <small class="text-muted">{{ project.task_count }} tareas ({{ project.completed_task_count }} completadas)</small>
                                     <small class="text-muted">{{ project.progress }}%</small>
                                 </div>
-                                <div class="progress" style="height:2px;"><div class="progress-bar" style="width:{{ project.progress }}%;background:{{ project.color }}"></div></div>
+                                <div class="progress"><div class="progress-bar" style="width:{{ project.progress }}%"></div></div>
                             </div>
                             {% endfor %}
                             {% else %}
@@ -472,12 +519,61 @@
                     </div>
                 </div>
 
-                <!-- Tareas del Equipo -->
+                <!-- Distribucion de Tareas del Equipo -->
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Tareas del Equipo</h6>
+                            <h6 class="mb-0">Distribucion de Tareas del Equipo</h6>
                             <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if total_tasks > 0 %}
+                            <div class="p-3">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Backlog / Por Hacer</small>
+                                        <small class="fw-medium">{{ todo_tasks }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%; background:#f59e0b;"></div></div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">En Progreso</small>
+                                        <small class="fw-medium">{{ in_progress_tasks }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%; background:#3b82f6;"></div></div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Completadas</small>
+                                        <small class="fw-medium">{{ done_tasks }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%; background:#10b981;"></div></div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Bugs Abiertos</small>
+                                        <small class="fw-medium text-danger">{{ bugs }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%; background:#ef4444;"></div></div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center text-secondary py-4"><small>Sin tareas del equipo</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bugs del Equipo (solo bugs) -->
+            {% if bugs > 0 %}
+            <div class="row g-2 mt-2">
+                <div class="col-12">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs del Equipo</h6>
+                            <span class="badge bg-white text-danger">{{ bugs }}</span>
                         </div>
                         <div class="card-body p-0">
                             {% if recent_tasks %}
@@ -486,23 +582,26 @@
                                     <thead><tr><th>Tarea</th><th>Proyecto</th><th>Asignado</th><th>Estado</th></tr></thead>
                                     <tbody>
                                         {% for task in recent_tasks %}
+                                        {% if task.type == 'bug' and task.status != 'done' %}
                                         <tr>
-                                            <td>{{ task.title }}</td>
+                                            <td><span class="badge bg-danger me-1">BUG</span>{{ task.title }}</td>
                                             <td><small>{{ task.project.name }}</small></td>
                                             <td><small>{{ task.assignee.get_full_name|default:'-' }}</small></td>
                                             <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
                                         </tr>
+                                        {% endif %}
                                         {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
                             {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin tareas</small></div>
+                            <div class="text-center text-secondary py-4"><small>Sin bugs</small></div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
+            {% endif %}
 
             <!-- Miembros del Equipo -->
             {% if team_members %}
@@ -618,28 +717,44 @@
             </div>
 
             <div class="row g-2">
-                <!-- Mis Tareas -->
+                <!-- Distribucion de Mis Tareas -->
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Mis Tareas</h6>
+                            <h6 class="mb-0">Distribucion de Mis Tareas</h6>
                             <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
                         </div>
                         <div class="card-body p-0">
-                            {% if recent_my_tasks %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Estado</th></tr></thead>
-                                    <tbody>
-                                        {% for task in recent_my_tasks %}
-                                        <tr>
-                                            <td><a href="{% url 'ver_tablero' %}">{{ task.title }}</a></td>
-                                            <td><small class="text-muted">{{ task.project.name }}</small></td>
-                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                            {% if my_task_stats.total > 0 %}
+                            <div class="p-3">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Backlog / Por Hacer</small>
+                                        <small class="fw-medium">{{ my_task_stats.todo }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.todo my_task_stats.total 100 %}%; background:#f59e0b;"></div></div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">En Progreso</small>
+                                        <small class="fw-medium">{{ my_task_stats.in_progress }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.in_progress my_task_stats.total 100 %}%; background:#3b82f6;"></div></div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Completadas</small>
+                                        <small class="fw-medium">{{ my_task_stats.done }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.done my_task_stats.total 100 %}%; background:#10b981;"></div></div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Bugs Abiertos</small>
+                                        <small class="fw-medium text-danger">{{ my_task_stats.bugs }}</small>
+                                    </div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.bugs my_task_stats.total 100 %}%; background:#ef4444;"></div></div>
+                                </div>
                             </div>
                             {% else %}
                             <div class="text-center text-secondary py-4"><small>Sin tareas asignadas</small></div>
@@ -662,7 +777,7 @@
                                     <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="fw-medium">{{ project.name }}</a>
                                     <span class="badge badge-status-{{ project.status }}">{{ project.get_status_display }}</span>
                                 </div>
-                                <div class="progress" style="height:2px;"><div class="progress-bar" style="width:{{ project.progress }}%;background:{{ project.color }}"></div></div>
+                                <div class="progress"><div class="progress-bar" style="width:{{ project.progress }}%"></div></div>
                                 <small class="text-muted">{{ project.progress }}% completo</small>
                             </div>
                             {% endfor %}
@@ -701,6 +816,42 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Mis Bugs Abiertos (solo bugs) -->
+            {% if my_task_stats.bugs > 0 %}
+            <div class="row g-2 mt-2">
+                <div class="col-12">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Mis Bugs Abiertos</h6>
+                            <span class="badge bg-white text-danger">{{ my_task_stats.bugs }}</span>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if my_tasks %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Estado</th></tr></thead>
+                                    <tbody>
+                                        {% for task in my_tasks %}
+                                        {% if task.type == 'bug' and task.status != 'done' %}
+                                        <tr>
+                                            <td><span class="badge bg-danger me-1">BUG</span>{{ task.title }}</td>
+                                            <td><small>{{ task.project.name }}</small></td>
+                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center text-secondary py-4"><small>Sin bugs</small></div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
