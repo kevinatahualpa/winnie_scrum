@@ -28,25 +28,83 @@
                 </div>
             </div>
 
+            <!-- Card de Info del Proyecto -->
             <div class="card shadow-sm border-0 mb-3">
-                <div class="card-body">
-                    <div class="row align-items-center g-3">
-                        <div class="col-md-8">
-                            <p class="text-muted small mb-2">{{ project.description }}</p>
-                            <div class="d-flex flex-wrap gap-3">
-                                <div><small class="text-muted d-block">Estado</small><span class="badge badge-status-{{ project.status }}">{{ project.get_status_display }}</span></div>
-                                <div><small class="text-muted d-block">Area</small><strong class="small">{{ project.area.name|default:"-" }}</strong></div>
-                                <div><small class="text-muted d-block">Presupuesto</small><strong class="small">S/ {{ project.budget }}</strong></div>
-                                <div><small class="text-muted d-block">Lider</small><strong class="small">{{ project.lead.get_full_name|default:"-" }}</strong></div>
-                                <div><small class="text-muted d-block">Miembros</small><strong class="small">{{ project.members.count }}</strong></div>
+                <div class="card-body p-4">
+                    <!-- Descripcion -->
+                    <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.5;">{{ project.description }}</p>
+
+                    <!-- Grid de Metadatos -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-lg-3">
+                            <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                <div class="d-flex align-items-center justify-content-center rounded" style="width: 40px; height: 40px; background: var(--info-soft); color: var(--info);">
+                                    <i class="fas fa-tag" style="font-size: 0.9rem;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Estado</small>
+                                    <span class="badge badge-status-{{ project.status }}" style="font-size: 0.75rem;">{{ project.get_status_display }}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4 text-center">
-                            <h2 class="fw-bold mb-0" style="color:{{ project.color }}">{{ project.progress }}%</h2>
-                            <small class="text-muted">Completado</small>
-                            <div class="progress mt-1" style="height:6px;">
-                                <div class="progress-bar" style="width:{{ project.progress }}%;background:{{ project.color }}"></div>
+                        <div class="col-6 col-lg-3">
+                            <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                <div class="d-flex align-items-center justify-content-center rounded" style="width: 40px; height: 40px; background: var(--accent-soft); color: var(--accent);">
+                                    <i class="fas fa-sitemap" style="font-size: 0.9rem;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Area</small>
+                                    <strong class="small">{{ project.area.name|default:"-" }}</strong>
+                                </div>
                             </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                <div class="d-flex align-items-center justify-content-center rounded" style="width: 40px; height: 40px; background: var(--success-soft); color: var(--success);">
+                                    <i class="fas fa-coins" style="font-size: 0.9rem;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Presupuesto</small>
+                                    <strong class="small">S/ {{ project.budget }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                <div class="d-flex align-items-center justify-content-center rounded" style="width: 40px; height: 40px; background: var(--warning-soft); color: var(--warning);">
+                                    <i class="fas fa-user-tie" style="font-size: 0.9rem;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Lider</small>
+                                    <strong class="small">{{ project.lead.get_full_name|default:"-" }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                <div class="d-flex align-items-center justify-content-center rounded" style="width: 40px; height: 40px; background: var(--info-soft); color: var(--info);">
+                                    <i class="fas fa-users" style="font-size: 0.9rem;"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Miembros</small>
+                                    <strong class="small">{{ project.members.count }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progreso -->
+                    <div class="p-3 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-semibold" style="font-size: 0.85rem;">Progreso del Proyecto</span>
+                            <span class="fw-bold" style="font-size: 1.1rem; color: var(--accent);">{{ project.progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar" style="width: {{ project.progress }}%; background: var(--accent);"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted" style="font-size: 0.7rem;">0%</small>
+                            <small class="text-muted" style="font-size: 0.7rem;">100%</small>
                         </div>
                     </div>
                 </div>
