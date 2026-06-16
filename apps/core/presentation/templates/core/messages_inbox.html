@@ -29,9 +29,13 @@
                                         <i class="fas fa-folder" style="font-size: 0.8rem;"></i>
                                     </div>
                                     {% else %}
+                                    {% if thread.partner.profile.avatar %}
+                                    <img src="{{ thread.partner.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
                                     <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: {{ thread.partner.profile.color|default:'#00bcd4' }}; font-size: 14px;">
                                         {{ thread.partner.profile.initials|default:thread.partner.username|slice:":2"|upper }}
                                     </div>
+                                    {% endif %}
                                     {% endif %}
                                     {% if thread.unread %}
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle p-1" style="background: #25d366; width: 10px; height: 10px; min-width: 10px;"></span>
@@ -73,9 +77,13 @@
                 <div class="flex-grow-1 d-flex flex-column" style="background: #f0f2f5;">
                     {% if partner %}
                     <div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: #fff;">
+                        {% if partner.profile.avatar %}
+                        <img src="{{ partner.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                        {% else %}
                         <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 36px; height: 36px; background: {{ partner.profile.color|default:'#00bcd4' }}; font-size: 13px;">
                             {{ partner.profile.initials|default:partner.username|slice:":2"|upper }}
                         </div>
+                        {% endif %}
                         <div>
                             <strong class="small">{{ partner.get_full_name|default:partner.username }}</strong>
                             <small class="text-muted d-block" style="font-size: 0.6rem;">{{ partner.profile.get_role_display }}</small>
@@ -148,9 +156,13 @@
                 <div id="userResults" class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
                     {% for u in users %}
                     <a href="{% url 'ver_conversacion' u.id %}" class="list-group-item list-group-item-action border-0 d-flex align-items-center gap-2 py-2 px-0">
+                        {% if u.profile.avatar %}
+                        <img src="{{ u.profile.avatar.url }}" alt="" class="rounded-circle flex-shrink-0" style="width: 32px; height: 32px; object-fit: cover;">
+                        {% else %}
                         <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 32px; height: 32px; background: {{ u.profile.color|default:'#00bcd4' }}; font-size: 11px;">
                             {{ u.profile.initials|default:u.username|slice:":2"|upper }}
                         </div>
+                        {% endif %}
                         <div class="min-width-0">
                             <div class="small text-truncate">{{ u.get_full_name|default:u.username }}</div>
                             <small class="text-muted" style="font-size: 0.6rem;">{{ u.profile.get_role_display }}</small>

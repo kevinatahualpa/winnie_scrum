@@ -213,6 +213,7 @@ class UserProfile(models.Model):
         ('leave', 'Licencia'), ('dismissed', 'Desactivado'),
     ], default='pending', db_index=True)
     color = models.CharField(max_length=7, default='#00bcd4')
+    avatar = models.ImageField(upload_to='avatars/%Y/%m/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

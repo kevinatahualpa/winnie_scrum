@@ -117,7 +117,11 @@
                                 {% for member in internal_users %}
                                 <tr>
                                     <td>
+                                        {% if member.avatar %}
+                                        <img src="{{ member.avatar.url }}" alt="" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                                        {% else %}
                                         <div class="member-avatar" style="background:{{ member.color }}">{{ member.initials }}</div>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="fw-medium" style="font-size:0.8rem;">{{ member.user.get_full_name|default:member.user.username }}</div>
@@ -211,7 +215,11 @@
                                 {% for member in client_users %}
                                 <tr>
                                     <td>
+                                        {% if member.avatar %}
+                                        <img src="{{ member.avatar.url }}" alt="" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                                        {% else %}
                                         <div class="member-avatar" style="background:{{ member.color }}">{{ member.initials }}</div>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="fw-medium" style="font-size:0.8rem;">{{ member.user.get_full_name|default:member.user.username }}</div>
@@ -307,7 +315,11 @@
                                 {% for member in dismissed_users %}
                                 <tr>
                                     <td>
+                                        {% if member.avatar %}
+                                        <img src="{{ member.avatar.url }}" alt="" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover; opacity: 0.6;">
+                                        {% else %}
                                         <div class="member-avatar" style="background:{{ member.color|default:'#64748b' }};opacity:0.6;">{{ member.initials }}</div>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="fw-medium" style="font-size:0.8rem;">{{ member.user.get_full_name|default:member.user.username }}</div>

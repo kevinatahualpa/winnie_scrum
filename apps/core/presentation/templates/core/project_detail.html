@@ -80,9 +80,13 @@
                         <div class="d-flex align-items-center">
                             {% if project.lead %}
                             <div class="position-relative" title="Lider: {{ project.lead.get_full_name|default:project.lead.username }}">
+                                {% if project.lead.profile.avatar %}
+                                <img src="{{ project.lead.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border-light);">
+                                {% else %}
                                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 28px; height: 28px; font-size: 0.6rem; background: {{ project.lead.profile.color|default:'var(--accent)' }};">
                                     {{ project.lead.profile.initials|default:project.lead.username|slice:":2"|upper }}
                                 </div>
+                                {% endif %}
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning" style="font-size: 0.4rem; padding: 0.1em 0.3em;"><i class="fas fa-crown"></i></span>
                             </div>
                             {% endif %}
@@ -90,9 +94,13 @@
                             {% if member.id != project.lead_id %}
                             {% if forloop.counter <= 5 %}
                             <div class="position-relative" title="{{ member.get_full_name|default:member.username }} — {{ member.profile.get_role_display }}" style="margin-left: -6px;">
+                                {% if member.profile.avatar %}
+                                <img src="{{ member.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border-light);">
+                                {% else %}
                                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold border border-2 border-white" style="width: 28px; height: 28px; font-size: 0.6rem; background: {{ member.profile.color|default:'var(--info)' }};">
                                     {{ member.profile.initials|default:member.username|slice:":2"|upper }}
                                 </div>
+                                {% endif %}
                             </div>
                             {% endif %}
                             {% if forloop.counter == 5 and not forloop.last %}
@@ -279,7 +287,11 @@
                                 <!-- Header: avatar + nombre + fecha -->
                                 <div class="d-flex align-items-center gap-2 mb-1 {% if comment.author == user %}justify-content-end{% endif %}">
                                     {% if comment.author != user %}
+                                    {% if comment.author.profile.avatar %}
+                                    <img src="{{ comment.author.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
+                                    {% else %}
                                     <span class="bubble-avatar" style="background:{{ comment.author.profile.color|default:'var(--accent)' }}; width: 24px; height: 24px; font-size: 0.65rem;">{{ comment.author.profile.initials|default:comment.author.username|slice:":2"|upper }}</span>
+                                    {% endif %}
                                     {% endif %}
                                     <small class="fw-bold" style="font-size: 0.7rem; color: var(--text-secondary);">{{ comment.author.get_full_name|default:comment.author.username }}</small>
                                     <small style="font-size: 0.6rem; color: var(--text-muted);">{{ comment.created_at|date:"d/m H:i" }}</small>
@@ -355,9 +367,13 @@
                     {% if dm_user %}
                     <!-- Header conversacion -->
                     <div class="p-2 d-flex align-items-center gap-2 border-bottom" style="background: var(--surface);">
+                        {% if dm_user.profile.avatar %}
+                        <img src="{{ dm_user.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
+                        {% else %}
                         <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 28px; height: 28px; background: {{ dm_user.profile.color|default:'var(--accent)' }}; font-size: 10px;">
                             {{ dm_user.profile.initials|default:dm_user.username|slice:":2"|upper }}
                         </div>
+                        {% endif %}
                         <div>
                             <strong class="small" style="font-size: 0.8rem;">{{ dm_user.get_full_name|default:dm_user.username }}</strong>
                             <small class="d-block text-muted" style="font-size: 0.6rem;">{{ dm_user.profile.get_role_display }}</small>
