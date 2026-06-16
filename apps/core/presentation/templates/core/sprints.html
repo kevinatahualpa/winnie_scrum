@@ -1,0 +1,149 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% block title %}Sprints - Winnie{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0"><i class="fas fa-running me-2"></i>Sprints</h4>
+                {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#sprintModal"><i class="fas fa-plus me-1"></i>Nuevo Sprint</button>
+                {% endif %}
+            </div>
+
+            {% if active_sprint %}
+            <div class="card border-0 shadow-sm mb-4 border-start border-4 border-info">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-info"></i>Gráfico Burndown - {{ active_sprint.name }}</h5>
+                    <small class="text-muted">{{ active_sprint.start_date }} → {{ active_sprint.end_date }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="fw-bold text-info">{{ active_sprint_data.total }}</h3>
+                            <small class="text-muted">Total Tareas</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-success">{{ active_sprint_data.done }}</h3>
+                            <small class="text-muted">Completadas</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold text-warning">{{ active_sprint_data.total|add:"-"|add:active_sprint_data.done }}</h3>
+                            <small class="text-muted">Restantes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex flex-column gap-3">
+                {% for sprint in sprints %}
+                <div class="card border-0 shadow-sm border-start border-4 {% if sprint.status == 'active' %}border-info{% elif sprint.status == 'completed' %}border-success{% else %}border-secondary{% endif %}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h5 class="mb-1">{{ sprint.name }} <span class="text-muted fw-normal fs-6">- {{ sprint.project.name }}</span></h5>
+                                <p class="text-muted mb-2 small">{{ sprint.goal }}</p>
+                                <div class="d-flex gap-3 small text-muted">
+                                    <span><i class="fas fa-calendar me-1"></i>{{ sprint.start_date }} - {{ sprint.end_date }}</span>
+                                    <span><i class="fas fa-tasks me-1"></i>{{ sprint.tasks.count }} tareas</span>
+                                    <span class="badge bg-{{ sprint.status }}">{{ sprint.get_status_display }}</span>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="width:120px">
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span class="text-muted">{{ sprint.tasks.count }} tareas</span>
+                                            <span class="fw-bold">{{ sprint.tasks.count|default:0 }}%</span>
+                                        </div>
+                                        <div class="progress" style="height:6px">
+                                            <div class="progress-bar bg-{% if sprint.status == 'completed' %}success{% else %}info{% endif %}" style="width:{{ sprint.tasks.count|default:0 }}%"></div>
+                                        </div>
+                                    </div>
+                                    {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                                    <div class="btn-group">
+                                        {% if sprint.status == 'planned' %}
+                                        <form method="post" action="{% url 'iniciar_sprint' sprint.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-success" title="Iniciar"><i class="fas fa-play"></i></button>
+                                        </form>
+                                        {% elif sprint.status == 'active' %}
+                                        <form method="post" action="{% url 'completar_sprint' sprint.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-warning" title="Completar"><i class="fas fa-flag-checkered"></i></button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-running fa-2x mb-2 d-block"></i>Sin sprints
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sprint Modal -->
+{% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+<div class="modal fade" id="sprintModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'crear_sprint' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Sprint</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="name" class="form-control" placeholder="Sprint 1 - Inicio" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Proyecto</label>
+                    <select name="project" class="form-select" required>
+                        {% for project in sprints|dictsort:"project.name"|slice:":1" %}
+                        {% endfor %}
+                        {% for project in projects|default:sprints|dictsort:"project.name" %}
+                        <option value="{{ project.project.id }}">{{ project.project.name }}</option>
+                        {% empty %}
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Fecha Inicio</label>
+                        <input type="date" name="start_date" class="form-control" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Fecha Fin</label>
+                        <input type="date" name="end_date" class="form-control" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Objetivo</label>
+                    <textarea name="goal" class="form-control" rows="2" placeholder="Objetivo del sprint..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success">Crear</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

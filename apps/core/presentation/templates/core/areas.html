@@ -1,0 +1,70 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% block title %}Areas - Winnie{% endblock %}
+{% block page_title %}Areas{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-sitemap me-2"></i>Areas</h4>
+                {% if user|has_role:"super-admin,admin" %}
+                <a href="{% url 'crear_area' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nueva Area</a>
+                {% endif %}
+            </div>
+
+            {% if areas %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:36px"></th>
+                                <th>Nombre</th>
+                                <th>Codigo</th>
+                                <th>Descripcion</th>
+                                <th>Proyectos</th>
+                                {% if user|has_role:"super-admin,admin" %}
+                                <th style="width:80px" class="text-end">Acciones</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for area in areas %}
+                            <tr>
+                                <td>
+                                    <div class="entity-icon" style="color:{{ area.color }}"><i class="fas {{ area.icon }}"></i></div>
+                                </td>
+                                <td>
+                                    <div class="fw-medium" style="font-size:0.8rem;">{{ area.name }}</div>
+                                </td>
+                                <td><code style="font-size:0.75rem;">{{ area.code }}</code></td>
+                                <td><small class="text-muted">{{ area.description|truncatechars:80|default:"-" }}</small></td>
+                                <td><span class="badge" style="background:var(--bg);color:var(--text-secondary);font-size:0.65rem;">{{ area.project_count }} proyectos</span></td>
+                                {% if user|has_role:"super-admin,admin" %}
+                                <td class="text-end">
+                                    <a href="{% url 'editar_area' area.id %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <form method="post" action="{% url 'eliminar_area' area.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ area.name }}?')">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-sitemap fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                <h6 class="text-muted">Sin areas</h6>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

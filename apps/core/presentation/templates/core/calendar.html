@@ -1,0 +1,68 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Calendario - Winnie{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">{{ month_name }} {{ year }}</h4>
+                <div class="d-flex gap-2">
+                    <a href="?year={% if month == 1 %}{{ year|add:"-1" }}{% else %}{{ year }}{% endif %}&month={% if month == 1 %}12{% else %}{{ month|add:"-1" }}{% endif %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
+                    <a href="?year={{ year }}&month={{ month|add:"1" }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="calendar-header">
+                        <div class="cal-day-name">Dom</div>
+                        <div class="cal-day-name">Lun</div>
+                        <div class="cal-day-name">Mar</div>
+                        <div class="cal-day-name">Mié</div>
+                        <div class="cal-day-name">Jue</div>
+                        <div class="cal-day-name">Vie</div>
+                        <div class="cal-day-name">Sáb</div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Eventos del Mes</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% for event in events|dictsort:"date" %}
+                    <div class="event-row">
+                        <div class="event-color" style="background:{{ event.color }}"></div>
+                        <div class="event-info">
+                            <div class="event-title">{{ event.title }}</div>
+                            <div class="event-project">{{ event.project }}</div>
+                        </div>
+                        <div class="event-date">{{ event.date }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-secondary py-4"><small>Sin eventos este mes</small></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<link href="{% static 'css/calendar.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.calendarEvents = {{ events|safe }};
+window.calendarYear = {{ year }};
+window.calendarMonth = {{ month }};
+</script>
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock %}
+{% endblock %}

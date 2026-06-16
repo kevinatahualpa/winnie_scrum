@@ -1,0 +1,60 @@
+@startuml
+title Secuencia - Iniciar Sesion
+
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+actor "Usuario" as Usuario
+boundary "IU_Login\n(login.html)" as IU_Login
+control "AuthViews\niniciar_sesion()" as AuthViews
+control "Django Auth\nauthenticate()" as DjangoAuth
+entity "UserProfile\n(Model)" as UserProfile
+entity "NotificationService\ncreate_audit_log()" as NotificationService
+database "AuditLog\n(Model)" as AuditLog
+boundary "IU_Dashboard\n(dashboard.html)" as IU_Dashboard
+
+Usuario -> IU_Login : 1. ingresar(email, password)
+IU_Login -> AuthViews : 2. POST /iniciar_sesion/
+activate AuthViews
+
+AuthViews -> AuthViews : 3. verificar si ya autenticado
+
+AuthViews -> DjangoAuth : 4. authenticate(username=email, password)
+activate DjangoAuth
+DjangoAuth -> DjangoAuth : 5. verificar credenciales
+DjangoAuth --> AuthViews : 6. user o None
+deactivate DjangoAuth
+
+alt credenciales invalidas
+    AuthViews --> IU_Login : 7. mostrar error "Credenciales incorrectas"
+    IU_Login --> Usuario : 8. mostrar mensaje error
+else credenciales validas
+    AuthViews -> UserProfile : 9. user.profile.status
+    activate UserProfile
+    UserProfile --> AuthViews : 10. status (pending/active/dismissed)
+    deactivate UserProfile
+
+    alt status == pending
+        AuthViews --> IU_Login : 11. mostrar error "Sera revisada"
+        IU_Login --> Usuario : 12. mostrar mensaje
+    else status == dismissed
+        AuthViews --> IU_Login : 13. mostrar error "Cuenta desactivada"
+        IU_Login --> Usuario : 14. mostrar mensaje
+    else status == active
+        AuthViews -> AuthViews : 15. login(request, user)
+        AuthViews -> NotificationService : 16. create_audit_log(user, "LOGIN", "user")
+        activate NotificationService
+        NotificationService -> AuditLog : 17. AuditLog.objects.create()
+        activate AuditLog
+        AuditLog --> NotificationService : 18. registro guardado
+        deactivate AuditLog
+        NotificationService --> AuthViews : 19. audit log creado
+        deactivate NotificationService
+        AuthViews --> IU_Dashboard : 20. redirect('ver_dashboard')
+        deactivate AuthViews
+        IU_Dashboard --> Usuario : 21. mostrar dashboard
+    end
+end
+
+@enduml

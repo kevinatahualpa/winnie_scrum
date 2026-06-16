@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if service_request %}Editar{% else %}Nueva{% endif %} Solicitud - Winnie{% endblock %}
+{% block page_title %}{% if service_request %}Editar{% else %}Nueva{% endif %} Solicitud de Servicio{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post" action="{% if service_request %}{% url 'editar_servicio' service_request.id %}{% else %}{% url 'crear_servicio' %}{% endif %}">
+                        {% csrf_token %}
+                        {% if not service_request %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Cliente (existente)</label>
+                                <select name="client" class="form-select">
+                                    <option value="">Nuevo cliente</option>
+                                    {% for client in clients %}
+                                    <option value="{{ client.id }}">{{ client.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">O nombre del nuevo cliente</label>
+                                <input type="text" name="client_name" class="form-control" placeholder="Nombre del cliente">
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Servicio</label>
+                                <select name="service" class="form-select" required>
+                                    <option value="consultoria" {% if service_request.service == 'consultoria' %}selected{% endif %}>Consultoria TI</option>
+                                    <option value="mesa-ayuda" {% if service_request.service == 'mesa-ayuda' %}selected{% endif %}>Mesa de Ayuda TI</option>
+                                    <option value="remoto" {% if service_request.service == 'remoto' %}selected{% endif %}>Trabajo Remoto</option>
+                                    <option value="cloud" {% if service_request.service == 'cloud' %}selected{% endif %}>Cloud Computing</option>
+                                    <option value="capacitacion" {% if service_request.service == 'capacitacion' %}selected{% endif %}>Learning Center</option>
+                                    <option value="seguridad" {% if service_request.service == 'seguridad' %}selected{% endif %}>Seguridad Informatica</option>
+                                    <option value="web" {% if service_request.service == 'web' %}selected{% endif %}>Paginas Web y E-commerce</option>
+                                    <option value="hosting" {% if service_request.service == 'hosting' %}selected{% endif %}>Hosting y VPS</option>
+                                    <option value="camaras" {% if service_request.service == 'camaras' %}selected{% endif %}>Camara de Videovigilancia</option>
+                                    <option value="soporte" {% if service_request.service == 'soporte' %}selected{% endif %}>Soporte Tecnico</option>
+                                    <option value="marketing" {% if service_request.service == 'marketing' %}selected{% endif %}>Marketing Digital</option>
+                                    <option value="community" {% if service_request.service == 'community' %}selected{% endif %}>Community Manager</option>
+                                    <option value="desarrollo" {% if service_request.service == 'desarrollo' %}selected{% endif %}>Desarrollo de Software</option>
+                                </select>
+                            </div>
+                            {% if service_request %}
+                            <div class="col-md-6">
+                                <label class="form-label">Estado</label>
+                                <select name="status" class="form-select">
+                                    <option value="new" {% if service_request.status == 'new' %}selected{% endif %}>Nuevo</option>
+                                    <option value="reviewing" {% if service_request.status == 'reviewing' %}selected{% endif %}>En Revision</option>
+                                    <option value="in-progress" {% if service_request.status == 'in-progress' %}selected{% endif %}>En Progreso</option>
+                                    <option value="completed" {% if service_request.status == 'completed' %}selected{% endif %}>Completado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Asignado a</label>
+                                <select name="assigned_to" class="form-select">
+                                    <option value="">Sin asignar</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if service_request.assigned_to_id == user.id %}selected{% endif %}>{{ user.get_full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
+                            <div class="col-12">
+                                <label class="form-label">Descripcion</label>
+                                <textarea name="description" class="form-control" rows="3" required>{% if service_request %}{{ service_request.description }}{% endif %}</textarea>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'ver_servicios' %}" class="btn btn-ghost">Cancelar</a>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

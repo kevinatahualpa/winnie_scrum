@@ -1,0 +1,30 @@
+.member-avatar {
+    width: 32px; height: 32px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 0.65rem; font-weight: 600;
+}
+.project-count-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2em 0.6em;
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    cursor: default;
+    border: 1px solid var(--border);
+}
+.project-count-badge:hover {
+    background: #e8f4fd;
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+.filter-select {
+    width: fit-content;
+    min-width: 100px;
+    max-width: 220px;
+    padding-right: 1.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

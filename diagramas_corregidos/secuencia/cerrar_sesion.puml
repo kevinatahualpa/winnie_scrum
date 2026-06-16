@@ -1,0 +1,43 @@
+@startuml
+title Secuencia - Cerrar Sesion
+
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+actor "Usuario" as Usuario
+boundary "IU_Sidebar\n(sidebar.html)" as IU_Sidebar
+control "AuthViews\ncerrar_sesion()" as AuthViews
+entity "NotificationService\ncreate_audit_log()" as NotificationService
+database "AuditLog\n(Model)" as AuditLog
+control "Django Auth\nlogout()" as DjangoAuth
+boundary "IU_Login\n(login.html)" as IU_Login
+
+Usuario -> IU_Sidebar : 1. click "Cerrar Sesion"
+IU_Sidebar -> AuthViews : 2. GET /cerrar_sesion/
+activate AuthViews
+
+AuthViews -> AuthViews : 3. @login_required (verificar autenticacion)
+
+AuthViews -> NotificationService : 4. create_audit_log(user, "LOGOUT", "user")
+activate NotificationService
+NotificationService -> AuditLog : 5. AuditLog.objects.create(user, action, entity)
+activate AuditLog
+AuditLog --> NotificationService : 6. registro guardado
+deactivate AuditLog
+NotificationService --> AuthViews : 7. audit log creado
+deactivate NotificationService
+
+AuthViews -> DjangoAuth : 8. logout(request)
+activate DjangoAuth
+DjangoAuth -> DjangoAuth : 9. flush_session()
+DjangoAuth -> DjangoAuth : 10. delete_session_cookie()
+DjangoAuth --> AuthViews : 11. sesion destruida
+deactivate DjangoAuth
+
+AuthViews --> IU_Login : 12. redirect('iniciar_sesion')
+deactivate AuthViews
+
+IU_Login --> Usuario : 13. mostrar pagina de login
+
+@enduml

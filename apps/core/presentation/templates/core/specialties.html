@@ -1,0 +1,70 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% block title %}Especialidades - Winnie{% endblock %}
+{% block page_title %}Especialidades{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-cogs me-2"></i>Especialidades</h4>
+                {% if user|has_role:"super-admin,admin" %}
+                <a href="{% url 'crear_especialidad' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nueva Especialidad</a>
+                {% endif %}
+            </div>
+
+            {% if specialties %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:36px"></th>
+                                <th>Nombre</th>
+                                <th>Categoria</th>
+                                <th>Color</th>
+                                <th>Descripcion</th>
+                                {% if user|has_role:"super-admin,admin" %}
+                                <th style="width:80px" class="text-end">Acciones</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for spec in specialties %}
+                            <tr>
+                                <td>
+                                    <div class="entity-icon" style="color:{{ spec.color }}"><i class="fas fa-cog"></i></div>
+                                </td>
+                                <td>
+                                    <div class="fw-medium" style="font-size:0.8rem;">{{ spec.name }}</div>
+                                </td>
+                                <td><small>{{ spec.get_category_display }}</small></td>
+                                <td><span class="badge" style="background:{{ spec.color }}20;color:{{ spec.color }};font-size:0.65rem;">{{ spec.color }}</span></td>
+                                <td><small class="text-muted">{{ spec.description|truncatechars:80|default:"-" }}</small></td>
+                                {% if user|has_role:"super-admin,admin" %}
+                                <td class="text-end">
+                                    <a href="{% url 'editar_especialidad' spec.id %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <form method="post" action="{% url 'eliminar_especialidad' spec.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ spec.name }}?')">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-cogs fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                <h6 class="text-muted">Sin especialidades</h6>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

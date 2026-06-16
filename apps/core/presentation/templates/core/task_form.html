@@ -1,0 +1,125 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Tarea - Winnie{% endblock %}
+{% block page_title %}{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Tarea{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger small py-2 mb-3">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Corrige los errores:
+                        <ul class="mb-0 mt-1">
+                            {% for field, errs in form.errors.items %}
+                            <li><strong>{{ field }}</strong>: {{ errs|join:", " }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    <form method="post" action="{% if form.instance.pk %}{% url 'editar_tarea' form.instance.pk %}{% else %}{% url 'crear_tarea' %}{% endif %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Titulo</label>
+                                <input type="text" name="title" class="form-control" value="{{ form.title.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo</label>
+                                <select name="type" class="form-select">
+                                    <option value="story" {% if form.type.value == 'story' %}selected{% endif %}>Historia</option>
+                                    <option value="task" {% if form.type.value == 'task' %}selected{% endif %}>Tarea</option>
+                                    <option value="bug" {% if form.type.value == 'bug' %}selected{% endif %}>Bug</option>
+                                    <option value="epic" {% if form.type.value == 'epic' %}selected{% endif %}>Epic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Prioridad</label>
+                                <select name="priority" class="form-select">
+                                    <option value="high" {% if form.priority.value == 'high' %}selected{% endif %}>Alta</option>
+                                    <option value="medium" {% if form.priority.value == 'medium' %}selected{% endif %}>Media</option>
+                                    <option value="low" {% if form.priority.value == 'low' %}selected{% endif %}>Baja</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Puntos</label>
+                                <select name="points" class="form-select">
+                                    {% for p in points_list %}
+                                    <option value="{{ p }}" {% if form.points.value|stringformat:"s" == p %}selected{% endif %}>{{ p }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% if not form.instance.pk %}
+                            <div class="col-md-6">
+                                <label class="form-label">Proyecto</label>
+                                <select name="project" class="form-select" required>
+                                    {% for project in projects %}
+                                    <option value="{{ project.id }}" {% if form.project.value|stringformat:"s" == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
+                            <div class="col-md-6">
+                                <label class="form-label">Asignado a</label>
+                                <select name="assignee" class="form-select" id="assigneeSelect">
+                                    <option value="">Sin asignar</option>
+                                    {% for u in users %}
+                                    <option value="{{ u.id }}" data-specialty="{{ u.profile.specialty_id|default:'' }}" {% if form.assignee.value|stringformat:"s" == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name }}{% if u.profile.specialty %} — {{ u.profile.specialty.name }}{% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text text-muted" id="assigneeHint" style="display:none"><i class="fas fa-info-circle me-1"></i>Selecciona una especialidad para filtrar</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Sprint</label>
+                                <select name="sprint" class="form-select">
+                                    <option value="">Sin sprint</option>
+                                    {% for sprint in sprints %}
+                                    <option value="{{ sprint.id }}" {% if form.sprint.value|stringformat:"s" == sprint.id|stringformat:"s" %}selected{% endif %}>{{ sprint.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Requiere Especialidad</label>
+                                <select name="required_specialty" class="form-select">
+                                    <option value="">Sin requerimiento</option>
+                                    {% for specialty in specialties %}
+                                    <option value="{{ specialty.id }}" {% if form.required_specialty.value|stringformat:"s" == specialty.id|stringformat:"s" %}selected{% endif %}>{{ specialty.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Estado</label>
+                                <select name="status" class="form-select">
+                                    <option value="backlog" {% if form.status.value == 'backlog' %}selected{% endif %}>Backlog</option>
+                                    <option value="todo" {% if form.status.value == 'todo' %}selected{% endif %}>Por Hacer</option>
+                                    <option value="in-progress" {% if form.status.value == 'in-progress' %}selected{% endif %}>En Progreso</option>
+                                    <option value="done" {% if form.status.value == 'done' %}selected{% endif %}>Completado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Etiquetas (separadas por comas)</label>
+                                <input type="text" name="tags" class="form-control" value="{{ form.tags.value|default:'' }}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Descripcion</label>
+                                <textarea name="description" class="form-control" rows="3">{{ form.description.value|default:'' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'ver_tablero' %}" class="btn btn-ghost">Cancelar</a>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/task_form.js' %}"></script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% load static %}
+{% block title %}Proyectos - Winnie{% endblock %}
+{% block page_title %}Proyectos{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-folder me-2"></i>Proyectos</h4>
+                {% if user|has_role:"super-admin,admin,jefe-area" %}
+                <a href="{% url 'crear_proyecto' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nuevo Proyecto</a>
+                {% endif %}
+            </div>
+
+            {% if projects %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:36px"></th>
+                                <th>Nombre</th>
+                                <th>Area</th>
+                                <th>Cliente</th>
+                                <th>Estado</th>
+                                <th style="width:120px">Progreso</th>
+                                <th style="width:80px" class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>
+                                    <div class="entity-icon" style="color:{{ project.color }}"><i class="fas fa-folder"></i></div>
+                                </td>
+                                <td>
+                                    <div class="fw-medium" style="font-size:0.8rem;">
+                                        <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="text-decoration-none">{{ project.name }}</a>
+                                    </div>
+                                    <small class="text-muted">{{ project.description|truncatechars:60|default:"-" }}</small>
+                                </td>
+                                <td><small>{{ project.area.name|default:"-" }}</small></td>
+                                <td><small>{{ project.client.name|default:"-" }}</small></td>
+                                <td><span class="badge badge-status-{{ project.status }} small">{{ project.get_status_display }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:{{ project.progress }}%;background:{{ project.color }}"></div></div>
+                                        <small class="text-muted" style="min-width:30px;">{{ project.progress }}%</small>
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="btn btn-sm btn-ghost" title="Ver"><i class="fas fa-eye"></i></a>
+                                    {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                                    <a href="{% url 'editar_proyecto' project.pk %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
+                                    {% endif %}
+                                    {% if user|has_role:"super-admin,admin,jefe-area" %}
+                                    <form method="post" action="{% url 'eliminar_proyecto' project.pk %}" class="d-inline" onsubmit="return confirm('Eliminar {{ project.name }}?')">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-folder-open fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                <h6 class="text-muted">Sin proyectos</h6>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<link href="{% static 'css/projects.css' %}" rel="stylesheet">
+{% endblock %}
+{% endblock %}

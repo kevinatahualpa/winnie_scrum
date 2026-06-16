@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% block title %}Auditoria - Winnie{% endblock %}
+{% block page_title %}Auditoria{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <h5 class="fw-bold mb-3">Registro de Auditoria</h5>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Accion</th>
+                                    <th>Entidad</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td class="fw-medium">{{ log.user.get_full_name|default:log.user.username|default:"Sistema" }}</td>
+                                    <td><span class="badge bg-light text-dark">{{ log.action }}</span></td>
+                                    <td>{{ log.entity }}</td>
+                                    <td class="text-muted">{{ log.created_at|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">Sin registros de auditoria</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

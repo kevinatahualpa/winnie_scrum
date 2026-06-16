@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if area %}Editar{% else %}Nueva{% endif %} Area - Winnie{% endblock %}
+{% block page_title %}{% if area %}Editar{% else %}Nueva{% endif %} Area{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post" action="{% if area %}{% url 'editar_area' area.id %}{% else %}{% url 'crear_area' %}{% endif %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Codigo</label>
+                                <input type="text" name="code" class="form-control" value="{% if area %}{{ area.code }}{% endif %}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" name="name" class="form-control" value="{% if area %}{{ area.name }}{% endif %}" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Descripcion</label>
+                                <textarea name="description" class="form-control" rows="2">{% if area %}{{ area.description }}{% endif %}</textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Color</label>
+                                <input type="color" name="color" class="form-control form-control-color" value="{% if area %}{{ area.color }}{% else %}#00bcd4{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Icono (FontAwesome)</label>
+                                <input type="text" name="icon" class="form-control" value="{% if area %}{{ area.icon }}{% else %}fa-building{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Estado</label>
+                                <select name="status" class="form-select">
+                                    <option value="active" {% if area.status == 'active' %}selected{% endif %}>Activa</option>
+                                    <option value="inactive" {% if area.status == 'inactive' %}selected{% endif %}>Inactiva</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'ver_areas' %}" class="btn btn-ghost">Cancelar</a>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

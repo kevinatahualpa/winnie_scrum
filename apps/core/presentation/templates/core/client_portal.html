@@ -1,0 +1,149 @@
+{% extends 'core/base.html' %}
+{% block title %}Portal Cliente{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-user-tie me-2" style="color: var(--accent);"></i>
+                Portal de Cliente
+            </h2>
+            {% if client %}
+            <p class="text-muted mb-0">
+                <i class="fas fa-building me-1"></i>{{ client.name }}
+                {% if client.contact %} &middot; <i class="fas fa-user me-1"></i>{{ client.contact }}{% endif %}
+            </p>
+            {% endif %}
+        </div>
+        <a href="{% url 'crear_solicitud_cliente' %}" class="btn btn-primary">
+            <i class="fas fa-headset me-1"></i>Nueva solicitud de servicio
+        </a>
+    </div>
+
+    {% if not client %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Tu usuario aun no esta vinculado a un cliente. Contacta al administrador.
+    </div>
+    {% else %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Proyectos activos</div>
+                    <div class="h3 mb-0">{{ projects|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Solicitudes recientes</div>
+                    <div class="h3 mb-0">{{ services|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Estado</div>
+                    <div class="h5 mb-0">
+                        <i class="fas fa-check-circle text-success me-1"></i>Acceso activo
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-folder-open me-2"></i>Mis proyectos</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if projects %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Proyecto</th>
+                            <th>Area</th>
+                            <th>Estado</th>
+                            <th>Avance</th>
+                            <th>Inicio</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in projects %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span style="width: 10px; height: 10px; background: {{ p.color|default:'#00bcd4' }}; border-radius: 50%; display: inline-block;"></span>
+                                    <strong>{{ p.name }}</strong>
+                                </div>
+                            </td>
+                            <td>{{ p.area.name|default:'-' }}</td>
+                            <td>
+                                <span class="badge bg-{% if p.status == 'active' %}success{% elif p.status == 'completed' %}primary{% elif p.status == 'paused' %}warning{% else %}secondary{% endif %}">
+                                    {{ p.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 8px; min-width: 100px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ p.progress }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ p.progress }}%</small>
+                            </td>
+                            <td>{{ p.start_date|date:"d/m/Y"|default:'-' }}</td>
+                            <td>
+                                <a href="{% url 'ver_detalle_proyecto_cliente' p.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>Ver detalle
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-folder-open fa-3x mb-3"></i>
+                <p>Aun no tienes proyectos asignados</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-headset me-2"></i>Solicitudes recientes</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if services %}
+            <div class="list-group list-group-flush">
+                {% for s in services %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ s.get_service_display }}</strong>
+                        <div class="small text-muted">{{ s.description|truncatewords:15 }}</div>
+                    </div>
+                    <span class="badge bg-{% if s.status == 'completed' %}success{% elif s.status == 'in-progress' %}primary{% else %}secondary{% endif %}">
+                        {{ s.get_status_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-inbox fa-2x mb-2"></i>
+                <p class="mb-0">Sin solicitudes de servicio</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}

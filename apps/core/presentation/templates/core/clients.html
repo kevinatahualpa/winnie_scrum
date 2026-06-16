@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% block title %}Clientes - Winnie{% endblock %}
+{% block page_title %}Clientes{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-building me-2"></i>Clientes</h4>
+                {% if user|has_role:"super-admin,admin" %}
+                <a href="{% url 'crear_cliente' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nuevo Cliente</a>
+                {% endif %}
+            </div>
+
+            {% if clients %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:36px"></th>
+                                <th>Nombre</th>
+                                <th>Contacto</th>
+                                <th>Email</th>
+                                <th>Telefono</th>
+                                <th>Industria</th>
+                                {% if user|has_role:"super-admin,admin" %}
+                                <th style="width:80px" class="text-end">Acciones</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for client in clients %}
+                            <tr>
+                                <td>
+                                    <div class="entity-icon"><i class="fas fa-building"></i></div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'client_detail' pk=client.id %}" class="fw-medium text-decoration-none" style="font-size:0.8rem;">
+                                        {{ client.name }}
+                                    </a>
+                                </td>
+                                <td><small>{{ client.contact|default:"-" }}</small></td>
+                                <td><small>{{ client.email|default:"-" }}</small></td>
+                                <td><small>{{ client.phone|default:"-" }}</small></td>
+                                <td><small class="text-muted">{{ client.industry|default:"-" }}</small></td>
+                                {% if user|has_role:"super-admin,admin" %}
+                                <td class="text-end">
+                                    <a href="{% url 'client_detail' pk=client.id %}" class="btn btn-sm btn-ghost" title="Ver detalle"><i class="fas fa-eye"></i></a>
+                                    <a href="{% url 'editar_cliente' client.id %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <form method="post" action="{% url 'eliminar_cliente' client.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ client.name }}?')">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-building fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                <h6 class="text-muted">Sin clientes</h6>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

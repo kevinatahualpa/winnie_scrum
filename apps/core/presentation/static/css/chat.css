@@ -1,0 +1,41 @@
+.message-bubble {
+    border-radius: 8px;
+    padding: 6px 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    word-wrap: break-word;
+}
+.message-bubble.sent {
+    background: #d9fdd3;
+    border-top-right-radius: 2px;
+}
+.message-bubble.received {
+    background: #fff;
+    border-top-left-radius: 2px;
+}
+.message-bubble .bubble-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    color: #fff;
+    font-size: 0.55rem;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.obs-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #f59e0b;
+    color: #fff;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -1,0 +1,161 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% load static %}
+{% block title %}Tablero - Winnie{% endblock %}
+{% block page_title %}Tablero Scrum{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content" id="main-content" role="main">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap" role="toolbar" aria-label="Filtros del tablero">
+                    {% if role in 'super-admin,admin' %}
+                    <select class="form-select form-select-sm filter-select" id="areaFilter" aria-label="Filtrar por area" style="width:auto;min-width:140px">
+                        <option value="">Todas las areas</option>
+                        {% for area in areas %}
+                        <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }} - {{ area.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    <select class="form-select form-select-sm filter-select" id="projectFilter" aria-label="Filtrar por proyecto" style="width:auto;min-width:160px">
+                        <option value="">Todos los proyectos</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
+                    <select class="form-select form-select-sm filter-select" id="assigneeFilter" aria-label="Filtrar por asignado" style="width:auto;min-width:150px">
+                        <option value="">Todos los asignados</option>
+                        {% for u in assignees %}
+                        <option value="{{ u.id }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    {% if filters.area or filters.project or filters.assignee %}
+                    <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-danger" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                {% if filters.project %}
+                <a href="{% url 'ver_detalle_proyecto' filters.project %}" class="btn btn-sm btn-outline-info" title="Ir al proyecto"><i class="fas fa-external-link-alt me-1"></i>Ver Proyecto</a>
+                {% endif %}
+                {% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
+                <a href="{% url 'crear_tarea' %}" class="btn btn-success btn-sm" aria-label="Crear nueva tarea"><i class="fas fa-plus me-1" aria-hidden="true"></i>Nueva Tarea</a>
+                {% endif %}
+            </div>
+            </div>
+
+            <div class="row g-3" id="board" role="list" aria-label="Columnas del tablero">
+                {% for status_key, status_label, tasks_list in board_columns %}
+                <div class="col-md-3" role="listitem">
+                    <div class="card shadow-sm border-0 h-100 column-card" data-status="{{ status_key }}">
+                        <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                            <h6 class="fw-semibold mb-0 small">{{ status_label }}</h6>
+                            <span class="badge bg-secondary small task-count" data-status="{{ status_key }}" aria-label="{{ tasks_list|length }} tareas">{{ tasks_list|length }}</span>
+                        </div>
+                        <div class="card-body p-2 task-column" data-status="{{ status_key }}"
+                             role="list"
+                             aria-label="Tareas en {{ status_label }}"
+                             style="min-height:200px;max-height:70vh;overflow-y:auto;transition:background 0.2s;">
+                            {% for task in tasks_list %}
+                            <div class="card border-0 shadow-sm mb-2 task-card priority-{{ task.priority }}"
+                                 draggable="true"
+                                 data-task-id="{{ task.pk }}"
+                                 data-status="{{ task.status }}"
+                                 id="task-{{ task.pk }}"
+                                 role="listitem"
+                                 tabindex="0"
+                                 aria-label="Tarea: {{ task.title }}, Prioridad: {{ task.get_priority_display }}, Tipo: {{ task.get_type_display }}">
+                                <div class="card-body p-2 position-relative">
+                                    <div class="d-flex align-items-center gap-1 mb-1">
+                                        <span class="priority-badge priority-{{ task.priority }}"><i class="fas fa-flag" aria-hidden="true"></i> {{ task.get_priority_display }}</span>
+                                        <span class="badge badge-type-{{ task.type }} small">{{ task.get_type_display }}</span>
+                                        {% if task.sprint %}
+                                        <span class="badge bg-info bg-opacity-10 text-info small">{{ task.sprint.name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="fw-medium small mb-1 task-title">{{ task.title }}</p>
+                                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                                        {% if task.assignee %}
+                                        <span class="assignee-badge">
+                                            <i class="fas fa-user-circle me-1" aria-hidden="true"></i>{{ task.assignee.get_full_name|default:task.assignee.username }}
+                                        </span>
+                                        {% endif %}
+                                        <span class="points-badge">{{ task.points }} pts</span>
+                                    </div>
+                                    {% if task.tags.all %}
+                                    <div class="task-tags mt-1">
+                                        {% for tag in task.tags.all|slice:":3" %}
+                                        <span class="badge" style="background:{{ tag.color }};font-size:0.65rem">{{ tag.name }}</span>
+                                        {% endfor %}
+                                        {% if task.tags.all|length > 3 %}
+                                        <span class="badge bg-light text-dark" style="font-size:0.65rem">+{{ task.tags.all|length|add:"-3" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="d-flex gap-1 mt-1 align-items-center">
+                                        <button class="btn btn-sm py-0 px-1 toggle-obs-btn" data-task="{{ task.pk }}" title="Observaciones" style="font-size:0.65rem; border: none; background: none; color: #f59e0b;">
+                                            <i class="fas fa-comment-dots"></i>
+                                            {% if task.comment_count %}
+                                            <span style="font-size:0.55rem;">{{ task.comment_count }}</span>
+                                            {% endif %}
+                                        </button>
+                                        {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                                        <div class="ms-auto d-flex gap-1">
+                                            <a href="{% url 'editar_tarea' task.pk %}" class="btn btn-info btn-sm py-0 px-1" aria-label="Editar tarea {{ task.title }}" style="font-size:0.7rem"><i class="fas fa-edit" aria-hidden="true"></i></a>
+                                            <form method="post" action="{% url 'eliminar_tarea' task.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar tarea?')">
+                                                {% csrf_token %}
+                                                <button class="btn btn-outline-danger btn-sm py-0 px-1" aria-label="Eliminar tarea {{ task.title }}" style="font-size:0.7rem"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="obs-inline mt-1" id="obs-{{ task.pk }}" style="display:none;">
+                                        <form method="post" action="{% url 'comentar_tarea' task.pk %}" class="d-flex gap-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="area" value="{{ filters.area|default:'' }}">
+                                            <input type="hidden" name="project" value="{{ filters.project|default:'' }}">
+                                            <input type="hidden" name="assignee" value="{{ filters.assignee|default:'' }}">
+                                            <input type="text" name="text" class="form-control form-control-sm" placeholder="Observación..." required style="font-size:0.65rem; padding:0.2rem 0.4rem;">
+                                            <button type="submit" class="btn btn-sm py-0 px-2" style="background:#f59e0b; color:#fff; font-size:0.65rem;" title="Enviar"><i class="fas fa-check"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center text-muted py-3 small empty-msg">Sin tareas</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999" role="status" aria-live="polite"></div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/board.css' %}" rel="stylesheet">
+<link href="{% static 'css/chat.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-obs-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var id = this.dataset.task;
+            var obs = document.getElementById('obs-' + id);
+            if (obs) obs.style.display = obs.style.display === 'none' ? '' : 'none';
+        });
+    });
+});
+</script>
+<script src="{% static 'js/board.js' %}"></script>
+{% endblock %}

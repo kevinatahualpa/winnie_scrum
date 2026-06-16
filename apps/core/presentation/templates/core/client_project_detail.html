@@ -1,0 +1,164 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ project.name }} - Portal Cliente{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <a href="{% url 'ver_portal_cliente' %}" class="btn btn-sm btn-link mb-3">
+        <i class="fas fa-arrow-left me-1"></i>Volver al portal
+    </a>
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="mb-1">
+                <span style="width: 14px; height: 14px; background: {{ project.color|default:'#00bcd4' }}; border-radius: 50%; display: inline-block;"></span>
+                {{ project.name }}
+            </h2>
+            <p class="text-muted">{{ project.description }}</p>
+        </div>
+        <span class="badge bg-{% if project.status == 'active' %}success{% elif project.status == 'completed' %}primary{% elif project.status == 'paused' %}warning{% else %}secondary{% endif %} fs-6">
+            {{ project.get_status_display }}
+        </span>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Avance</div>
+                    <div class="h4">{{ project.progress }}%</div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" style="width: {{ project.progress }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Area</div>
+                    <div class="h6 mb-0">{{ project.area.name|default:'-' }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Inicio</div>
+                    <div class="h6 mb-0">{{ project.start_date|date:"d/m/Y"|default:'-' }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Fin estimado</div>
+                    <div class="h6 mb-0">{{ project.end_date|date:"d/m/Y"|default:'-' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-tasks">
+                <i class="fas fa-tasks me-1"></i>Tareas ({{ tasks|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-sprints">
+                <i class="fas fa-running me-1"></i>Sprints ({{ sprints|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-docs">
+                <i class="fas fa-file me-1"></i>Documentos ({{ documents|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-tasks">
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Titulo</th>
+                                <th>Tipo</th>
+                                <th>Prioridad</th>
+                                <th>Estado</th>
+                                <th>Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in tasks %}
+                            <tr>
+                                <td><strong>{{ t.title }}</strong></td>
+                                <td><span class="badge bg-light text-dark">{{ t.get_type_display }}</span></td>
+                                <td>
+                                    <span class="badge bg-{% if t.priority == 'high' %}danger{% elif t.priority == 'medium' %}warning{% else %}secondary{% endif %}">
+                                        {{ t.get_priority_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if t.status == 'done' %}success{% elif t.status == 'in-progress' %}primary{% else %}secondary{% endif %}">
+                                        {{ t.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ t.assignee.get_full_name|default:t.assignee.username|default:'-' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">Sin tareas aun</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-sprints">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    {% for s in sprints %}
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <strong>{{ s.name }}</strong>
+                            <div class="small text-muted">{{ s.start_date|date:"d/m/Y" }} - {{ s.end_date|date:"d/m/Y" }}</div>
+                            {% if s.goal %}<div class="small">{{ s.goal }}</div>{% endif %}
+                        </div>
+                        <span class="badge bg-{% if s.status == 'active' %}success{% elif s.status == 'completed' %}primary{% else %}secondary{% endif %}">
+                            {{ s.get_status_display }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted py-4 mb-0">Sin sprints</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-docs">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    {% for d in documents %}
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <i class="fas fa-file me-2 text-muted"></i>
+                            <strong>{{ d.name }}</strong>
+                            <div class="small text-muted">{{ d.created_at|date:"d/m/Y" }}</div>
+                        </div>
+                        {% if d.file %}
+                        <a href="{{ d.file.url }}" class="btn btn-sm btn-outline-primary" download>
+                            <i class="fas fa-download"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted py-4 mb-0">Sin documentos</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

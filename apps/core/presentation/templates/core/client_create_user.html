@@ -1,0 +1,108 @@
+{% extends 'core/base.html' %}
+{% block title %}Crear Usuario Cliente - {{ client.name }} - Winnie{% endblock %}
+{% block page_title %}Crear Usuario Cliente{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'ver_clientes' %}">Clientes</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'client_detail' pk=client.pk %}">{{ client.name }}</a></li>
+                    <li class="breadcrumb-item active">Crear usuario</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm" style="max-width:640px;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:48px;height:48px;background:var(--accent);color:#fff;font-size:1.1rem;flex-shrink:0;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Crear usuario para <strong>{{ client.name }}</strong></h5>
+                            <small class="text-muted">El usuario tendra acceso al portal de cliente</small>
+                        </div>
+                    </div>
+
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Nombre</label>
+                                <input type="text" name="first_name" class="form-control"
+                                       value="{{ form_data.first_name|default:'' }}" required autofocus>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Apellido</label>
+                                <input type="text" name="last_name" class="form-control"
+                                       value="{{ form_data.last_name|default:'' }}" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Email</label>
+                                <input type="email" name="email" class="form-control"
+                                       value="{{ form_data.email|default:'' }}" required
+                                       placeholder="contacto@{{ client.name|lower|slugify }}.com">
+                                <div class="form-text small">
+                                    Sera el username para iniciar sesion.
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">
+                                    Contrasena
+                                    <span class="text-muted fw-normal">(dejar vacio para generar una aleatoria)</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" name="password" id="passwordField"
+                                           class="form-control" placeholder="(se genera automaticamente)">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                            onclick="document.getElementById('passwordField').value=generatePassword()">
+                                        <i class="fas fa-dice me-1"></i> Generar
+                                    </button>
+                                </div>
+                                <div class="form-text small">
+                                    <i class="fas fa-info-circle"></i> Minimo 6 caracteres. Si dejas vacio y presionas "Generar", se crea una aleatoria de 12.
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'client_detail' pk=client.pk %}" class="btn btn-ghost">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-1"></i> Crear usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generatePassword() {
+    var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    var pw = '';
+    for (var i = 0; i < 12; i++) {
+        pw += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pw;
+}
+</script>
+{% endblock %}

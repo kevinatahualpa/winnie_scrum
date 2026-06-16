@@ -1,0 +1,2 @@
+.progress-bar-track { width: 80px; height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }

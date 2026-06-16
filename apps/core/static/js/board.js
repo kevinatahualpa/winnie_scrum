@@ -1,0 +1,341 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+    let draggedCard = null;
+    let dropIndicator = null;
+    let touchStartX = 0, touchStartY = 0;
+    let isDragging = false;
+
+    function getCardCenter(card) {
+        const rect = card.getBoundingClientRect();
+        return rect.top + rect.height / 2;
+    }
+
+    function findInsertPosition(column, mouseY) {
+        const cards = Array.from(column.querySelectorAll('.task-card:not(.dragging)'));
+        for (let i = 0; i < cards.length; i++) {
+            const cardCenter = getCardCenter(cards[i]);
+            if (mouseY < cardCenter) {
+                return cards[i];
+            }
+        }
+        return null;
+    }
+
+    function createDropIndicator() {
+        const indicator = document.createElement('div');
+        indicator.className = 'drop-indicator';
+        return indicator;
+    }
+
+    function setupDragEvents(card) {
+        card.addEventListener('dragstart', function(e) {
+            draggedCard = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.taskId);
+            setTimeout(() => this.style.opacity = '0.4', 0);
+        });
+
+        card.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            this.style.opacity = '1';
+            draggedCard = null;
+            document.querySelectorAll('.task-column').forEach(col => {
+                col.classList.remove('drag-over');
+                const indicator = col.querySelector('.drop-indicator');
+                if (indicator) indicator.remove();
+            });
+            document.querySelectorAll('.column-card').forEach(cc => cc.classList.remove('drag-over'));
+        });
+    }
+
+    document.querySelectorAll('.task-card').forEach(setupDragEvents);
+
+    document.querySelectorAll('.task-column').forEach(column => {
+        column.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+            this.closest('.column-card')?.classList.add('drag-over');
+
+            if (!dropIndicator) {
+                dropIndicator = createDropIndicator();
+            }
+
+            const insertBefore = findInsertPosition(this, e.clientY);
+            if (insertBefore) {
+                this.insertBefore(dropIndicator, insertBefore);
+            } else {
+                this.appendChild(dropIndicator);
+            }
+        });
+
+        column.addEventListener('dragleave', function(e) {
+            if (!this.contains(e.relatedTarget)) {
+                this.classList.remove('drag-over');
+                this.closest('.column-card')?.classList.remove('drag-over');
+                if (dropIndicator && dropIndicator.parentNode === this) {
+                    dropIndicator.remove();
+                }
+            }
+        });
+
+        column.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            this.closest('.column-card')?.classList.remove('drag-over');
+
+            if (!draggedCard) return;
+
+            const taskId = draggedCard.dataset.taskId;
+            const newStatus = this.dataset.status;
+            const oldStatus = draggedCard.dataset.status;
+
+            if (dropIndicator && dropIndicator.parentNode === this) {
+                dropIndicator.remove();
+                dropIndicator = null;
+            }
+
+            const insertBefore = findInsertPosition(this, e.clientY);
+            if (insertBefore) {
+                this.insertBefore(draggedCard, insertBefore);
+            } else {
+                this.appendChild(draggedCard);
+            }
+
+            const emptyMsg = this.querySelector('.empty-msg');
+            if (emptyMsg) emptyMsg.remove();
+
+            draggedCard.classList.remove('dragging');
+            draggedCard.dataset.status = newStatus;
+            draggedCard.style.opacity = '1';
+
+            updateCounts();
+
+            if (newStatus === oldStatus) return;
+
+            fetch(`/task/${taskId}/status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `status=${newStatus}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Tarea movida a "${getStatusName(newStatus)}"`);
+                } else {
+                    showToast('Error al actualizar la tarea', 'error');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            })
+            .catch(() => {
+                showToast('Error de conexion', 'error');
+                setTimeout(() => location.reload(), 1000);
+            });
+
+            draggedCard = null;
+        });
+    });
+
+    function setupTouchEvents(card) {
+        let touchClone = null;
+        let currentColumn = null;
+
+        card.addEventListener('touchstart', function(e) {
+            if (this.querySelector('a, button, form')) {
+                const target = e.target;
+                if (target.closest('a, button, form')) return;
+            }
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            draggedCard = this;
+        }, { passive: true });
+
+        card.addEventListener('touchmove', function(e) {
+            if (!draggedCard) return;
+            const dx = Math.abs(e.touches[0].clientX - touchStartX);
+            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+            if (!isDragging && (dx > 10 || dy > 10)) {
+                isDragging = true;
+                draggedCard.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+            }
+            if (!isDragging) return;
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const column = elementBelow?.closest('.task-column');
+
+            if (column !== currentColumn) {
+                if (currentColumn) {
+                    currentColumn.classList.remove('drag-over');
+                    currentColumn.closest('.column-card')?.classList.remove('drag-over');
+                    const indicator = currentColumn.querySelector('.drop-indicator');
+                    if (indicator) indicator.remove();
+                }
+                currentColumn = column;
+                if (column) {
+                    column.classList.add('drag-over');
+                    column.closest('.column-card')?.classList.add('drag-over');
+                    if (!dropIndicator) {
+                        dropIndicator = createDropIndicator();
+                    }
+                    const insertBefore = findInsertPosition(column, touch.clientY);
+                    if (insertBefore) {
+                        column.insertBefore(dropIndicator, insertBefore);
+                    } else {
+                        column.appendChild(dropIndicator);
+                    }
+                }
+            }
+        }, { passive: false });
+
+        card.addEventListener('touchend', function(e) {
+            if (!isDragging) {
+                draggedCard = null;
+                return;
+            }
+            isDragging = false;
+            document.body.style.userSelect = '';
+
+            if (currentColumn && draggedCard) {
+                const taskId = draggedCard.dataset.taskId;
+                const newStatus = currentColumn.dataset.status;
+                const oldStatus = draggedCard.dataset.status;
+
+                if (dropIndicator && dropIndicator.parentNode === currentColumn) {
+                    dropIndicator.remove();
+                    dropIndicator = null;
+                }
+
+                const insertBefore = findInsertPosition(currentColumn, e.changedTouches[0].clientY);
+                if (insertBefore) {
+                    currentColumn.insertBefore(draggedCard, insertBefore);
+                } else {
+                    currentColumn.appendChild(draggedCard);
+                }
+
+                currentColumn.classList.remove('drag-over');
+                currentColumn.closest('.column-card')?.classList.remove('drag-over');
+
+                const emptyMsg = currentColumn.querySelector('.empty-msg');
+                if (emptyMsg) emptyMsg.remove();
+
+                draggedCard.classList.remove('dragging');
+                draggedCard.dataset.status = newStatus;
+
+                updateCounts();
+
+                if (newStatus !== oldStatus) {
+                    fetch(`/task/${taskId}/status/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: `status=${newStatus}`
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(`Tarea movida a "${getStatusName(newStatus)}"`);
+                        } else {
+                            showToast('Error al actualizar', 'error');
+                            setTimeout(() => location.reload(), 1000);
+                        }
+                    })
+                    .catch(() => {
+                        showToast('Error de conexion', 'error');
+                        setTimeout(() => location.reload(), 1000);
+                    });
+                }
+            }
+
+            draggedCard = null;
+            currentColumn = null;
+        });
+    }
+
+    document.querySelectorAll('.task-card').forEach(setupTouchEvents);
+
+    function getStatusName(status) {
+        const names = {
+            'backlog': 'Backlog',
+            'todo': 'Por Hacer',
+            'in-progress': 'En Progreso',
+            'done': 'Completado'
+        };
+        return names[status] || status;
+    }
+
+    function updateCounts() {
+        document.querySelectorAll('.task-column').forEach(col => {
+            const status = col.dataset.status;
+            const count = col.querySelectorAll('.task-card').length;
+            const badge = document.querySelector(`.task-count[data-status="${status}"]`);
+            if (badge) badge.textContent = count;
+            if (count === 0 && !col.querySelector('.empty-msg')) {
+                col.innerHTML += '<div class="text-center text-muted py-3 small empty-msg">Sin tareas</div>';
+            }
+        });
+    }
+
+    function applyFilters() {
+        const params = new URLSearchParams();
+        const area = document.getElementById('areaFilter')?.value;
+        const project = document.getElementById('projectFilter')?.value;
+        const assignee = document.getElementById('assigneeFilter')?.value;
+
+        if (area) params.set('area', area);
+        if (project) params.set('project', project);
+        if (assignee) params.set('assignee', assignee);
+
+        const qs = params.toString();
+        window.location.href = qs ? `/ver_tablero/?${qs}` : '/ver_tablero/';
+    }
+
+    function updateProjectOptions() {
+        const areaSelect = document.getElementById('areaFilter');
+        const projectSelect = document.getElementById('projectFilter');
+        if (!areaSelect || !projectSelect) return;
+
+        const selectedArea = areaSelect.value;
+        const allOptions = Array.from(projectSelect.querySelectorAll('option'));
+        const currentProject = projectSelect.value;
+
+        projectSelect.innerHTML = '';
+
+        const filtered = allOptions.filter(opt => {
+            if (opt.value === '') return true;
+            if (!selectedArea) return true;
+            return opt.dataset.area === selectedArea;
+        });
+
+        filtered.forEach(opt => projectSelect.appendChild(opt));
+
+        if (currentProject && projectSelect.querySelector(`option[value="${currentProject}"]`)) {
+            projectSelect.value = currentProject;
+        }
+    }
+
+    document.getElementById('areaFilter')?.addEventListener('change', function() {
+        updateProjectOptions();
+        applyFilters();
+    });
+    document.getElementById('projectFilter')?.addEventListener('change', applyFilters);
+    document.getElementById('assigneeFilter')?.addEventListener('change', applyFilters);
+
+    document.querySelectorAll('.task-card').forEach(function(card) {
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const editLink = this.querySelector('a[aria-label^="Editar"]');
+                if (editLink) editLink.click();
+            }
+        });
+    });
+});

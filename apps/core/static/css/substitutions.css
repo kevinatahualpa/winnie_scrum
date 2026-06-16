@@ -1,0 +1,26 @@
+.sub-row {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border);
+}
+.sub-row:last-child { border-bottom: none; }
+.sub-past { opacity: 0.6; }
+.sub-avatar {
+    width: 28px; height: 28px; border-radius: 4px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 500; flex-shrink: 0;
+}
+.sub-avatar.past { background: var(--text-secondary); }
+.sub-info { flex: 1; min-width: 0; }
+.sub-title { font-size: 0.75rem; font-weight: 500; margin-bottom: 0.15rem; }
+.sub-meta { font-size: 0.65rem; color: var(--text-secondary); display: flex; gap: 0.5rem; align-items: center; }
+.sub-reason { font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.2rem; font-style: italic; }
+.sub-deactivate {
+    background: none; border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.2rem 0.4rem; cursor: pointer; color: var(--danger);
+    font-size: 0.7rem; flex-shrink: 0; transition: all 0.12s ease;
+}
+.sub-deactivate:hover { background: var(--danger-bg); border-color: var(--danger); }
+.badge-scope-all { background: var(--info-bg); color: var(--info); }
+.badge-scope-area { background: #faf5ff; color: #7c3aed; }
+.badge-scope-projects { background: var(--success-bg); color: var(--success); }

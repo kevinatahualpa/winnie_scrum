@@ -1,0 +1,180 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Winnie - Registro (3/3){% endblock %}
+{% block body %}
+<link href="{% static 'css/auth.css' %}" rel="stylesheet">
+
+<style>
+.wizard-progress { display:flex; gap:0.4rem; margin-bottom:1.25rem; }
+.wizard-step { flex:1; height:4px; background:var(--border); border-radius:2px; position:relative; overflow:hidden; }
+.wizard-step.done::after, .wizard-step.active::after { content:''; position:absolute; left:0; top:0; bottom:0; background:var(--accent); }
+.wizard-step.done::after { width:100%; }
+.wizard-step.active::after { width:30%; }
+.wizard-steps-label { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-secondary); margin-bottom:1.1rem; }
+.wizard-steps-label span.done { color:var(--success); }
+.wizard-steps-label span.active { color:var(--accent); font-weight:600; }
+.wizard-actions { display:flex; gap:0.5rem; margin-top:1rem; }
+.wizard-actions .auth-btn { flex:1; }
+.wizard-back { background:var(--bg) !important; color:var(--text-secondary) !important; border:1px solid var(--border) !important; }
+.tech-search { width:100%; padding:0.5rem 0.65rem; border:1px solid var(--border); border-radius:5px; background:var(--bg); color:var(--text); font-size:0.8rem; margin-bottom:0.85rem; }
+.tech-group-label { font-size:0.7rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; margin:0.75rem 0 0.4rem; letter-spacing:0.04em; }
+.tech-group-label:first-child { margin-top:0; }
+.tech-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:0.5rem; }
+.tech-card { position:relative; display:flex; align-items:center; gap:0.5rem; padding:0.55rem 0.7rem; border:1px solid var(--border); border-radius:6px; background:var(--bg); cursor:pointer; transition:all 0.12s; font-size:0.78rem; }
+.tech-card:hover { border-color:var(--accent); }
+.tech-card input[type=checkbox] { position:absolute; opacity:0; pointer-events:none; }
+.tech-card .tech-icon { width:28px; height:28px; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
+.tech-card .tech-name { font-weight:500; flex:1; }
+.tech-card .tech-cat { font-size:0.65rem; color:var(--text-secondary); }
+.tech-card.selected { border-color:var(--accent); background:rgba(233,84,32,0.06); }
+.tech-card .tech-level { display:none; gap:0.25rem; }
+.tech-card.selected .tech-level { display:flex; }
+.tech-level select { padding:0.15rem 0.3rem; border:1px solid var(--border); border-radius:4px; background:var(--surface); font-size:0.7rem; }
+.cv-drop { border:2px dashed var(--border); border-radius:8px; padding:1.25rem; text-align:center; color:var(--text-secondary); cursor:pointer; transition:all 0.12s; }
+.cv-drop:hover, .cv-drop.drag { border-color:var(--accent); background:rgba(233,84,32,0.04); }
+.cv-drop i { font-size:1.5rem; display:block; margin-bottom:0.4rem; }
+.cv-drop input { display:none; }
+.cv-filename { font-size:0.75rem; color:var(--success); margin-top:0.4rem; }
+.reorder-list { display:flex; flex-direction:column; gap:0.4rem; margin-top:0.85rem; }
+.reorder-list:empty::before { content:'No has agregado tecnologias todavia. Selecciona de la lista de arriba.'; color:var(--text-muted); font-size:0.75rem; font-style:italic; }
+.tech-row { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.7rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); font-size:0.78rem; }
+.tech-row .tech-icon { width:24px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; font-size:0.7rem; }
+.tech-row .tech-name { flex:1; font-weight:500; }
+.tech-row select, .tech-row input[type=number] { padding:0.2rem 0.4rem; border:1px solid var(--border); border-radius:4px; font-size:0.7rem; }
+.tech-row .tech-remove { background:none; border:none; color:var(--danger); cursor:pointer; }
+</style>
+
+<div class="auth-page">
+    <div class="auth-card" style="max-width:680px;">
+        <div class="auth-logo"><i class="fas fa-rocket"></i></div>
+        <h1 class="auth-title">Solicitar Acceso</h1>
+        <p class="auth-subtitle">Paso 3 de 3 - Skills y CV</p>
+
+        <div class="wizard-progress">
+            <div class="wizard-step done"></div>
+            <div class="wizard-step done"></div>
+            <div class="wizard-step active"></div>
+        </div>
+        <div class="wizard-steps-label">
+            <span class="done"><i class="fas fa-check"></i> Datos</span>
+            <span class="done"><i class="fas fa-check"></i> Perfil</span>
+            <span class="active">Skills + CV</span>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="auth-alert auth-alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" id="step3Form">
+            {% csrf_token %}
+            <input type="search" class="tech-search" id="techSearch" placeholder="Buscar tecnologia (ej: Python, React, Docker...)">
+
+            {% regroup technologies by get_category_display as tech_groups %}
+            {% for group in tech_groups %}
+            <div class="tech-group-label">{{ group.grouper }}</div>
+            <div class="tech-grid">
+                {% for tech in group.list %}
+                <label class="tech-card" data-name="{{ tech.name|lower }}" data-id="{{ tech.id }}">
+                    <input type="checkbox" name="technology" value="{{ tech.id }}" data-tech-id="{{ tech.id }}">
+                    <div class="tech-icon" style="background:{{ tech.color }}"><i class="fas {{ tech.icon }}"></i></div>
+                    <div style="flex:1;min-width:0;">
+                        <div class="tech-name">{{ tech.name }}</div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <div class="auth-field" style="margin-top:1rem;">
+                <label class="auth-label">CV (PDF, DOC o DOCX - max 5MB)</label>
+                <label class="cv-drop" id="cvDrop">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <div>Arrastra tu CV aqui o haz click para seleccionar</div>
+                    <input type="file" name="cv" id="cvInput" accept=".pdf,.doc,.docx">
+                    <div class="cv-filename" id="cvName"></div>
+                </label>
+            </div>
+
+            <div class="wizard-actions">
+                <button type="submit" name="action" value="back" class="auth-btn wizard-back">
+                    <i class="fas fa-arrow-left me-1"></i> Atras
+                </button>
+                <button type="submit" name="action" value="submit" class="auth-btn auth-btn-primary">
+                    <i class="fas fa-paper-plane me-1"></i> Enviar solicitud
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const search = document.getElementById('techSearch');
+    const cards = document.querySelectorAll('.tech-card');
+    const form = document.getElementById('step3Form');
+
+    function syncHidden() {
+        const checked = form.querySelectorAll('input[name="technology"]:checked');
+        document.querySelectorAll('input[name="level"]').forEach(n => n.remove());
+        document.querySelectorAll('input[name="years_using"]').forEach(n => n.remove());
+        checked.forEach(cb => {
+            const id = cb.value;
+            const card = cb.closest('.tech-card');
+            const level = card.querySelector('.tech-level select').value;
+            const lvl = document.createElement('input');
+            lvl.type = 'hidden'; lvl.name = 'level'; lvl.value = level;
+            lvl.dataset.techId = id;
+            form.appendChild(lvl);
+        });
+    }
+
+    cards.forEach(card => {
+        const cb = card.querySelector('input[type=checkbox]');
+        const icon = card.querySelector('.tech-icon');
+        const levelSel = document.createElement('select');
+        levelSel.innerHTML = '<option value="1">Basico</option><option value="2" selected>Intermedio</option><option value="3">Avanzado</option><option value="4">Experto</option>';
+        levelSel.className = 'tech-level-select';
+        const wrap = document.createElement('div');
+        wrap.className = 'tech-level';
+        wrap.appendChild(levelSel);
+        card.appendChild(wrap);
+
+        card.addEventListener('click', function(e) {
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION') return;
+            setTimeout(() => {
+                card.classList.toggle('selected', cb.checked);
+            }, 0);
+        });
+        cb.addEventListener('change', () => card.classList.toggle('selected', cb.checked));
+    });
+
+    search.addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        cards.forEach(c => {
+            c.style.display = c.dataset.name.includes(q) ? '' : 'none';
+        });
+    });
+
+    form.addEventListener('submit', syncHidden);
+
+    const drop = document.getElementById('cvDrop');
+    const cvInput = document.getElementById('cvInput');
+    const cvName = document.getElementById('cvName');
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+    drop.addEventListener('drop', e => {
+        e.preventDefault();
+        drop.classList.remove('drag');
+        if (e.dataTransfer.files.length) {
+            cvInput.files = e.dataTransfer.files;
+            cvName.textContent = e.dataTransfer.files[0].name;
+        }
+    });
+    cvInput.addEventListener('change', () => {
+        if (cvInput.files.length) cvName.textContent = cvInput.files[0].name;
+    });
+});
+</script>
+{% endblock %}

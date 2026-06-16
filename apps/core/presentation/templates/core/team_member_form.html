@@ -1,0 +1,157 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% block title %}{% if profile %}Editar{% else %}Nuevo{% endif %} Usuario - Winnie{% endblock %}
+{% block page_title %}{% if profile %}Editar{% else %}Nuevo{% endif %} Usuario{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            {% if not profile %}
+            <div class="alert alert-info border-0 mb-3" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Registro interno:</strong> estas creando un usuario que
+                quedara activo inmediatamente. Para que alguien solicite acceso
+                por su cuenta, debe ir a la pantalla de login y usar la pestana
+                <em>Solicitar Acceso</em>.
+                <hr>
+                <i class="fas fa-lightbulb me-2"></i>
+                <strong>Asignar a proyectos:</strong> despues de crear al
+                miembro, ve al detalle del proyecto y usa el boton
+                <em>Gestionar Miembros</em> para agregarlo. Cada proyecto
+                puede ser gestionado por el admin, el jefe del area o el jefe
+                del proyecto.
+            </div>
+            {% else %}
+            <div class="alert alert-secondary border-0 mb-3" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                Para asignar a este miembro a proyectos, ve al detalle de cada
+                proyecto y usa <em>Gestionar Miembros</em>.
+            </div>
+            {% endif %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post" action="{% if profile %}{% url 'editar_usuario' profile.id %}{% else %}{% url 'registrar_usuario' %}{% endif %}">
+                        {% csrf_token %}
+                        <h6 class="text-muted mb-3"><i class="fas fa-user me-1"></i>Informacion personal</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre *</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Apellido *</label>
+                                {{ form.last_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Telefono</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{% if profile %}Nueva contrasena (dejar vacia para no cambiar){% else %}Contrasena{% endif %}</label>
+                                {{ form.password }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirmar contrasena</label>
+                                {{ form.password_confirm }}
+                            </div>
+                        </div>
+
+                        <h6 class="text-muted mb-3"><i class="fas fa-id-badge me-1"></i>Rol y permisos</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Rol *</label>
+                                {{ form.role }}
+                                <small id="roleHint" class="form-text text-muted"></small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Estado</label>
+                                {{ form.status }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Color (avatar / sidebar)</label>
+                                {{ form.color }}
+                            </div>
+                        </div>
+
+                        <div id="clientBlock" style="display:none;">
+                            <h6 class="text-muted mb-3"><i class="fas fa-building me-1"></i>Empresa cliente</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Cliente asociado *</label>
+                                    {{ form.client }}
+                                    <small class="form-text text-muted">El usuario solo vera los proyectos de este cliente</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="orgBlock">
+                            <h6 class="text-muted mb-3"><i class="fas fa-sitemap me-1"></i>Organizacion</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Area / Division</label>
+                                    {{ form.area }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Especialidad</label>
+                                    {{ form.specialty }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'ver_equipo' %}" class="btn btn-ghost">Cancelar</a>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var roleSelect = document.getElementById('id_role');
+    var clientBlock = document.getElementById('clientBlock');
+    var orgBlock = document.getElementById('orgBlock');
+    var roleHint = document.getElementById('roleHint');
+
+    var ROLE_HINTS = {
+        'super-admin': 'Acceso total al sistema',
+        'admin': 'Administracion de usuarios y recursos',
+        'jefe-area': 'Gestiona proyectos y miembros de su area',
+        'jefe-proyecto': 'Gestiona proyectos asignados y su equipo',
+        'miembro': 'Trabaja en tareas asignadas',
+        'cliente': 'Acceso solo de lectura a sus proyectos (portal cliente)',
+        'observer': 'Acceso solo lectura a todo el sistema (auditor)'
+    };
+
+    function applyRoleVisibility() {
+        var role = roleSelect.value;
+        if (roleHint && ROLE_HINTS[role]) {
+            roleHint.textContent = ROLE_HINTS[role];
+        }
+
+        if (role === 'cliente') {
+            clientBlock.style.display = '';
+            orgBlock.style.display = 'none';
+        } else if (role === 'observer' || role === 'super-admin' || role === 'admin') {
+            clientBlock.style.display = 'none';
+            orgBlock.style.display = 'none';
+        } else {
+            clientBlock.style.display = 'none';
+            orgBlock.style.display = '';
+        }
+    }
+
+    roleSelect.addEventListener('change', applyRoleVisibility);
+    applyRoleVisibility();
+});
+</script>
+{% endblock %}

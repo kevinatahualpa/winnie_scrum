@@ -1,0 +1,101 @@
+{% extends 'core/base.html' %}
+{% block title %}Reportes - Winnie{% endblock %}
+{% block page_title %}Reportes{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <h5 class="fw-bold mb-3">Reportes y Estadisticas</h5>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center mx-auto mb-2" style="width:48px;height:48px;"><i class="fas fa-folder fa-lg"></i></div>
+                            <h3 class="fw-bold mb-0">{{ total_projects|default:"0" }}</h3>
+                            <small class="text-muted">Proyectos Totales</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center mx-auto mb-2" style="width:48px;height:48px;"><i class="fas fa-check-circle fa-lg"></i></div>
+                            <h3 class="fw-bold mb-0">{{ completed_tasks|default:"0" }}</h3>
+                            <small class="text-muted">Tareas Completadas</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center mx-auto mb-2" style="width:48px;height:48px;"><i class="fas fa-clock fa-lg"></i></div>
+                            <h3 class="fw-bold mb-0">{{ in_progress_tasks|default:"0" }}</h3>
+                            <small class="text-muted">En Progreso</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <div class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center mx-auto mb-2" style="width:48px;height:48px;"><i class="fas fa-users fa-lg"></i></div>
+                            <h3 class="fw-bold mb-0">{{ total_members|default:"0" }}</h3>
+                            <small class="text-muted">Miembros del Equipo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-2"><h6 class="fw-semibold mb-0 small"><i class="fas fa-chart-pie me-2"></i>Por Estado</h6></div>
+                        <div class="card-body">
+                            {% for item in by_status %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge badge-status-{{ item.status }} small">{{ item.status }}</span>
+                                <span class="fw-bold">{{ item.count }}</span>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted small text-center">Sin datos</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-2"><h6 class="fw-semibold mb-0 small"><i class="fas fa-tags me-2"></i>Por Tipo</h6></div>
+                        <div class="card-body">
+                            {% for item in by_type %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge badge-type-{{ item.type }} small">{{ item.type }}</span>
+                                <span class="fw-bold">{{ item.count }}</span>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted small text-center">Sin datos</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-2"><h6 class="fw-semibold mb-0 small"><i class="fas fa-exclamation-triangle me-2"></i>Por Prioridad</h6></div>
+                        <div class="card-body">
+                            {% for item in by_priority %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small"><span class="priority-dot priority-{{ item.priority }} me-1"></span>{{ item.priority }}</span>
+                                <span class="fw-bold">{{ item.count }}</span>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted small text-center">Sin datos</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
