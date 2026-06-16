@@ -154,8 +154,8 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-end">
-                                        <a href="{% url 'ver_conversacion' member.user.id %}" class="btn btn-sm btn-ghost" title="Enviar mensaje" style="color: #25d366;">
-                                            <i class="fab fa-whatsapp"></i>
+                                        <a href="{% url 'ver_conversacion' member.user.id %}" class="btn btn-sm btn-ghost" title="Enviar mensaje" style="color: var(--accent);">
+                                            <i class="fas fa-comment-dots"></i>
                                         </a>
                                         {% if role in 'super-admin,admin' %}
                                         <a href="{% url 'editar_usuario' member.id %}" class="btn btn-sm btn-ghost" title="Editar">
@@ -239,8 +239,8 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-end">
-                                        <a href="{% url 'ver_conversacion' member.user.id %}" class="btn btn-sm btn-ghost" title="Enviar mensaje" style="color: #25d366;">
-                                            <i class="fab fa-whatsapp"></i>
+                                        <a href="{% url 'ver_conversacion' member.user.id %}" class="btn btn-sm btn-ghost" title="Enviar mensaje" style="color: var(--accent);">
+                                            <i class="fas fa-comment-dots"></i>
                                         </a>
                                         <a href="{% url 'editar_usuario' member.id %}" class="btn btn-sm btn-ghost" title="Editar">
                                             <i class="fas fa-edit"></i>
