@@ -450,9 +450,9 @@
                                                 </div>
                                             </td>
                                             <td><small>{{ member.specialty.name|default:'-' }}</small></td>
-                                            <td><small>{{ member.user.assigned_tasks.count }}</small></td>
-                                            <td><small>{{ member.user.assigned_tasks.filter(status='in-progress').count }}</small></td>
-                                            <td><small>{{ member.user.assigned_tasks.filter(status='done').count }}</small></td>
+                                            <td><small>{{ member.task_total }}</small></td>
+                                            <td><small>{{ member.task_in_progress }}</small></td>
+                                            <td><small>{{ member.task_done }}</small></td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

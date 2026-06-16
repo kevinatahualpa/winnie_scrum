@@ -161,6 +161,12 @@ def ver_dashboard(request):
             user_id__in=team_member_ids, status='active'
         ).select_related('user', 'specialty').order_by('user__first_name')
 
+        # Calculate task stats for each team member
+        for member in team_members:
+            member.task_total = Task.objects.filter(assignee=member.user).count()
+            member.task_in_progress = Task.objects.filter(assignee=member.user, status='in-progress').count()
+            member.task_done = Task.objects.filter(assignee=member.user, status='done').count()
+
         # Sprints in these projects
         project_sprints = Sprint.objects.filter(
             project_id__in=project_ids, status='active'
