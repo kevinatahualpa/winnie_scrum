@@ -26,9 +26,13 @@
 
             <div class="alert alert-info border-0 mb-3" role="alert">
                 <i class="fas fa-info-circle me-2"></i>
+                {% if project.lead %}
                 Los miembros pueden ver y trabajar en este proyecto. El lider
                 del proyecto (<strong>{{ project.lead.get_full_name|default:project.lead.username }}</strong>)
                 tiene permisos adicionales para editar el proyecto y sus tareas.
+                {% else %}
+                Los miembros pueden ver y trabajar en este proyecto. El proyecto aun no tiene un lider asignado.
+                {% endif %}
             </div>
 
             <div class="row g-3">
