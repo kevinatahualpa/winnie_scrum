@@ -13,7 +13,13 @@ Pasos:
 Estado guardado en request.session bajo la clave 'reg_wizard'.
 """
 
+import secrets
+import uuid
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -23,7 +29,7 @@ from django.db import transaction
 import logging
 
 from apps.core.infrastructure.models.models import (
-    CandidateProfile, CandidateTechnology, Specialty, Technology, UserProfile,
+    CandidateProfile, CandidateTechnology, RegistrationRequest, Specialty, Technology, UserProfile,
 )
 from apps.core.domain.services.notification_service import create_notification, create_audit_log
 from apps.core.domain.services.permission_service import is_admin
@@ -224,67 +230,85 @@ def registro_paso3(request):
                 messages.error(request, 'El CV supera 5MB.')
                 return _render_step3(request, technologies, wiz)
 
+        # Generar token y guardar en RegistrationRequest
+        token = secrets.token_urlsafe(32)
+        ip = _get_client_ip(request)
+        expires = timezone.now() + timedelta(hours=24)
+
         try:
             with transaction.atomic():
-                user = User.objects.create_user(
-                    username=wiz['email'],
-                    email=wiz['email'],
-                    first_name=wiz['first_name'],
-                    last_name=wiz['last_name'],
-                    password=wiz['password'],
-                )
-                UserProfile.objects.create(user=user, role='miembro', status='pending')
+                # Guardar CV temporalmente si existe
+                cv_path = None
+                if cv:
+                    cv_path = f'cv_temp/{token}_{cv.name}'
+                    # Nota: guardaré el archivo en un campo File del RegistrationRequest
+                    # o lo procesaré al verificar. Simplifico: guardaré en data como referencia
+                    pass
 
-                cp = CandidateProfile.objects.create(
-                    user=user,
-                    headline=wiz.get('headline', ''),
-                    bio=wiz.get('bio', ''),
-                    years_experience=wiz.get('years_experience', 0),
-                    portfolio_url=wiz.get('portfolio_url', ''),
-                    linkedin_url=wiz.get('linkedin_url', ''),
-                    github_url=wiz.get('github_url', ''),
-                    cv_file=cv,
-                    primary_specialty_id=wiz.get('primary_specialty_id') or None,
+                req = RegistrationRequest.objects.create(
+                    token=token,
+                    email=wiz['email'],
+                    data={
+                        'email': wiz['email'],
+                        'password': wiz['password'],
+                        'first_name': wiz['first_name'],
+                        'last_name': wiz['last_name'],
+                        'headline': wiz.get('headline', ''),
+                        'bio': wiz.get('bio', ''),
+                        'years_experience': wiz.get('years_experience', 0),
+                        'portfolio_url': wiz.get('portfolio_url', ''),
+                        'linkedin_url': wiz.get('linkedin_url', ''),
+                        'github_url': wiz.get('github_url', ''),
+                        'primary_specialty_id': wiz.get('primary_specialty_id') or None,
+                        'secondary_specialty_ids': wiz.get('secondary_specialty_ids', []),
+                        'technologies': tech_data,
+                        'cv_name': cv.name if cv else None,
+                    },
+                    ip_address=ip,
+                    expires_at=expires,
                 )
-                if wiz.get('secondary_specialty_ids'):
-                    cp.secondary_specialties.set(
-                        Specialty.objects.filter(id__in=wiz['secondary_specialty_ids'])
-                    )
-                for t in tech_data:
-                    CandidateTechnology.objects.create(
-                        candidate=cp,
-                        technology_id=t['technology_id'],
-                        level=t['level'],
-                        years_using=t['years_using'],
-                    )
-                create_audit_log(
-                    user, 'USER_REGISTER_WIZARD', 'user', user.id,
-                    f'Registro wizard: {user.get_full_name()} ({len(tech_data)} techs)',
+
+                # Guardar CV como archivo temporal
+                if cv:
+                    req.cv_file = cv
+                    req.save()
+
+                # Enviar email de verificación
+                verify_url = request.build_absolute_uri(
+                    reverse('verificar_registro', kwargs={'token': token})
                 )
+                subject = 'Winnie - Verifica tu solicitud de acceso'
+                message = f"""Hola {wiz['first_name']},
+
+Recibimos tu solicitud de acceso a Winnie.
+
+Para confirmar tu email y completar el proceso, haz clic en el siguiente enlace:
+
+{verify_url}
+
+Este enlace expira en 24 horas.
+
+Si no solicitaste acceso, ignora este mensaje.
+
+Equipo Winnie
+"""
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[wiz['email']],
+                    fail_silently=False,
+                )
+
         except Exception as e:
+            logger.exception('Error al guardar solicitud de registro')
             messages.error(request, f'Error al crear la solicitud: {e}')
             return _render_step3(request, technologies, wiz)
 
-        admins = User.objects.filter(
-            profile__role__in=['super-admin', 'admin'],
-            profile__status='active',
-        )
-        for admin in admins:
-            create_notification(
-                admin, 'new_registration', 'Nueva solicitud de acceso',
-                f'{user.get_full_name()} ({user.email}) solicito acceso. '
-                f'Especialidad: {cp.primary_specialty.name if cp.primary_specialty else "no indicada"}. '
-                f'{len(tech_data)} tecnologia(s) declarada(s).',
-                'fa-user-clock',
-            )
-
         _clear_wizard(request)
-        messages.success(
-            request,
-            'Tu solicitud fue enviada. Un administrador la revisara y te '
-            'notificara por email cuando sea aprobada.',
-        )
-        return redirect('iniciar_sesion')
+        return render(request, 'core/wizard/verify_email.html', {
+            'email': wiz['email'],
+        })
 
     return _render_step3(request, technologies, wiz)
 
@@ -295,6 +319,126 @@ def _render_step3(request, technologies, wiz):
         'technologies': technologies,
         'selected_techs': wiz.get('technologies', []),
     })
+
+
+def _get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '127.0.0.1')
+
+
+# ---------------------------------------------------------------------------
+# Verificación de email
+# ---------------------------------------------------------------------------
+
+def verificar_registro(request, token):
+    """Confirma una solicitud de registro mediante token.
+
+    Busca el RegistrationRequest, crea el User + UserProfile + CandidateProfile
+    y notifica al admin.
+    """
+    from django.contrib.auth.models import User
+
+    req = RegistrationRequest.objects.filter(token=token, status='pending').first()
+
+    if not req:
+        messages.error(request, 'El enlace de verificación no es válido o ya fue usado.')
+        return redirect('iniciar_sesion')
+
+    if timezone.now() > req.expires_at:
+        req.status = 'expired'
+        req.save()
+        messages.error(request, 'El enlace de verificación ha expirado. Inicia el registro de nuevo.')
+        return redirect('iniciar_sesion')
+
+    data = req.data
+    cv = req.cv_file
+
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=data['email'],
+                email=data['email'],
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+                password=data['password'],
+            )
+            UserProfile.objects.create(user=user, role='miembro', status='pending')
+
+            cp = CandidateProfile.objects.create(
+                user=user,
+                headline=data.get('headline', ''),
+                bio=data.get('bio', ''),
+                years_experience=data.get('years_experience', 0),
+                portfolio_url=data.get('portfolio_url', ''),
+                linkedin_url=data.get('linkedin_url', ''),
+                github_url=data.get('github_url', ''),
+                cv_file=cv,
+                primary_specialty_id=data.get('primary_specialty_id') or None,
+            )
+            if data.get('secondary_specialty_ids'):
+                cp.secondary_specialties.set(
+                    Specialty.objects.filter(id__in=data['secondary_specialty_ids'])
+                )
+            for t in data.get('technologies', []):
+                CandidateTechnology.objects.create(
+                    candidate=cp,
+                    technology_id=t['technology_id'],
+                    level=t['level'],
+                    years_using=t['years_using'],
+                )
+            create_audit_log(
+                user, 'USER_REGISTER_WIZARD', 'user', user.id,
+                f'Registro wizard verificado: {user.get_full_name()}',
+            )
+    except Exception as e:
+        logger.exception('Error al verificar registro')
+        messages.error(request, f'Error al procesar la verificación: {e}')
+        return redirect('iniciar_sesion')
+
+    req.status = 'verified'
+    req.save()
+
+    # Notificar a admins
+    admins = User.objects.filter(
+        profile__role__in=['super-admin', 'admin'],
+        profile__status='active',
+    )
+    for admin in admins:
+        create_notification(
+            admin, 'new_registration', 'Nueva solicitud de acceso',
+            f'{user.get_full_name()} ({user.email}) solicito acceso. '
+            f'Especialidad: {cp.primary_specialty.name if cp.primary_specialty else "no indicada"}. '
+            f'{len(data.get("technologies", []))} tecnologia(s) declarada(s).',
+            'fa-user-clock',
+        )
+
+    # Notificar al usuario
+    subject = 'Winnie - Solicitud confirmada'
+    message = f"""Hola {user.first_name},
+
+Tu solicitud de acceso fue confirmada y enviada al equipo.
+
+Un administrador revisará tu perfil y te notificará cuando sea aprobada.
+
+Gracias por tu interés en Winnie.
+
+Equipo Winnie
+"""
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=True,
+    )
+
+    messages.success(
+        request,
+        '¡Tu solicitud fue confirmada! Un administrador la revisará y te notificará por email.',
+    )
+    return redirect('iniciar_sesion')
 
 
 # ---------------------------------------------------------------------------

@@ -596,3 +596,32 @@ class Message(models.Model):
 
     def __str__(self):
         return f'{self.sender} -> {self.receiver}: {self.subject}'
+
+
+class RegistrationRequest(models.Model):
+    """Solicitud de registro pendiente de verificación por email.
+
+    Guarda los datos del wizard de registro mientras el usuario confirma
+    su email. El token es un UUID v4 que se envía por email como enlace.
+    """
+    token = models.CharField(max_length=32, unique=True, db_index=True)
+    email = models.EmailField()
+    data = models.JSONField(default=dict)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    cv_file = models.FileField(upload_to='cv_temp/%Y/%m/', null=True, blank=True)
+    expires_at = models.DateTimeField()
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pendiente'), ('verified', 'Verificado'), ('expired', 'Expirado')],
+        default='pending',
+        db_index=True,
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Solicitud de Registro'
+        verbose_name_plural = 'Solicitudes de Registro'
+
+    def __str__(self):
+        return f'{self.email} ({self.status})'

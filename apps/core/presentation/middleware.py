@@ -4,9 +4,9 @@ from django.http import HttpResponse
 
 
 class RateLimitMiddleware:
-    RATE_LIMIT_ENDPOINTS = {'login', 'register'}
-    MAX_REQUESTS = 10
-    WINDOW_SECONDS = 60
+    RATE_LIMIT_ENDPOINTS = {'login', 'register', 'registro_paso1', 'registro_paso2', 'registro_paso3'}
+    MAX_REQUESTS = 5
+    WINDOW_SECONDS = 3600  # 1 hora
 
     def __init__(self, get_response):
         self.get_response = get_response

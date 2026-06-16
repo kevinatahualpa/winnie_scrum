@@ -25,6 +25,7 @@ from .views import (
 )
 from .views.wizard_views import (
     registro_paso1, registro_paso2, registro_paso3, registro_cancelar,
+    verificar_registro,
 )
 from .views.candidate_review_views import (
     candidato_detalle, candidato_save_checklist, candidato_decidir, cv_embed,
@@ -43,6 +44,7 @@ urlpatterns = [
     path('registro/paso-2/', registro_paso2, name='registro_paso2'),
     path('registro/paso-3/', registro_paso3, name='registro_paso3'),
     path('registro/cancelar/', registro_cancelar, name='registro_cancelar'),
+    path('registro/verificar/<str:token>/', verificar_registro, name='verificar_registro'),
     path('', ver_dashboard, name='ver_dashboard'),
     path('ver_proyectos/', ver_proyectos, name='ver_proyectos'),
     path('ver_proyectos/create/', crear_proyecto, name='crear_proyecto'),
