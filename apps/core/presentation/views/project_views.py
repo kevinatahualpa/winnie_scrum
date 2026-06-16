@@ -18,24 +18,34 @@ from apps.core.presentation.forms import ProjectForm
 
 @login_required
 def ver_proyectos(request):
-    """Render the paginated list of projects filtered by user role.
+    """Render the paginated list of projects filtered by user role and area.
 
     Admins see all projects. Other roles see only projects they have access to.
     Uses select_related and prefetch_related to avoid N+1 queries.
     """
     user = request.user
     role = get_user_role(user)
+    area_id = request.GET.get('area')
 
     queryset = Project.objects.select_related('area', 'lead', 'client').prefetch_related('members')
 
     if role in ('jefe-area', 'jefe-proyecto', 'miembro'):
         queryset = filter_queryset_by_role(queryset, user, role, model_type='project')
 
+    if area_id:
+        queryset = queryset.filter(area_id=area_id)
+
     paginator = Paginator(queryset, 20)
     page = request.GET.get('page', 1)
     projects = paginator.get_page(page)
 
-    return render(request, 'core/projects.html', {'projects': projects})
+    areas = Area.objects.filter(status='active')
+
+    return render(request, 'core/projects.html', {
+        'projects': projects,
+        'areas': areas,
+        'selected_area': area_id,
+    })
 
 
 @login_required
