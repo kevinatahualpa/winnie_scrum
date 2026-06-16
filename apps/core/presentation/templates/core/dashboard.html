@@ -7,8 +7,22 @@
     <div class="main-area">
         {% include 'core/topbar.html' %}
         <div class="page-content">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">Dashboard</h4>
+
+            <!-- Header + View Switcher -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <h4 class="mb-0">Dashboard</h4>
+                    {% if can_team_view %}
+                    <div class="btn-group" style="font-size:0.8rem;">
+                        <a href="{% url 'ver_dashboard' %}" class="btn btn-sm {% if view == 'mi_trabajo' %}btn-primary{% else %}btn-outline-secondary{% endif %}" style="padding:0.3rem 0.7rem;">
+                            <i class="fas fa-user me-1"></i>Mi Trabajo
+                        </a>
+                        <a href="{% url 'ver_dashboard' %}?view=equipo" class="btn btn-sm {% if view == 'equipo' %}btn-primary{% else %}btn-outline-secondary{% endif %}" style="padding:0.3rem 0.7rem;">
+                            <i class="fas fa-users me-1"></i>Equipo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
                 {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
                 <div class="dropdown">
                     <button class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-plus me-1"></i> Crear</button>
@@ -26,6 +40,12 @@
                 {% endif %}
             </div>
 
+            <!-- ============================================================
+                 MI TRABAJO (default view)
+                 ============================================================ -->
+            {% if view == 'mi_trabajo' %}
+
+            <!-- Sin proyectos (miembro nuevo) -->
             {% if not has_projects and user|role_is:"miembro" %}
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body text-center py-4">
@@ -37,6 +57,188 @@
             </div>
             {% endif %}
 
+            <!-- Stats cards -->
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--info-soft);color:var(--info);"><i class="fas fa-folder-open"></i></div>
+                        <div class="stat-value">{{ my_project_count }}</div>
+                        <div class="stat-label">Mis Proyectos</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--warning-soft);color:var(--warning);"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="stat-value">{{ my_task_stats.todo }}</div>
+                        <div class="stat-label">Por Hacer</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--info-soft);color:var(--info);"><i class="fas fa-cog"></i></div>
+                        <div class="stat-value">{{ my_task_stats.in_progress }}</div>
+                        <div class="stat-label">En Progreso</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--success-soft);color:var(--success);"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-value">{{ my_task_stats.done }}</div>
+                        <div class="stat-label">Completadas</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--danger-soft);color:var(--danger);"><i class="fas fa-bug"></i></div>
+                        <div class="stat-value">{{ my_task_stats.bugs }}</div>
+                        <div class="stat-label">Mis Bugs</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent);"><i class="fas fa-clock"></i></div>
+                        <div class="stat-value">{{ time_this_week }}</div>
+                        <div class="stat-label">Horas esta semana</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--success-soft);color:var(--success);"><i class="fas fa-running"></i></div>
+                        <div class="stat-value">{{ my_sprints|length }}</div>
+                        <div class="stat-label">Sprints Activos</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:var(--info-soft);color:var(--info);"><i class="fas fa-bell"></i></div>
+                        <div class="stat-value">{{ unread_notifications|length }}</div>
+                        <div class="stat-label">Notificaciones</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-2">
+                <!-- Mis Tareas -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Mis Tareas</h6>
+                            <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_my_tasks %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Estado</th></tr></thead>
+                                    <tbody>
+                                        {% for task in recent_my_tasks %}
+                                        <tr>
+                                            <td><a href="{% url 'ver_tablero' %}">{{ task.title }}</a></td>
+                                            <td><small class="text-muted">{{ task.project.name }}</small></td>
+                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center text-secondary py-4"><small>Sin tareas asignadas</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mis Proyectos -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Mis Proyectos</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if my_projects %}
+                            {% for project in my_projects %}
+                            <div class="px-3 py-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="fw-medium">{{ project.name }}</a>
+                                    <span class="badge badge-status-{{ project.status }}">{{ project.get_status_display }}</span>
+                                </div>
+                                <div class="progress" style="height:2px;"><div class="progress-bar" style="width:{{ project.progress }}%;background:{{ project.color }}"></div></div>
+                                <small class="text-muted">{{ project.progress }}% completo</small>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="text-center text-secondary py-4"><small>Sin proyectos asignados</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sprints Activos -->
+            {% if my_sprints %}
+            <div class="row g-2 mt-2">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Sprints Activos</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr><th>Sprint</th><th>Proyecto</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for sprint in my_sprints %}
+                                        <tr>
+                                            <td><a href="{% url 'ver_sprints' %}">{{ sprint.name }}</a></td>
+                                            <td><small>{{ sprint.project.name }}</small></td>
+                                            <td><small>{{ sprint.start_date|date:"d/m" }}</small></td>
+                                            <td><small>{{ sprint.end_date|date:"d/m" }}</small></td>
+                                            <td><span class="badge badge-status-{{ sprint.status }}">{{ sprint.get_status_display }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Notificaciones -->
+            {% if unread_notifications %}
+            <div class="row g-2 mt-2">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Notificaciones</h6>
+                            <a href="{% url 'ver_notificaciones' %}" class="btn btn-sm btn-outline-secondary">Ver todas</a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% for notif in unread_notifications %}
+                            <div class="px-3 py-2 border-bottom d-flex align-items-center gap-2">
+                                <i class="fas {{ notif.icon }}" style="color:var(--accent);"></i>
+                                <div class="flex-1">
+                                    <div class="fw-medium" style="font-size:0.85rem;">{{ notif.title }}</div>
+                                    <small class="text-muted">{{ notif.message|truncatechars:80 }}</small>
+                                </div>
+                                <small class="text-muted">{{ notif.created_at|timesince }} atras</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ============================================================
+                 EQUIPO (global stats for admin/jefe)
+                 ============================================================ -->
+            {% else %}
+
+            <!-- Stats cards -->
             {% if user|has_role:"super-admin,admin" %}
             <div class="row g-2 mb-3">
                 <div class="col-6 col-lg-3">
@@ -219,6 +421,9 @@
                     </div>
                 </div>
             </div>
+
+            {% endif %}
+
         </div>
     </div>
 </div>
