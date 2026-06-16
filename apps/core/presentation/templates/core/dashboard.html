@@ -192,12 +192,23 @@
                  ============================================================ -->
             {% elif role == 'jefe-area' %}
 
-            <!-- Info del Area -->
+            <!-- Info del Area + Filtro Proyecto -->
             {% if user_area %}
-            <div class="alert alert-info mb-3 d-flex align-items-center gap-2">
+            <div class="alert alert-info mb-3 d-flex align-items-center gap-2 flex-wrap">
                 <i class="fas fa-sitemap"></i>
                 <span><strong>{{ user_area.name }}</strong> ({{ user_area.code }})</span>
-                <span class="ms-auto badge bg-secondary">{{ area_member_count }} miembros</span>
+                <span class="badge bg-secondary">{{ area_member_count }} miembros</span>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm" style="width:180px;" onchange="window.location.href='?project='+this.value">
+                        <option value="">Todos los proyectos</option>
+                        {% for project in area_projects %}
+                        <option value="{{ project.id }}" {% if selected_project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if selected_project %}
+                    <a href="{% url 'ver_dashboard' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtro"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                </div>
             </div>
             {% endif %}
 

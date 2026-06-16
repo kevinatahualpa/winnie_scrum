@@ -98,8 +98,15 @@ def ver_dashboard(request):
         area_projects = Project.objects.filter(area=user_area) if user_area else Project.objects.none()
         area_project_ids = list(area_projects.values_list('id', flat=True))
 
-        # Tasks in area projects
-        area_tasks = Task.objects.filter(project_id__in=area_project_ids) if area_project_ids else Task.objects.none()
+        # Filtro por proyecto específico
+        selected_project_id = request.GET.get('project')
+        if selected_project_id and int(selected_project_id) in area_project_ids:
+            filter_project_ids = [int(selected_project_id)]
+        else:
+            filter_project_ids = area_project_ids
+
+        # Tasks in area projects (filtered by project if selected)
+        area_tasks = Task.objects.filter(project_id__in=filter_project_ids) if filter_project_ids else Task.objects.none()
         task_stats = area_tasks.aggregate(
             total=Count('id'),
             todo=Count('id', filter=Q(status__in=['backlog', 'todo'])),
@@ -119,7 +126,7 @@ def ver_dashboard(request):
 
         # Sprints in area
         area_sprints = Sprint.objects.filter(
-            project_id__in=area_project_ids, status='active'
+            project_id__in=filter_project_ids, status='active'
         ).select_related('project').order_by('end_date')[:5]
 
         context.update({
@@ -134,10 +141,11 @@ def ver_dashboard(request):
             'active_sprints': area_sprints.count(),
             'area_members': area_members,
             'area_member_count': len(area_members),
-            'area_projects': area_projects_enriched[:5],
+            'area_projects': area_projects_enriched,
             'recent_tasks': area_tasks.select_related('assignee', 'project').order_by('-created_at')[:8],
             'area_sprints': area_sprints,
             'has_projects': area_projects.exists(),
+            'selected_project': selected_project_id,
         })
 
     # ============================================================
