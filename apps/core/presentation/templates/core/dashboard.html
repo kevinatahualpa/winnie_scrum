@@ -10,17 +10,30 @@
 
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h4 class="mb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <h4 class="mb-0">
+                        {% if role == 'super-admin' or role == 'admin' %}
+                        <i class="fas fa-chart-line me-2" style="color:var(--accent);"></i>Dashboard
+                        {% elif role == 'jefe-area' %}
+                        <i class="fas fa-sitemap me-2" style="color:var(--accent);"></i>Mi Area
+                        {% elif role == 'jefe-proyecto' %}
+                        <i class="fas fa-folder-open me-2" style="color:var(--accent);"></i>Mis Proyectos
+                        {% else %}
+                        <i class="fas fa-user me-2" style="color:var(--accent);"></i>Mi Trabajo
+                        {% endif %}
+                    </h4>
                     {% if role == 'super-admin' or role == 'admin' %}
-                    <i class="fas fa-chart-line me-2" style="color:var(--accent);"></i>Dashboard
-                    {% elif role == 'jefe-area' %}
-                    <i class="fas fa-sitemap me-2" style="color:var(--accent);"></i>Mi Area
-                    {% elif role == 'jefe-proyecto' %}
-                    <i class="fas fa-folder-open me-2" style="color:var(--accent);"></i>Mis Proyectos
-                    {% else %}
-                    <i class="fas fa-user me-2" style="color:var(--accent);"></i>Mi Trabajo
+                    <select class="form-select form-select-sm" style="width:160px;" onchange="window.location.href='?area='+this.value">
+                        <option value="">Todas las areas</option>
+                        {% for area in areas %}
+                        <option value="{{ area.id }}" {% if selected_area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if selected_area %}
+                    <a href="{% url 'ver_dashboard' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtro"><i class="fas fa-times"></i></a>
                     {% endif %}
-                </h4>
+                    {% endif %}
+                </div>
                 {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
                 <div class="dropdown">
                     <button class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-plus me-1"></i> Crear</button>

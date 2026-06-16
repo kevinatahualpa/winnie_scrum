@@ -36,9 +36,15 @@ def ver_dashboard(request):
     # ADMIN / SUPER-ADMIN
     # ============================================================
     if role in ('super-admin', 'admin'):
+        area_id = request.GET.get('area')
         projects = Project.objects.all()
         tasks = Task.objects.all()
         sprints = Sprint.objects.all()
+
+        if area_id:
+            projects = projects.filter(area_id=area_id)
+            tasks = tasks.filter(project__area_id=area_id)
+            sprints = sprints.filter(project__area_id=area_id)
 
         task_stats = tasks.aggregate(
             total=Count('id'),
@@ -62,6 +68,8 @@ def ver_dashboard(request):
             date__gte=monday, date__lte=today
         ).aggregate(total=Sum('hours'))['total'] or 0
 
+        areas = Area.objects.filter(status='active')
+
         context.update({
             'total_projects': projects.count(),
             'active_projects': projects.filter(status='active').count(),
@@ -78,6 +86,8 @@ def ver_dashboard(request):
             'recent_tasks': recent_tasks,
             'recent_projects': recent_projects,
             'has_projects': projects.exists(),
+            'areas': areas,
+            'selected_area': area_id,
         })
 
     # ============================================================
