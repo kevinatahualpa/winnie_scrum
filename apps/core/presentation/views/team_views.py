@@ -96,16 +96,33 @@ def ver_equipo(request):
         internal_qs = internal_qs.filter(role=filter_role)
     internal_users = enrich(internal_qs)
 
+    # ---- SECCION 2: clientes (solo super-admin/admin) ----
+    client_users_list = []
+    if role in ('super-admin', 'admin'):
+        client_qs = base_qs.filter(role='cliente')
+        if client_id:
+            client_qs = client_qs.filter(client_id=client_id)
+        if project_id:
+            client_qs = client_qs.filter(
+                Q(user__projects__id=project_id) | Q(user__led_projects__id=project_id)
+            ).distinct()
+        client_users_list = enrich(client_qs)
+
+    # Tab activa: 'equipo' o 'clientes'
+    active_tab = request.GET.get('tab', 'equipo')
+
     filters = {
         'area': area_id, 'project': project_id,
-        'role': filter_role,
+        'role': filter_role, 'client': client_id,
     }
 
     return render(request, 'core/team.html', {
         'internal_users': internal_users,
+        'client_users': client_users_list,
         'role': role, 'areas': areas,
         'clients': clients, 'projects': projects,
         'role_choices': _role_choices_with_clients(), 'filters': filters,
+        'active_tab': active_tab,
     })
 
 
