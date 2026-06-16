@@ -185,7 +185,12 @@
             <div class="card mb-4">
                 <div class="card-body text-center py-4 text-muted">
                     <i class="fas fa-users fa-2x mb-2" style="opacity:0.3;"></i>
+                    {% if role == 'miembro' %}
+                    <div class="small fw-medium">Aun no tienes proyectos asignados</div>
+                    <div class="small mt-1">Cuando un administrador te asigne a un proyecto, veras a tu equipo aqui.</div>
+                    {% else %}
                     <div class="small">Sin miembros del equipo</div>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
