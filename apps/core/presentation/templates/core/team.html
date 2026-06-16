@@ -9,8 +9,8 @@
         {% include 'core/topbar.html' %}
         <div class="page-content">
 
-            <!-- Filtros globales (solo para super-admin/admin) -->
-            {% if role in 'super-admin,admin' %}
+            <!-- Filtros: Equipo -->
+            {% if role in 'super-admin,admin' and active_tab == 'equipo' %}
             <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
                 <select class="form-select form-select-sm filter-select" id="areaFilter">
                     <option value="">Todas las areas</option>
@@ -18,6 +18,27 @@
                     <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }} - {{ area.name }}</option>
                     {% endfor %}
                 </select>
+                <select class="form-select form-select-sm filter-select" id="projectFilter">
+                    <option value="">Todos los proyectos</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-select form-select-sm filter-select" id="roleFilter">
+                    <option value="">Todos los roles</option>
+                    {% for r_key, r_label in role_choices %}
+                    <option value="{{ r_key }}" {% if filters.role == r_key %}selected{% endif %}>{{ r_label }}</option>
+                    {% endfor %}
+                </select>
+                {% if filters.area or filters.project or filters.role %}
+                <a href="{% url 'ver_equipo' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Filtros: Clientes -->
+            {% if role in 'super-admin,admin' and active_tab == 'clientes' %}
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
                 <select class="form-select form-select-sm filter-select" id="clientFilter">
                     <option value="">Todas las empresas</option>
                     {% for client in clients %}
@@ -30,16 +51,8 @@
                     <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
                     {% endfor %}
                 </select>
-                {% if role in 'super-admin,admin,jefe-area' %}
-                <select class="form-select form-select-sm filter-select" id="roleFilter">
-                    <option value="">Todos los roles</option>
-                    {% for r_key, r_label in role_choices %}
-                    <option value="{{ r_key }}" {% if filters.role == r_key %}selected{% endif %}>{{ r_label }}</option>
-                    {% endfor %}
-                </select>
-                {% endif %}
-                {% if filters.area or filters.project or filters.role or filters.client %}
-                <a href="{% url 'ver_equipo' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
+                {% if filters.client or filters.project %}
+                <a href="{% url 'ver_equipo' %}?tab=clientes" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
                 {% endif %}
             </div>
             {% endif %}
