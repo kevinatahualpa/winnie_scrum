@@ -31,6 +31,21 @@
     </script>
     {% endif %}
     <script src="{% static 'js/toast.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Color progress bars based on percentage: red < 30%, orange < 70%, green >= 70%
+            document.querySelectorAll('.progress-bar').forEach(function(bar) {
+                const width = parseInt(bar.style.width) || 0;
+                if (width < 30) {
+                    bar.style.background = '#ef4444'; // red
+                } else if (width < 70) {
+                    bar.style.background = '#f59e0b'; // orange
+                } else {
+                    bar.style.background = '#10b981'; // green
+                }
+            });
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
