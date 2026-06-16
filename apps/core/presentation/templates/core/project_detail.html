@@ -190,124 +190,159 @@
             </div>
 
             <div class="card shadow-sm border-0 tab-panel" id="tab-chat" style="display:none; border-radius: 0 12px 12px 12px;">
-                <div class="d-flex gap-1 p-2 border-bottom" style="background: #fff;">
-                    <button class="btn sub-tab-btn active" data-subtab="grupal" style="border: none; background: #25d366; color: #fff; font-weight: 500; font-size: 0.7rem; padding: 0.3rem 0.8rem; border-radius: 20px;">
-                        <i class="fas fa-users me-1"></i>Grupal <span class="badge bg-white text-dark ms-1" style="font-size: 0.5rem;">{{ comments.count }}</span>
+                <!-- Sub-tabs: Grupal / Directos -->
+                <div class="d-flex gap-2 p-2 border-bottom" style="background: var(--surface);">
+                    <button class="btn sub-tab-btn active flex-fill" data-subtab="grupal" style="border: 1px solid var(--border); background: var(--accent); color: #fff; font-weight: 500; font-size: 0.75rem; padding: 0.4rem 0.8rem; border-radius: var(--radius);">
+                        <i class="fas fa-users me-1"></i>Chat Grupal
+                        {% if comments.count > 0 %}<span class="badge bg-white text-dark ms-1" style="font-size: 0.6rem;">{{ comments.count }}</span>{% endif %}
                     </button>
-                    <button class="btn sub-tab-btn" data-subtab="directos" style="border: none; background: #f0f2f5; color: var(--text-secondary); font-weight: 500; font-size: 0.7rem; padding: 0.3rem 0.8rem; border-radius: 20px;">
-                        <i class="fas fa-user me-1"></i>Directos
+                    <button class="btn sub-tab-btn flex-fill" data-subtab="directos" style="border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-weight: 500; font-size: 0.75rem; padding: 0.4rem 0.8rem; border-radius: var(--radius);">
+                        <i class="fas fa-user me-1"></i>Mensajes Directos
                     </button>
                 </div>
 
+                <!-- ====== CHAT GRUPAL ====== -->
                 <div class="sub-panel" id="subtab-grupal">
-                    <div class="p-3" style="max-height: 380px; overflow-y: auto; background: #efeae2;" id="projectChat">
+                    <div class="p-3" style="max-height: 380px; overflow-y: auto; background: var(--surface);" id="projectChat">
                         {% for comment in comments %}
-                        <div class="d-flex mb-2 {% if comment.author == user %}justify-content-end{% endif %}">
-                            <div class="message-bubble {% if comment.author == user %}sent{% else %}received{% endif %}" style="max-width: 70%;">
-                                <div class="d-flex align-items-center gap-1 mb-1">
+                        <div class="d-flex mb-3 {% if comment.author == user %}justify-content-end{% endif %}">
+                            <div class="{% if comment.author == user %}ms-4{% else %}me-4{% endif %}" style="max-width: 75%;">
+                                <!-- Header: avatar + nombre + fecha -->
+                                <div class="d-flex align-items-center gap-2 mb-1 {% if comment.author == user %}justify-content-end{% endif %}">
                                     {% if comment.author != user %}
-                                    <span class="bubble-avatar" style="background:{{ comment.author.profile.color|default:'#00bcd4' }};">{{ comment.author.profile.initials|default:comment.author.username|slice:":2"|upper }}</span>
+                                    <span class="bubble-avatar" style="background:{{ comment.author.profile.color|default:'var(--accent)' }}; width: 24px; height: 24px; font-size: 0.65rem;">{{ comment.author.profile.initials|default:comment.author.username|slice:":2"|upper }}</span>
                                     {% endif %}
-                                    <small class="fw-bold" style="font-size: 0.6rem; {% if comment.author == user %}color:#53bdeb;{% else %}color:var(--accent);{% endif %}">{{ comment.author.get_full_name|default:comment.author.username }}</small>
-                                    <small style="font-size: 0.5rem; opacity:0.6;">{{ comment.created_at|date:"d/m H:i" }}</small>
+                                    <small class="fw-bold" style="font-size: 0.7rem; color: var(--text-secondary);">{{ comment.author.get_full_name|default:comment.author.username }}</small>
+                                    <small style="font-size: 0.6rem; color: var(--text-muted);">{{ comment.created_at|date:"d/m H:i" }}</small>
                                 </div>
-                                {% if comment.text %}
-                                <p class="mb-0" style="font-size: 0.8rem;">{{ comment.text }}</p>
-                                {% endif %}
-                                {% if comment.file %}
-                                <div class="mt-1">
-                                    {% with ext=comment.file.name|lower %}
-                                    {% if '.jpg' in ext or '.jpeg' in ext or '.png' in ext or '.gif' in ext or '.webp' in ext %}
-                                    <a href="{{ comment.file.url }}" target="_blank">
-                                        <img src="{{ comment.file.url }}" alt="Adjunto" style="max-width: 220px; max-height: 160px; border-radius: 6px; cursor: pointer;">
-                                    </a>
-                                    {% elif '.pdf' in ext %}
-                                    <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: rgba(0,0,0,0.05);">
-                                        <i class="fas fa-file-pdf text-danger" style="font-size: 1.2rem;"></i>
-                                        <span class="small text-muted">PDF adjunto</span>
-                                    </a>
-                                    {% else %}
-                                    <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: rgba(0,0,0,0.05);">
-                                        <i class="fas fa-paperclip text-muted" style="font-size: 1rem;"></i>
-                                        <span class="small text-muted">Archivo adjunto</span>
-                                    </a>
+                                <!-- Bubble -->
+                                <div class="message-bubble {% if comment.author == user %}sent{% else %}received{% endif %} px-3 py-2" style="border-radius: 12px;">
+                                    {% if comment.text %}
+                                    <p class="mb-0" style="font-size: 0.8rem; line-height: 1.4;">{{ comment.text }}</p>
                                     {% endif %}
-                                    {% endwith %}
+                                    {% if comment.file %}
+                                    <div class="mt-2">
+                                        {% with ext=comment.file.name|lower %}
+                                        {% if '.jpg' in ext or '.jpeg' in ext or '.png' in ext or '.gif' in ext or '.webp' in ext %}
+                                        <a href="{{ comment.file.url }}" target="_blank">
+                                            <img src="{{ comment.file.url }}" alt="Adjunto" style="max-width: 200px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-light);">
+                                        </a>
+                                        {% elif '.pdf' in ext %}
+                                        <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                            <i class="fas fa-file-pdf text-danger" style="font-size: 1.1rem;"></i>
+                                            <span class="small text-muted">PDF adjunto</span>
+                                        </a>
+                                        {% else %}
+                                        <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                            <i class="fas fa-paperclip text-muted" style="font-size: 0.9rem;"></i>
+                                            <span class="small text-muted">Archivo adjunto</span>
+                                        </a>
+                                        {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                             </div>
                         </div>
                         {% empty %}
                         <div class="text-center py-5 text-muted">
-                            <i class="fas fa-users d-block mb-2" style="font-size: 2.5rem; opacity: 0.15; color: #25d366;"></i>
-                            <p class="small mb-0">Sin mensajes en el chat grupal</p>
+                            <i class="fas fa-comments d-block mb-3" style="font-size: 2rem; opacity: 0.2; color: var(--accent);"></i>
+                            <p class="small mb-0">Aun no hay mensajes en el chat grupal</p>
+                            <p class="small text-muted">Sé el primero en escribir algo</p>
                         </div>
                         {% endfor %}
                     </div>
-                    <div class="border-top p-2" style="background: #fff;">
-                        <form method="post" action="{% url 'comentar_proyecto' project.id %}" class="d-flex gap-2">
+                    <!-- Input grupal -->
+                    <div class="border-top p-2" style="background: var(--surface);">
+                        <form method="post" action="{% url 'comentar_proyecto' project.id %}" class="d-flex gap-2 align-items-center">
                             {% csrf_token %}
-                            <input type="text" name="text" class="form-control form-control-sm" placeholder="Escribe un mensaje..." required style="font-size: 0.8rem;">
-                            <button type="submit" class="btn btn-sm text-white flex-shrink-0" style="background: #25d366; border-radius: 50%; width: 32px; height: 32px; padding: 0;"><i class="fas fa-paper-plane" style="font-size: 0.7rem;"></i></button>
+                            <input type="text" name="text" class="form-control form-control-sm" placeholder="Escribe un mensaje para el equipo..." required style="font-size: 0.8rem; border-radius: var(--radius-lg);">
+                            <button type="submit" class="btn btn-sm btn-primary flex-shrink-0" style="border-radius: var(--radius-lg); padding: 0.25rem 0.75rem;">
+                                <i class="fas fa-paper-plane" style="font-size: 0.75rem;"></i>
+                            </button>
                         </form>
                     </div>
                 </div>
 
+                <!-- ====== MENSAJES DIRECTOS ====== -->
                 <div class="sub-panel" id="subtab-directos" style="display:none;">
-                    <div class="p-2 border-bottom" style="background: #fff;">
-                        <select class="form-select form-select-sm" id="dmUserSelect" style="font-size: 0.7rem;" onchange="goDM(this.value)">
-                            <option value="">-- Selecciona un miembro --</option>
-                            {% for member in project_members %}
-                            <option value="{{ member.id }}" {% if dm_user and dm_user.id == member.id %}selected{% endif %}>
-                                {{ member.get_full_name|default:member.username }} ({{ member.profile.get_role_display }})
-                            </option>
-                            {% endfor %}
-                        </select>
+                    <!-- Selector de usuario -->
+                    <div class="p-2 border-bottom" style="background: var(--surface-alt);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-user text-muted" style="font-size: 0.8rem;"></i>
+                            <select class="form-select form-select-sm flex-fill" id="dmUserSelect" style="font-size: 0.75rem; border-radius: var(--radius);" onchange="goDM(this.value)">
+                                <option value="">Selecciona un miembro del proyecto...</option>
+                                {% for member in project_members %}
+                                {% if member.id != user.id %}
+                                <option value="{{ member.id }}" {% if dm_user and dm_user.id == member.id %}selected{% endif %}>
+                                    {{ member.get_full_name|default:member.username }} — {{ member.profile.get_role_display }}
+                                </option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
 
                     {% if dm_user %}
-                    <div class="p-2 d-flex align-items-center gap-2 border-bottom" style="background: #f0f2f5;">
-                        <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 28px; height: 28px; background: {{ dm_user.profile.color|default:'#00bcd4' }}; font-size: 10px;">
+                    <!-- Header conversacion -->
+                    <div class="p-2 d-flex align-items-center gap-2 border-bottom" style="background: var(--surface);">
+                        <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 28px; height: 28px; background: {{ dm_user.profile.color|default:'var(--accent)' }}; font-size: 10px;">
                             {{ dm_user.profile.initials|default:dm_user.username|slice:":2"|upper }}
                         </div>
-                        <strong class="small">{{ dm_user.get_full_name|default:dm_user.username }}</strong>
+                        <div>
+                            <strong class="small" style="font-size: 0.8rem;">{{ dm_user.get_full_name|default:dm_user.username }}</strong>
+                            <small class="d-block text-muted" style="font-size: 0.6rem;">{{ dm_user.profile.get_role_display }}</small>
+                        </div>
+                        <a href="{% url 'ver_conversacion' dm_user.id %}" class="btn btn-sm btn-outline-secondary ms-auto" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">
+                            <i class="fas fa-external-link-alt me-1"></i>Ver completo
+                        </a>
                     </div>
 
-                    <div class="p-3" style="max-height: 330px; overflow-y: auto; background: #efeae2;" id="directChat">
+                    <!-- Mensajes -->
+                    <div class="p-3" style="max-height: 300px; overflow-y: auto; background: var(--surface);" id="directChat">
                         {% if dm_messages %}
                             {% for msg in dm_messages %}
-                            <div class="d-flex mb-2 {% if msg.sender == user %}justify-content-end{% endif %}">
-                                <div class="message-bubble {% if msg.sender == user %}sent{% else %}received{% endif %}" style="max-width: 70%;">
-                                    <div class="d-flex justify-content-between align-items-center gap-1 mb-1">
-                                        <small class="fw-bold" style="font-size: 0.6rem; {% if msg.sender == user %}color:#53bdeb;{% else %}color:var(--accent);{% endif %}">{{ msg.sender.get_full_name|default:msg.sender.username }}</small>
-                                        <small style="font-size: 0.5rem; opacity:0.6;">{{ msg.created_at|date:"d/m H:i" }}</small>
+                            <div class="d-flex mb-3 {% if msg.sender == user %}justify-content-end{% endif %}">
+                                <div class="{% if msg.sender == user %}ms-4{% else %}me-4{% endif %}" style="max-width: 75%;">
+                                    <div class="d-flex align-items-center gap-2 mb-1 {% if msg.sender == user %}justify-content-end{% endif %}">
+                                        <small class="fw-bold" style="font-size: 0.7rem; color: var(--text-secondary);">{{ msg.sender.get_full_name|default:msg.sender.username }}</small>
+                                        <small style="font-size: 0.6rem; color: var(--text-muted);">{{ msg.created_at|date:"d/m H:i" }}</small>
                                     </div>
-                                    <small class="d-block mb-1" style="font-size: 0.55rem; opacity:0.5;">{{ msg.subject }}</small>
-                                    <p class="mb-0" style="font-size: 0.8rem;">{{ msg.body }}</p>
+                                    <div class="message-bubble {% if msg.sender == user %}sent{% else %}received{% endif %} px-3 py-2" style="border-radius: 12px;">
+                                        <small class="d-block mb-1 fw-medium" style="font-size: 0.65rem; color: var(--accent); opacity: 0.8;">{{ msg.subject }}</small>
+                                        <p class="mb-0" style="font-size: 0.8rem; line-height: 1.4;">{{ msg.body }}</p>
+                                    </div>
                                 </div>
                             </div>
                             {% endfor %}
                         {% else %}
-                        <div class="text-center py-4 text-muted">
-                            <i class="fas fa-comments d-block mb-2" style="font-size: 1.5rem; opacity: 0.2;"></i>
-                            <p class="small mb-0">Escribe un mensaje directo</p>
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-comment-dots d-block mb-3" style="font-size: 2rem; opacity: 0.2; color: var(--accent);"></i>
+                            <p class="small mb-0">No hay mensajes con {{ dm_user.get_full_name|default:dm_user.username }} aun</p>
+                            <p class="small text-muted">Escribe algo abajo para comenzar</p>
                         </div>
                         {% endif %}
                     </div>
-                    <div class="border-top p-2" style="background: #fff;">
-                        <form method="post" action="{% url 'enviar_mensaje' %}" class="d-flex gap-2">
+
+                    <!-- Input directo -->
+                    <div class="border-top p-2" style="background: var(--surface);">
+                        <form method="post" action="{% url 'enviar_mensaje' %}" class="d-flex gap-2 align-items-center">
                             {% csrf_token %}
                             <input type="hidden" name="receiver_id" value="{{ dm_user.id }}">
                             <input type="hidden" name="next" value="{% url 'ver_detalle_proyecto' project.id %}?dm={{ dm_user.id }}">
-                            <input type="text" name="subject" class="form-control form-control-sm" placeholder="Asunto" required style="max-width: 90px; font-size: 0.7rem;">
-                            <input type="text" name="body" class="form-control form-control-sm" placeholder="Escribe..." required style="font-size: 0.7rem;">
-                            <button type="submit" class="btn btn-sm text-white flex-shrink-0" style="background: #25d366; border-radius: 50%; width: 32px; height: 32px; padding: 0;"><i class="fas fa-paper-plane" style="font-size: 0.7rem;"></i></button>
+                            <input type="text" name="subject" class="form-control form-control-sm" placeholder="Asunto" required style="max-width: 100px; font-size: 0.75rem; border-radius: var(--radius-lg);">
+                            <input type="text" name="body" class="form-control form-control-sm flex-fill" placeholder="Escribe un mensaje..." required style="font-size: 0.75rem; border-radius: var(--radius-lg);">
+                            <button type="submit" class="btn btn-sm btn-primary flex-shrink-0" style="border-radius: var(--radius-lg); padding: 0.25rem 0.75rem;">
+                                <i class="fas fa-paper-plane" style="font-size: 0.75rem;"></i>
+                            </button>
                         </form>
                     </div>
                     {% else %}
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-user-friends d-block mb-2" style="font-size: 2.5rem; opacity: 0.15;"></i>
-                        <p class="small mb-0">Selecciona un miembro del proyecto para enviarle un mensaje directo</p>
+                    <!-- Estado vacio: sin usuario seleccionado -->
+                    <div class="text-center py-5 text-muted" style="background: var(--surface);">
+                        <i class="fas fa-user-friends d-block mb-3" style="font-size: 2rem; opacity: 0.2; color: var(--accent);"></i>
+                        <p class="small mb-1 fw-medium">Selecciona un miembro del proyecto</p>
+                        <p class="small text-muted">Para enviarle un mensaje directo</p>
                     </div>
                     {% endif %}
                 </div>
@@ -384,11 +419,13 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             var subtab = this.dataset.subtab;
             subBtns.forEach(function(b) {
-                b.style.background = '#f0f2f5';
+                b.style.background = 'var(--surface)';
                 b.style.color = 'var(--text-secondary)';
+                b.style.border = '1px solid var(--border)';
             });
-            this.style.background = '#25d366';
+            this.style.background = 'var(--accent)';
             this.style.color = '#fff';
+            this.style.border = '1px solid var(--accent)';
 
             subPanels.forEach(function(p) { p.style.display = 'none'; });
             var target = document.getElementById('subtab-' + subtab);
@@ -406,10 +443,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var directBtn = document.querySelector('[data-subtab="directos"]');
     var grupalBtn = document.querySelector('[data-subtab="grupal"]');
     if (directBtn && grupalBtn) {
-        grupalBtn.style.background = '#f0f2f5';
+        grupalBtn.style.background = 'var(--surface)';
         grupalBtn.style.color = 'var(--text-secondary)';
-        directBtn.style.background = '#25d366';
+        grupalBtn.style.border = '1px solid var(--border)';
+        directBtn.style.background = 'var(--accent)';
         directBtn.style.color = '#fff';
+        directBtn.style.border = '1px solid var(--accent)';
         document.getElementById('subtab-grupal').style.display = 'none';
         document.getElementById('subtab-directos').style.display = '';
     }
