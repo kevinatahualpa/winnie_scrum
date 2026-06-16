@@ -604,7 +604,7 @@ class RegistrationRequest(models.Model):
     Guarda los datos del wizard de registro mientras el usuario confirma
     su email. El token es un UUID v4 que se envía por email como enlace.
     """
-    token = models.CharField(max_length=32, unique=True, db_index=True)
+    token = models.CharField(max_length=128, unique=True, db_index=True)
     email = models.EmailField()
     data = models.JSONField(default=dict)
     ip_address = models.GenericIPAddressField(null=True, blank=True)

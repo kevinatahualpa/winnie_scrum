@@ -63,6 +63,7 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; overflow: hidden; }
 body { font-family: var(--font); font-size: 14px; line-height: 1.6; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body.auth-page { overflow: auto; }
 h1, h2, h3, h4, h5, h6 { font-weight: 500; color: var(--text); letter-spacing: -0.025em; }
 h1 { font-size: 1.75rem; }
 h2 { font-size: 1.5rem; }
