@@ -22,9 +22,6 @@
                     <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtro"><i class="fas fa-times"></i></a>
                     {% endif %}
                 </div>
-                {% if user|has_role:"super-admin,admin,jefe-area" %}
-                <a href="{% url 'crear_proyecto' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nuevo Proyecto</a>
-                {% endif %}
             </div>
 
             {% if projects %}
