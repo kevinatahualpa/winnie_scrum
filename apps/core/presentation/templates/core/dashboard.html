@@ -133,7 +133,7 @@
                             <h6 class="mb-0">Proyectos Recientes</h6>
                             <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if recent_projects %}
                             {% for project in recent_projects %}
                             <div class="px-3 py-2 border-bottom">
@@ -211,7 +211,7 @@
                             <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs Abiertos</h6>
                             <span class="badge bg-white text-danger">{{ bugs }}</span>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if recent_tasks %}
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
@@ -325,7 +325,7 @@
                             <h6 class="mb-0">Proyectos del Area</h6>
                             <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if area_projects %}
                             {% for project in area_projects %}
                             <div class="px-3 py-2 border-bottom">
@@ -403,7 +403,7 @@
                             <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs del Area</h6>
                             <span class="badge bg-white text-danger">{{ bugs }}</span>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if recent_tasks %}
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
@@ -497,7 +497,7 @@
                             <h6 class="mb-0">Mis Proyectos</h6>
                             <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if projects %}
                             {% for project in projects %}
                             <div class="px-3 py-2 border-bottom">
@@ -575,7 +575,7 @@
                             <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs del Equipo</h6>
                             <span class="badge bg-white text-danger">{{ bugs }}</span>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if recent_tasks %}
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
@@ -611,7 +611,7 @@
                         <div class="card-header">
                             <h6 class="mb-0">Miembros del Equipo</h6>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
                                     <thead><tr><th>Nombre</th><th>Especialidad</th><th>Tareas Asignadas</th><th>En Progreso</th><th>Completadas</th></tr></thead>
@@ -769,7 +769,7 @@
                         <div class="card-header">
                             <h6 class="mb-0">Mis Proyectos</h6>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if my_projects %}
                             {% for project in my_projects %}
                             <div class="px-3 py-2 border-bottom">
@@ -831,7 +831,7 @@
                             <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Mis Bugs Abiertos</h6>
                             <span class="badge bg-white text-danger">{{ my_task_stats.bugs }}</span>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0 card-body-scroll">
                             {% if my_tasks %}
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
