@@ -174,11 +174,13 @@ a:hover { color: var(--accent-hover); }
 .page-content::-webkit-scrollbar-track { background: transparent; }
 
 /* Cards - Modern */
-.card { border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); background: var(--surface); transition: box-shadow 0.2s ease, transform 0.2s ease; }
+.card { border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); background: var(--surface); transition: box-shadow 0.2s ease, transform 0.2s ease; display: flex; flex-direction: column; }
 .card:hover { box-shadow: var(--shadow-md); }
-.card-header { background: var(--surface); border-bottom: 1px solid var(--border-light); padding: 0.75rem 1rem; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.card-header { background: var(--surface); border-bottom: 1px solid var(--border-light); padding: 0.75rem 1rem; border-radius: var(--radius-lg) var(--radius-lg) 0 0; flex-shrink: 0; }
 .card-header h6 { font-weight: 600; font-size: 0.9rem; }
-.card-body { padding: 1rem; }
+.card-body { padding: 0; flex: 1; overflow-y: auto; max-height: 400px; }
+.card-body::-webkit-scrollbar { width: 5px; }
+.card-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
 /* Tables */
 .table { font-size: 0.8rem; margin-bottom: 0; }

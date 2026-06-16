@@ -43,6 +43,16 @@
                 } else {
                     bar.style.background = '#10b981'; // green
                 }
+                // Make bars thicker and rounded
+                bar.style.height = '8px';
+                bar.style.borderRadius = '4px';
+            });
+            // Also fix the parent progress container
+            document.querySelectorAll('.progress').forEach(function(p) {
+                p.style.height = '8px';
+                p.style.borderRadius = '4px';
+                p.style.background = '#e2e8f0';
+                p.style.overflow = 'hidden';
             });
         });
     </script>
