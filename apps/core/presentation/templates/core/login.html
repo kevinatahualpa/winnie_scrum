@@ -18,9 +18,15 @@
         {% endif %}
 
         <div class="auth-tabs">
-            <button class="auth-tab active" onclick="switchTab('login')">Iniciar Sesion</button>
-            <button class="auth-tab" onclick="switchTab('register')">Solicitar Acceso</button>
-            <button class="auth-tab" onclick="switchTab('forgot')">Recuperar</button>
+            <button class="auth-tab active" onclick="switchTab('login')">
+                <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesion
+            </button>
+            <button class="auth-tab" onclick="switchTab('register')">
+                <i class="fas fa-user-plus me-1"></i> Solicitar Acceso
+            </button>
+            <button class="auth-tab" onclick="switchTab('forgot')">
+                <i class="fas fa-key me-1"></i> Recuperar
+            </button>
         </div>
 
         <!-- LOGIN -->
@@ -32,39 +38,56 @@
                     <input type="email" name="email" class="auth-input" placeholder="usuario@hackthony.com" required>
                 </div>
                 <div class="auth-field">
-                    <label class="auth-label">Password</label>
+                    <label class="auth-label">Contraseña</label>
                     <div class="auth-input-wrapper">
-                        <input type="password" name="password" class="auth-input" id="loginPw" placeholder="Tu contrasena" required>
+                        <input type="password" name="password" class="auth-input" id="loginPw" placeholder="Tu contraseña" required>
                         <button type="button" class="auth-toggle-pw" onclick="togglePw('loginPw', this)"><i class="fas fa-eye"></i></button>
                     </div>
                 </div>
-                <button type="submit" class="auth-btn auth-btn-primary">Iniciar Sesion</button>
+
+                <div class="d-flex justify-content-end mb-3">
+                    <a class="auth-link" onclick="switchTab('forgot')" style="font-size:0.75rem;cursor:pointer;">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="auth-btn auth-btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesion
+                </button>
             </form>
         </div>
 
         <!-- SOLICITAR ACCESO -->
         <div class="tab-pane" id="register">
-            <p class="auth-note" style="margin-bottom: 1rem;">
+            <div class="text-center mb-4">
+                <i class="fas fa-clipboard-list fa-2x mb-2" style="color: var(--accent); opacity: 0.6;"></i>
+            </div>
+            <p class="auth-note left" style="margin-bottom: 1.25rem;">
                 Completa nuestro wizard de 3 pasos para que un administrador
                 pueda evaluar tu perfil. Te pediremos datos, skills y CV.
             </p>
-            <a href="{% url 'registro_paso1' %}" class="auth-btn auth-btn-primary" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">
-                <i class="fas fa-user-plus me-2"></i> Iniciar solicitud
+            <a href="{% url 'registro_paso1' %}" class="auth-btn auth-btn-primary" style="text-decoration:none;">
+                <i class="fas fa-user-plus"></i> Iniciar solicitud
             </a>
-            <p class="auth-note" style="margin-top:0.6rem;">
+            <p class="auth-note" style="margin-top:0.85rem;">
                 <i class="fas fa-clock me-1"></i> Toma menos de 2 minutos.
             </p>
         </div>
 
         <!-- FORGOT -->
         <div class="tab-pane" id="forgot">
+            <p class="auth-note left" style="margin-bottom: 1.25rem;">
+                Escribe el email asociado a tu cuenta y te enviaremos instrucciones para restablecer tu contraseña.
+            </p>
             <div class="auth-field">
                 <label class="auth-label">Email Registrado</label>
                 <input type="email" class="auth-input" placeholder="tu.correo@hackthony.com">
             </div>
-            <button type="button" class="auth-btn auth-btn-primary" onclick="alert('Funcionalidad de recuperacion de contrasena no implementada aun.')">Enviar Instrucciones</button>
-            <p style="text-align:center;margin-top:0.85rem;">
-                <a class="auth-link" onclick="switchTab('login')" style="font-size:0.75rem;cursor:pointer;">Volver al inicio de sesion</a>
+            <button type="button" class="auth-btn auth-btn-primary" onclick="alert('Funcionalidad de recuperacion de contrasena no implementada aun.')">
+                <i class="fas fa-paper-plane"></i> Enviar Instrucciones
+            </button>
+            <p style="text-align:center;margin-top:1rem;">
+                <a class="auth-link" onclick="switchTab('login')" style="font-size:0.78rem;cursor:pointer;">
+                    <i class="fas fa-arrow-left me-1"></i> Volver al inicio de sesion
+                </a>
             </p>
         </div>
     </div>

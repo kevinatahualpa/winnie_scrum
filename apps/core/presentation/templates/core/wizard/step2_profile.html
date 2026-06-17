@@ -5,31 +5,8 @@
 {% block body %}
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 
-<style>
-.wizard-progress { display:flex; gap:0.4rem; margin-bottom:1.25rem; }
-.wizard-step { flex:1; height:4px; background:var(--border); border-radius:2px; position:relative; overflow:hidden; }
-.wizard-step.done::after, .wizard-step.active::after { content:''; position:absolute; left:0; top:0; bottom:0; background:var(--accent); }
-.wizard-step.done::after { width:100%; }
-.wizard-step.active::after { width:50%; }
-.wizard-steps-label { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-secondary); margin-bottom:1.1rem; }
-.wizard-steps-label span.done { color:var(--success); }
-.wizard-steps-label span.active { color:var(--accent); font-weight:600; }
-textarea.auth-input { resize:vertical; min-height:60px; font-family:var(--font); }
-.wizard-row { display:flex; gap:0.5rem; }
-.wizard-row .auth-field { flex:1; }
-.wizard-actions { display:flex; gap:0.5rem; margin-top:1rem; }
-.wizard-actions .auth-btn { flex:1; }
-.wizard-back { background:var(--bg) !important; color:var(--text-secondary) !important; border:1px solid var(--border) !important; }
-.spec-group-label {
-    font-size:0.7rem; font-weight:600; color:var(--text-secondary);
-    text-transform:uppercase; margin:0.75rem 0 0.4rem; letter-spacing:0.04em;
-}
-.spec-group-label:first-child { margin-top:0; }
-.spec-hint { font-size:0.7rem; color:var(--text-secondary); margin-top:0.3rem; }
-</style>
-
 <div class="auth-page">
-    <div class="auth-card" style="max-width:560px;">
+    <div class="auth-card xwide">
         <div class="auth-logo"><i class="fas fa-id-card"></i></div>
         <h1 class="auth-title">Solicitar Acceso</h1>
         <p class="auth-subtitle">Paso 2 de 3 - Tu perfil profesional</p>
@@ -115,7 +92,7 @@ textarea.auth-input { resize:vertical; min-height:60px; font-family:var(--font);
                     </option>
                     {% endfor %}
                 </select>
-                <div class="spec-hint"><i class="fas fa-info-circle"></i> Mantén Ctrl/Cmd presionado para seleccionar varias.</div>
+                <div class="spec-hint"><i class="fas fa-info-circle"></i> Manten Ctrl/Cmd presionado para seleccionar varias.</div>
             </div>
 
             <div class="wizard-actions">

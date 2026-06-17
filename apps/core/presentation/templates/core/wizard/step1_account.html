@@ -5,63 +5,8 @@
 {% block body %}
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 
-<style>
-.wizard-progress {
-    display: flex;
-    gap: 0.4rem;
-    margin-bottom: 1.25rem;
-}
-.wizard-step {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    position: relative;
-    overflow: hidden;
-}
-.wizard-step.active::after,
-.wizard-step.done::after {
-    content: '';
-    position: absolute; left: 0; top: 0; bottom: 0;
-    background: var(--accent);
-}
-.wizard-step.active::after { width: 50%; }
-.wizard-step.done::after { width: 100%; }
-.wizard-steps-label {
-    display: flex; justify-content: space-between;
-    font-size: 0.7rem; color: var(--text-secondary);
-    margin-bottom: 1.1rem;
-}
-.wizard-steps-label span.active { color: var(--accent); font-weight: 600; }
-.wizard-row { display: flex; gap: 0.5rem; }
-.wizard-row .auth-field { flex: 1; }
-.wizard-checkbox {
-    display: flex; align-items: flex-start; gap: 0.4rem;
-    font-size: 0.75rem; color: var(--text-secondary);
-    margin: 0.5rem 0 1rem;
-}
-.wizard-checkbox input { margin-top: 2px; }
-.wizard-actions {
-    display: flex; gap: 0.5rem; margin-top: 1rem;
-}
-.wizard-actions .auth-btn { flex: 1; }
-.wizard-back {
-    background: var(--bg) !important;
-    color: var(--text-secondary) !important;
-    border: 1px solid var(--border) !important;
-}
-.wizard-strength {
-    font-size: 0.7rem;
-    margin-top: 0.3rem;
-    color: var(--text-secondary);
-}
-.wizard-strength.weak { color: var(--danger); }
-.wizard-strength.medium { color: #f57f17; }
-.wizard-strength.strong { color: var(--success); }
-</style>
-
 <div class="auth-page">
-    <div class="auth-card" style="max-width:480px;">
+    <div class="auth-card wide">
         <div class="auth-logo"><i class="fas fa-user-plus"></i></div>
         <h1 class="auth-title">Solicitar Acceso</h1>
         <p class="auth-subtitle">Paso 1 de 3 - Tus datos</p>
@@ -126,7 +71,7 @@
             </label>
 
             <div class="wizard-actions">
-                <a href="{% url 'iniciar_sesion' %}" class="auth-btn wizard-back" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">
+                <a href="{% url 'iniciar_sesion' %}" class="auth-btn wizard-back" style="text-decoration:none;">
                     <i class="fas fa-arrow-left me-1"></i> Cancelar
                 </a>
                 <button type="submit" class="auth-btn auth-btn-primary">

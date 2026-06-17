@@ -6,36 +6,6 @@
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 
 <style>
-.wizard-progress { display:flex; gap:0.4rem; margin-bottom:1.25rem; }
-.wizard-step { flex:1; height:4px; background:var(--border); border-radius:2px; position:relative; overflow:hidden; }
-.wizard-step.done::after, .wizard-step.active::after { content:''; position:absolute; left:0; top:0; bottom:0; background:var(--accent); }
-.wizard-step.done::after { width:100%; }
-.wizard-step.active::after { width:30%; }
-.wizard-steps-label { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-secondary); margin-bottom:1.1rem; }
-.wizard-steps-label span.done { color:var(--success); }
-.wizard-steps-label span.active { color:var(--accent); font-weight:600; }
-.wizard-actions { display:flex; gap:0.5rem; margin-top:1rem; }
-.wizard-actions .auth-btn { flex:1; }
-.wizard-back { background:var(--bg) !important; color:var(--text-secondary) !important; border:1px solid var(--border) !important; }
-.tech-search { width:100%; padding:0.5rem 0.65rem; border:1px solid var(--border); border-radius:5px; background:var(--bg); color:var(--text); font-size:0.8rem; margin-bottom:0.85rem; }
-.tech-group-label { font-size:0.7rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; margin:0.75rem 0 0.4rem; letter-spacing:0.04em; }
-.tech-group-label:first-child { margin-top:0; }
-.tech-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:0.5rem; }
-.tech-card { position:relative; display:flex; align-items:center; gap:0.5rem; padding:0.55rem 0.7rem; border:1px solid var(--border); border-radius:6px; background:var(--bg); cursor:pointer; transition:all 0.12s; font-size:0.78rem; }
-.tech-card:hover { border-color:var(--accent); }
-.tech-card input[type=checkbox] { position:absolute; opacity:0; pointer-events:none; }
-.tech-card .tech-icon { width:28px; height:28px; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
-.tech-card .tech-name { font-weight:500; flex:1; }
-.tech-card .tech-cat { font-size:0.65rem; color:var(--text-secondary); }
-.tech-card.selected { border-color:var(--accent); background:rgba(233,84,32,0.06); }
-.tech-card .tech-level { display:none; gap:0.25rem; }
-.tech-card.selected .tech-level { display:flex; }
-.tech-level select { padding:0.15rem 0.3rem; border:1px solid var(--border); border-radius:4px; background:var(--surface); font-size:0.7rem; }
-.cv-drop { border:2px dashed var(--border); border-radius:8px; padding:1.25rem; text-align:center; color:var(--text-secondary); cursor:pointer; transition:all 0.12s; }
-.cv-drop:hover, .cv-drop.drag { border-color:var(--accent); background:rgba(233,84,32,0.04); }
-.cv-drop i { font-size:1.5rem; display:block; margin-bottom:0.4rem; }
-.cv-drop input { display:none; }
-.cv-filename { font-size:0.75rem; color:var(--success); margin-top:0.4rem; }
 .reorder-list { display:flex; flex-direction:column; gap:0.4rem; margin-top:0.85rem; }
 .reorder-list:empty::before { content:'No has agregado tecnologias todavia. Selecciona de la lista de arriba.'; color:var(--text-muted); font-size:0.75rem; font-style:italic; }
 .tech-row { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.7rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); font-size:0.78rem; }
@@ -46,7 +16,7 @@
 </style>
 
 <div class="auth-page">
-    <div class="auth-card" style="max-width:680px;">
+    <div class="auth-card xwide">
         <div class="auth-logo"><i class="fas fa-rocket"></i></div>
         <h1 class="auth-title">Solicitar Acceso</h1>
         <p class="auth-subtitle">Paso 3 de 3 - Skills y CV</p>
@@ -88,7 +58,7 @@
             </div>
             {% endfor %}
 
-            <div class="auth-field" style="margin-top:1rem;">
+            <div class="auth-field" style="margin-top:1.25rem;">
                 <label class="auth-label">CV (PDF, DOC o DOCX - max 5MB)</label>
                 <label class="cv-drop" id="cvDrop">
                     <i class="fas fa-cloud-upload-alt"></i>
