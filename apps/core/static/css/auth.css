@@ -212,7 +212,10 @@
 
 .auth-note.left { text-align: left; }
 
-.tab-pane { display: none; }
+.tab-pane {
+    display: none;
+    min-height: 220px;
+}
 .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
 
 @keyframes fadeIn {

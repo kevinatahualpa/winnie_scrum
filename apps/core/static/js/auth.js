@@ -1,4 +1,5 @@
 function switchTab(tabId) {
+    const tabsContainer = document.querySelector('.auth-tabs');
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
 
@@ -8,6 +9,15 @@ function switchTab(tabId) {
     const idx = tabs.indexOf(tabId);
     if (idx >= 0) {
         document.querySelectorAll('.auth-tab')[idx].classList.add('active');
+        if (tabsContainer) {
+            tabsContainer.style.visibility = '';
+            tabsContainer.style.pointerEvents = '';
+        }
+    } else if (tabId === 'forgot') {
+        if (tabsContainer) {
+            tabsContainer.style.visibility = 'hidden';
+            tabsContainer.style.pointerEvents = 'none';
+        }
     }
 }
 
