@@ -1,10 +1,14 @@
 function switchTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+
     document.getElementById(tabId).classList.add('active');
-    const tabs = ['login', 'register', 'forgot'];
+
+    const tabs = ['login', 'register'];
     const idx = tabs.indexOf(tabId);
-    document.querySelectorAll('.auth-tab')[idx].classList.add('active');
+    if (idx >= 0) {
+        document.querySelectorAll('.auth-tab')[idx].classList.add('active');
+    }
 }
 
 function togglePw(inputId, btn) {
