@@ -9,15 +9,9 @@ function switchTab(tabId) {
     const idx = tabs.indexOf(tabId);
     if (idx >= 0) {
         document.querySelectorAll('.auth-tab')[idx].classList.add('active');
-        if (tabsContainer) {
-            tabsContainer.style.visibility = '';
-            tabsContainer.style.pointerEvents = '';
-        }
+        if (tabsContainer) tabsContainer.style.display = '';
     } else if (tabId === 'forgot') {
-        if (tabsContainer) {
-            tabsContainer.style.visibility = 'hidden';
-            tabsContainer.style.pointerEvents = 'none';
-        }
+        if (tabsContainer) tabsContainer.style.display = 'none';
     }
 }
 

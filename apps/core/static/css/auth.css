@@ -217,6 +217,7 @@
     min-height: 220px;
 }
 .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
+#forgot.active { margin-top: 3.5rem; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
