@@ -107,6 +107,7 @@ class Command(BaseCommand):
                     'client': client_obj,
                     'role': data['role'],
                     'color': data['color'],
+                    'status': 'active',
                 }
             )
             user_objects[data['username']] = user
