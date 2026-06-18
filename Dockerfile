@@ -19,12 +19,9 @@ RUN pip install --upgrade pip && \
 
 COPY . .
 
-RUN mkdir -p /app/logs /app/media /app/staticfiles && \
+RUN mkdir -p /app/logs /app/staticfiles && \
     python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')" || exit 1
-
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "config.wsgi:application"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 config.wsgi:application"]
