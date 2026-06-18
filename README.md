@@ -7,9 +7,27 @@ Sistema de gestion de proyectos Scrum con roles jerarquicos, tablero Kanban, spr
 | Capa | Tecnologia |
 |---|---|
 | **Backend** | Django 5.x + Python 3.12+ |
+| **API REST** | Django REST Framework 3.16 + SimpleJWT |
 | **Base de datos** | PostgreSQL |
 | **Frontend** | Django Templates + Bootstrap 5.3.3 + Font Awesome 6.5.1 |
 | **Arquitectura** | Clean Architecture parcial (domain/infrastructure/presentation) |
+
+## API REST
+
+Winnie expone una API REST versionada en `/api/v1/` con autenticacion JWT,
+independiente del frontend Django Templates. Ver [`docs/API_V1.md`](docs/API_V1.md)
+para la documentacion completa (endpoints, filtros, RBAC, ejemplos).
+
+```bash
+# Obtener token
+curl -X POST http://127.0.0.1:8000/api/v1/auth/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin@hackthony.com","password":"123456"}'
+
+# Listar proyectos
+curl http://127.0.0.1:8000/api/v1/projects/ \
+  -H "Authorization: Bearer <access_token>"
+```
 
 ## Roles del Sistema
 
@@ -115,10 +133,11 @@ Scrum_hackthony/
 │       │       ├── task_service.py
 │       │       ├── sprint_service.py
 │       │       └── user_service.py
-│       ├── infrastructure/      # Capa de infraestructura
-│       │   ├── models/          # Modelos Django
-│       │   └── repositories/    # Implementaciones de repositorios
-│       ├── presentation/        # Capa de presentacion
+│   ├── infrastructure/      # Capa de infraestructura
+│   │   ├── models/          # Modelos Django
+│   │   ├── repositories/    # Implementaciones de repositorios
+│   │   └── api/             # API REST (DRF): serializers, viewsets, permissions
+│   ├── presentation/        # Capa de presentacion
 │       │   ├── views/           # Vistas modulares por entidad
 │       │   ├── templates/       # Templates HTML
 │       │   ├── static/          # Archivos estaticos
@@ -142,7 +161,11 @@ Scrum_hackthony/
 ## Ejecutar Tests
 
 ```bash
+# Todos los tests
 python3 manage.py test apps.core.tests -v 2
+
+# Solo tests de la API REST
+python3 manage.py test apps.core.tests.test_api -v 2
 ```
 
 ## Produccion

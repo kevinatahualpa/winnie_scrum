@@ -201,6 +201,23 @@ def can_delete_user(user: User, target_user: User) -> bool:
     return True
 
 
+def can_deactivate_user(user: User, target_user: User) -> bool:
+    """Can deactivate another user (soft delete).
+
+    Both super-admin and admin can deactivate users (separated from
+    `can_delete_user`, which is destructive). Cannot deactivate yourself
+    (preventing self-lockout). Cannot deactivate another super-admin.
+    """
+    if not is_admin(user):
+        return False
+    if target_user.id == user.id:
+        return False
+    target_profile = getattr(target_user, 'profile', None)
+    if target_profile and target_profile.role == 'super-admin':
+        return False
+    return True
+
+
 def can_view_audit_log(user: User) -> bool:
     """Can the user view the audit log at all."""
     return is_admin(user)

@@ -22,8 +22,8 @@ def ver_configuracion(request):
         'total_tasks': Task.objects.count(),
         'total_sprints': Sprint.objects.count(),
         'total_areas': Area.objects.count(),
-        'total_specialties': Specialty.objects.count(),
-        'total_clients': Client.objects.count(),
+        'total_specialties': Specialty.active.count(),
+        'total_clients': Client.active.count(),
         'total_audit_logs': AuditLog.objects.count(),
     }
     return render(request, 'core/settings.html', context)

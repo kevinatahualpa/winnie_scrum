@@ -24,7 +24,13 @@
                             <tbody>
                                 {% for log in logs %}
                                 <tr>
-                                    <td class="fw-medium">{{ log.user.get_full_name|default:log.user.username|default:"Sistema" }}</td>
+                                    <td class="fw-medium">
+                                        {% if log.user %}
+                                            {{ log.user.get_full_name|default:log.user.username }}
+                                        {% else %}
+                                            <span class="text-muted fst-italic">Sistema</span>
+                                        {% endif %}
+                                    </td>
                                     <td><span class="badge bg-light text-dark">{{ log.action }}</span></td>
                                     <td>{{ log.entity }}</td>
                                     <td class="text-muted">{{ log.created_at|date:"d/m/Y H:i" }}</td>

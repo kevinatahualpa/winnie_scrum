@@ -23,9 +23,9 @@ def ver_clientes(request):
     role = get_user_role(user)
 
     if role in ('jefe-proyecto', 'miembro'):
-        clients_list = Client.objects.filter(Q(projects__lead=user) | Q(projects__members=user)).distinct()
+        clients_list = Client.active.filter(Q(projects__lead=user) | Q(projects__members=user)).distinct()
     else:
-        clients_list = Client.objects.prefetch_related('projects').order_by('name')
+        clients_list = Client.active.prefetch_related('projects').order_by('name')
 
     return render(request, 'core/clients.html', {'clients': clients_list})
 
@@ -79,7 +79,11 @@ def editar_cliente(request, pk):
 @require_POST
 @login_required
 def eliminar_cliente(request, pk):
-    """Delete a client. Requires admin role."""
+    """Soft delete a client (mark as inactive). Requires admin role.
+
+    El cliente no se elimina fisicamente: se preserva el historial de
+    proyectos y solicitudes de servicio asociados.
+    """
     client = get_object_or_404(Client, pk=pk)
 
     if not can_manage_admin(request.user):
@@ -87,11 +91,12 @@ def eliminar_cliente(request, pk):
         return redirect('ver_clientes')
 
     name = client.name
-    client.delete()
+    client.is_active = False
+    client.save(update_fields=['is_active'])
 
     from apps.core.domain.services.notification_service import create_audit_log
-    create_audit_log(request.user, 'CLIENT_DELETE', 'client', pk, f'Cliente eliminado: {name}')
-    messages.success(request, f'Cliente "{name}" eliminado')
+    create_audit_log(request.user, 'CLIENT_ARCHIVE', 'client', pk, f'Cliente archivado: {name}')
+    messages.success(request, f'Cliente "{name}" archivado')
     return redirect('ver_clientes')
 
 

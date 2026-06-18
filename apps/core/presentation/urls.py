@@ -22,6 +22,7 @@ from .views import (
     ver_mensajes, ver_conversacion, enviar_mensaje, buscar_usuarios,
     ver_portal_cliente, ver_detalle_proyecto_cliente, crear_solicitud_cliente,
     gestionar_miembros_proyecto,
+    ver_archivados, restaurar,
 )
 from .views.wizard_views import (
     registro_paso1, registro_paso2, registro_paso3, registro_cancelar,
@@ -96,6 +97,8 @@ urlpatterns = [
     path('ver_configuracion/', ver_configuracion, name='ver_configuracion'),
     path('ver_reportes/', ver_reportes, name='ver_reportes'),
     path('ver_auditoria/', ver_auditoria, name='ver_auditoria'),
+    path('ver_archivados/', ver_archivados, name='ver_archivados'),
+    path('restaurar/<str:tipo>/<int:pk>/', restaurar, name='restaurar'),
     path('ver_perfil/', ver_perfil, name='ver_perfil'),
     path('ver_notificaciones/', ver_notificaciones, name='ver_notificaciones'),
     path('notifications/<int:pk>/read/', marcar_notificacion_leida, name='marcar_notificacion_leida'),

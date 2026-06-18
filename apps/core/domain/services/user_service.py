@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from apps.core.infrastructure.models.models import UserProfile
 from apps.core.infrastructure.repositories import UserRepository
 from apps.core.domain.services.permission_service import (
-    can_manage_admin, can_change_user_role,
+    can_manage_admin, can_change_user_role, is_super_admin,
 )
 from apps.core.domain.services.notification_service import create_audit_log
 
@@ -20,9 +20,12 @@ class UserService:
         email: str,
         first_name: str = '',
         last_name: str = '',
-        password: str = 'password123',
+        password: str = '',
     ) -> Tuple[Optional[User], Optional[str]]:
         """Public self-registration - creates user with pending status."""
+        if not password or len(password) < 8:
+            return None, 'La contrasena debe tener al menos 8 caracteres'
+
         if User.objects.filter(username=email).exists():
             return None, 'Email ya registrado'
 
@@ -46,7 +49,7 @@ class UserService:
         email: str,
         first_name: str = '',
         last_name: str = '',
-        password: str = 'password123',
+        password: str = '',
         phone: str = '',
         area_id: Optional[int] = None,
         specialty_id: Optional[int] = None,
@@ -59,9 +62,18 @@ class UserService:
 
         For role='cliente', client_id is required. Project assignment
         happens later via the project's members view, not here.
+
+        Privilege escalation guard: only super-admin can create users
+        with role 'super-admin' or 'admin'.
         """
         if not can_manage_admin(user_creator):
             return None, 'No tienes permiso para crear usuarios'
+
+        if role in ('super-admin', 'admin') and not is_super_admin(user_creator):
+            return None, 'Solo el super-admin puede crear usuarios con rol admin o super-admin'
+
+        if not password or len(password) < 8:
+            return None, 'La contrasena debe tener al menos 8 caracteres'
 
         if role == 'cliente' and not client_id:
             return None, 'El rol cliente requiere una empresa asociada'
@@ -153,16 +165,28 @@ class UserService:
         """Soft delete: deactivate user instead of deleting from database.
 
         Preserves all history (tasks, comments, time entries, messages).
+        Also marks auth_user.is_active=False so the user cannot log in
+        with their existing session on next request.
         """
-        if not can_manage_admin(user_deleter):
-            return False, 'No tienes permiso para desactivar usuarios'
+        from apps.core.domain.services.permission_service import can_deactivate_user
+
+        if not can_deactivate_user(user_deleter, profile.user):
+            return False, 'No tienes permiso para desactivar este usuario'
 
         if profile.status == 'dismissed':
             return False, 'Este usuario ya esta desactivado'
 
         name = profile.user.get_full_name()
         profile.status = 'dismissed'
+        profile.user.is_active = False
+        profile.user.save(update_fields=['is_active'])
         profile.save(update_fields=['status'])
+
+        from django.contrib.sessions.models import Session
+        Session.objects.filter(
+            session_data__contains=f'"_auth_user_id":"{profile.user_id}"'
+        ).delete()
+
         create_audit_log(user_deleter, 'USER_DEACTIVATE', 'user', profile.id, f'Usuario desactivado: {name}')
         return True, None
 
@@ -181,6 +205,8 @@ class UserService:
 
         name = profile.user.get_full_name()
         profile.status = 'active'
+        profile.user.is_active = True
+        profile.user.save(update_fields=['is_active'])
         profile.save(update_fields=['status'])
         create_audit_log(user_activator, 'USER_REACTIVATE', 'user', profile.id, f'Usuario reactivado: {name}')
         return True, None

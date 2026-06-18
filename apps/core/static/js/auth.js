@@ -9,9 +9,9 @@ function switchTab(tabId) {
     const idx = tabs.indexOf(tabId);
     if (idx >= 0) {
         document.querySelectorAll('.auth-tab')[idx].classList.add('active');
-        if (tabsContainer) tabsContainer.style.display = '';
+        if (tabsContainer) tabsContainer.classList.remove('hidden');
     } else if (tabId === 'forgot') {
-        if (tabsContainer) tabsContainer.style.display = 'none';
+        if (tabsContainer) tabsContainer.classList.add('hidden');
     }
 }
 
@@ -30,5 +30,23 @@ function togglePw(inputId, btn) {
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof SHOW_REGISTER !== 'undefined' && SHOW_REGISTER) {
         switchTab('register');
+    }
+
+    const forgotForm = document.getElementById('forgotForm');
+    if (forgotForm) {
+        forgotForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value.trim();
+            const error = document.getElementById('forgotError');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRegex.test(email)) {
+                error.style.display = 'block';
+                return;
+            }
+
+            error.style.display = 'none';
+            alert('Funcionalidad de recuperacion de contrasena no implementada aun.');
+        });
     }
 });

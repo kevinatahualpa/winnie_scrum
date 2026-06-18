@@ -16,7 +16,7 @@
 
 .auth-card {
     width: 100%;
-    max-width: 500px;
+    max-width: 400px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -98,6 +98,8 @@
     border-color: var(--accent);
     box-shadow: 0 3px 10px rgba(233, 84, 32, 0.22);
 }
+
+.auth-tabs.hidden { display: none !important; }
 
 /* ---------- Form fields ---------- */
 .auth-field {
@@ -217,7 +219,7 @@
     min-height: 220px;
 }
 .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
-#forgot.active { margin-top: 3.5rem; }
+#forgot.active { margin-top: 0.5rem; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }

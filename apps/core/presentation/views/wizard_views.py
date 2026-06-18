@@ -136,7 +136,7 @@ def registro_paso2(request):
         messages.info(request, 'Comienza desde el paso 1.')
         return redirect('registro_paso1')
 
-    specialties = Specialty.objects.select_related('parent').order_by('category', 'name')
+    specialties = Specialty.active.select_related('parent').order_by('category', 'name')
 
     if request.method == 'POST':
         action = request.POST.get('action', 'next')
@@ -237,20 +237,10 @@ def registro_paso3(request):
 
         try:
             with transaction.atomic():
-                # Guardar CV temporalmente si existe
-                cv_path = None
-                if cv:
-                    cv_path = f'cv_temp/{token}_{cv.name}'
-                    # Nota: guardaré el archivo en un campo File del RegistrationRequest
-                    # o lo procesaré al verificar. Simplifico: guardaré en data como referencia
-                    pass
-
                 req = RegistrationRequest.objects.create(
                     token=token,
                     email=wiz['email'],
                     data={
-                        'email': wiz['email'],
-                        'password': wiz['password'],
                         'first_name': wiz['first_name'],
                         'last_name': wiz['last_name'],
                         'headline': wiz.get('headline', ''),
@@ -268,12 +258,10 @@ def registro_paso3(request):
                     expires_at=expires,
                 )
 
-                # Guardar CV como archivo temporal
                 if cv:
                     req.cv_file = cv
                     req.save()
 
-                # Enviar email de verificación
                 verify_url = request.build_absolute_uri(
                     reverse('verificar_registro', kwargs={'token': token})
                 )
@@ -302,7 +290,7 @@ Equipo Winnie
 
         except Exception as e:
             logger.exception('Error al guardar solicitud de registro')
-            messages.error(request, f'Error al crear la solicitud: {e}')
+            messages.error(request, 'Error al crear la solicitud. Por favor intenta de nuevo.')
             return _render_step3(request, technologies, wiz)
 
         _clear_wizard(request)
@@ -340,23 +328,28 @@ def verificar_registro(request, token):
     """
     from django.contrib.auth.models import User
 
-    req = RegistrationRequest.objects.filter(token=token, status='pending').first()
+    with transaction.atomic():
+        req = (
+            RegistrationRequest.objects
+            .select_for_update()
+            .filter(token=token)
+            .first()
+        )
 
-    if not req:
-        messages.error(request, 'El enlace de verificación no es válido o ya fue usado.')
-        return redirect('iniciar_sesion')
+        if not req or req.status != 'pending':
+            messages.error(request, 'El enlace de verificación no es válido o ya fue usado.')
+            return redirect('iniciar_sesion')
 
-    if timezone.now() > req.expires_at:
-        req.status = 'expired'
-        req.save()
-        messages.error(request, 'El enlace de verificación ha expirado. Inicia el registro de nuevo.')
-        return redirect('iniciar_sesion')
+        if timezone.now() > req.expires_at:
+            req.status = 'expired'
+            req.save(update_fields=['status'])
+            messages.error(request, 'El enlace de verificación ha expirado. Inicia el registro de nuevo.')
+            return redirect('iniciar_sesion')
 
-    data = req.data
-    cv = req.cv_file
+        data = req.data
+        cv = req.cv_file
 
-    try:
-        with transaction.atomic():
+        try:
             user = User.objects.create_user(
                 username=data['email'],
                 email=data['email'],
@@ -392,13 +385,52 @@ def verificar_registro(request, token):
                 user, 'USER_REGISTER_WIZARD', 'user', user.id,
                 f'Registro wizard verificado: {user.get_full_name()}',
             )
-    except Exception as e:
-        logger.exception('Error al verificar registro')
-        messages.error(request, f'Error al procesar la verificación: {e}')
-        return redirect('iniciar_sesion')
+        except Exception:
+            logger.exception('Error al verificar registro')
+            messages.error(request, 'Error al procesar la verificación. Por favor intenta de nuevo.')
+            return redirect('iniciar_sesion')
 
-    req.status = 'verified'
-    req.save()
+        req.status = 'verified'
+        req.data = {}
+        req.save(update_fields=['status', 'data'])
+
+    admins = User.objects.filter(
+        profile__role__in=['super-admin', 'admin'],
+        profile__status='active',
+    )
+    for admin in admins:
+        create_notification(
+            admin, 'new_registration', 'Nueva solicitud de acceso',
+            f'{user.get_full_name()} ({user.email}) solicito acceso. '
+            f'Especialidad: {cp.primary_specialty.name if cp.primary_specialty else "no indicada"}. '
+            f'{len(data.get("technologies", []))} tecnologia(s) declarada(s).',
+            'fa-user-clock',
+        )
+
+    subject = 'Winnie - Solicitud confirmada'
+    message = f"""Hola {user.first_name},
+
+Tu solicitud de acceso fue confirmada y enviada al equipo.
+
+Un administrador revisará tu perfil y te notificará cuando sea aprobada.
+
+Gracias por tu interés en Winnie.
+
+Equipo Winnie
+"""
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=True,
+    )
+
+    messages.success(
+        request,
+        '¡Tu solicitud fue confirmada! Un administrador la revisará y te notificará por email.',
+    )
+    return redirect('iniciar_sesion')
 
     # Notificar a admins
     admins = User.objects.filter(

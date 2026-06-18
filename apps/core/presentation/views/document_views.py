@@ -15,13 +15,19 @@ def ver_documentos(request):
 
     Supports sorting by name, size, and creation date. Shows total storage used.
     Uses pagination (30 per page) and role-based document filtering.
+
+    By default hides archived documents (is_active=False). Use ?archived=1
+    to see them (only for admin/super-admin).
     """
     user = request.user
     role = get_user_role(user)
     project_id = request.GET.get('project')
     sort = request.GET.get('sort', '-created_at')
+    show_archived = request.GET.get('archived') == '1' and role in ('super-admin', 'admin')
 
     docs = Document.objects.select_related('project', 'uploaded_by')
+    if not show_archived:
+        docs = docs.filter(is_active=True)
     if project_id:
         docs = docs.filter(project_id=project_id)
     docs = filter_queryset_by_role(docs, user, role, model_type='document')
@@ -37,12 +43,14 @@ def ver_documentos(request):
     documents = paginator.get_page(page)
 
     projects = filter_queryset_by_role(Project.objects.all(), user, role, model_type='project')
-    total_size = Document.objects.filter(project_id__in=projects.values_list('id', flat=True)).aggregate(total=Sum('size'))['total'] or 0
+    active_docs = Document.objects.filter(is_active=True, project_id__in=projects.values_list('id', flat=True))
+    total_size = active_docs.aggregate(total=Sum('size'))['total'] or 0
 
     return render(request, 'core/documents.html', {
         'documents': documents, 'projects': projects,
         'selected_project': project_id, 'sort': sort,
         'total_size': total_size,
+        'show_archived': show_archived,
     })
 
 
@@ -74,9 +82,9 @@ def subir_documento(request):
     ALLOWED_EXTENSIONS = {
         '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
         '.txt', '.csv', '.zip', '.rar', '.7z',
-        '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp',
+        '.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp',
         '.mp4', '.avi', '.mov', '.mp3', '.wav',
-        '.py', '.js', '.html', '.css', '.json', '.xml', '.sql', '.md',
+        '.json', '.xml', '.md',
     }
     MAX_FILE_SIZE = 10 * 1024 * 1024
 
@@ -95,7 +103,7 @@ def subir_documento(request):
     TYPE_MAP = {
         '.pdf': 'pdf', '.doc': 'word', '.docx': 'word',
         '.xls': 'excel', '.xlsx': 'excel', '.csv': 'excel',
-        '.png': 'image', '.jpg': 'image', '.jpeg': 'image', '.gif': 'image', '.svg': 'image', '.webp': 'image', '.bmp': 'image',
+        '.png': 'image', '.jpg': 'image', '.jpeg': 'image', '.gif': 'image', '.webp': 'image', '.bmp': 'image',
     }
     doc_type = TYPE_MAP.get(ext, 'other')
 
@@ -111,7 +119,11 @@ def subir_documento(request):
 @require_POST
 @login_required
 def eliminar_documento(request, pk):
-    """Delete a document and its associated file. Requires project management permission."""
+    """Soft delete a document (mark as inactive). Requires project management permission.
+
+    El archivo fisico no se elimina para permitir restauracion.
+    Use la vista de admin para purgar definitivamente.
+    """
     doc = get_object_or_404(Document, pk=pk)
     role = get_user_role(request.user)
 
@@ -124,13 +136,11 @@ def eliminar_documento(request, pk):
         return redirect('ver_documentos')
 
     name = doc.name
-    if doc.file:
-        doc.file.delete(save=False)
-    doc.delete()
+    doc.soft_delete()
 
     from apps.core.domain.services.notification_service import create_audit_log
-    create_audit_log(request.user, 'DOCUMENT_DELETE', 'document', pk, f'Documento eliminado: {name}')
-    messages.success(request, f'Documento "{name}" eliminado')
+    create_audit_log(request.user, 'DOCUMENT_ARCHIVE', 'document', pk, f'Documento archivado: {name}')
+    messages.success(request, f'Documento "{name}" archivado')
     return redirect('ver_documentos')
 
 
@@ -157,9 +167,9 @@ def subir_documento_proyecto(request, pk):
     ALLOWED_EXTENSIONS = {
         '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
         '.txt', '.csv', '.zip', '.rar', '.7z',
-        '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp',
+        '.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp',
         '.mp4', '.avi', '.mov', '.mp3', '.wav',
-        '.py', '.js', '.html', '.css', '.json', '.xml', '.sql', '.md',
+        '.json', '.xml', '.md',
     }
     MAX_FILE_SIZE = 10 * 1024 * 1024
 
@@ -178,7 +188,7 @@ def subir_documento_proyecto(request, pk):
     TYPE_MAP = {
         '.pdf': 'pdf', '.doc': 'word', '.docx': 'word',
         '.xls': 'excel', '.xlsx': 'excel', '.csv': 'excel',
-        '.png': 'image', '.jpg': 'image', '.jpeg': 'image', '.gif': 'image', '.svg': 'image', '.webp': 'image', '.bmp': 'image',
+        '.png': 'image', '.jpg': 'image', '.jpeg': 'image', '.gif': 'image', '.webp': 'image', '.bmp': 'image',
     }
     doc_type = TYPE_MAP.get(ext, 'other')
 
@@ -196,7 +206,7 @@ def subir_documento_proyecto(request, pk):
 @require_POST
 @login_required
 def eliminar_documento_proyecto(request, pk, doc_pk):
-    """Delete a document from the project detail page, redirect back to project."""
+    """Soft delete a document from the project detail page, redirect back to project."""
     doc = get_object_or_404(Document, pk=doc_pk)
     role = get_user_role(request.user)
 
@@ -209,11 +219,9 @@ def eliminar_documento_proyecto(request, pk, doc_pk):
         return redirect('ver_detalle_proyecto', pk=pk)
 
     name = doc.name
-    if doc.file:
-        doc.file.delete(save=False)
-    doc.delete()
+    doc.soft_delete()
 
     from apps.core.domain.services.notification_service import create_audit_log
-    create_audit_log(request.user, 'DOCUMENT_DELETE', 'document', doc_pk, f'Documento eliminado: {name}')
-    messages.success(request, f'Documento "{name}" eliminado')
+    create_audit_log(request.user, 'DOCUMENT_ARCHIVE', 'document', doc_pk, f'Documento archivado: {name}')
+    messages.success(request, f'Documento "{name}" archivado')
     return redirect('ver_detalle_proyecto', pk=pk)

@@ -80,7 +80,7 @@ def ver_detalle_proyecto(request, pk):
     dm_user_id = request.GET.get('dm')
     if dm_user_id and dm_user_id.isdigit():
         dm_user = User.objects.filter(pk=dm_user_id).first()
-        if dm_user and dm_user in [m for m in project_members] or dm_user == project.lead or project.members.filter(id=dm_user.id).exists():
+        if dm_user and (dm_user in project_members or dm_user == project.lead or project.members.filter(id=dm_user.id).exists()):
             dm_user = User.objects.select_related('profile').get(pk=dm_user_id)
             dm_messages = Message.objects.filter(
                 Q(sender=user, receiver=dm_user) | Q(sender=dm_user, receiver=user)
@@ -109,7 +109,7 @@ def crear_proyecto(request):
 
     areas = Area.objects.filter(status='active')
     users = User.objects.filter(is_active=True)
-    clients = Client.objects.all()
+    clients = Client.active.all()
 
     if request.method == 'POST':
         form = ProjectForm(request.POST)
@@ -167,7 +167,7 @@ def editar_proyecto(request, pk):
     project = get_object_or_404(Project, pk=pk)
     areas = Area.objects.filter(status='active')
     users = User.objects.filter(is_active=True)
-    clients = Client.objects.all()
+    clients = Client.active.all()
 
     if request.method == 'POST':
         form = ProjectForm(request.POST, instance=project)
@@ -215,12 +215,14 @@ def editar_proyecto(request, pk):
     return render(request, 'core/project_form.html', {'form': form, 'project': project, 'areas': areas, 'users': users, 'clients': clients})
 
 
+@require_POST
 @login_required
 def eliminar_proyecto(request, pk):
-    """Delete a project. Only super-admin can delete projects.
+    """Soft delete a project (mark as cancelled). Only super-admin can delete projects.
 
-    Project deletion cascades to tasks, sprints, documents, comments.
-    Admin can edit and pause projects but not delete them.
+    El proyecto no se elimina fisicamente: se marca como 'cancelled' para
+    preservar el historial de tareas, sprints, documentos y comentarios.
+    Admin puede editar y pausar proyectos pero no eliminarlos.
     """
     project = get_object_or_404(Project, pk=pk)
 
@@ -228,13 +230,13 @@ def eliminar_proyecto(request, pk):
         messages.error(request, 'Solo el super-admin puede eliminar proyectos')
         return redirect('ver_proyectos')
 
-    success, error = ProjectService.eliminar_proyecto(request.user, project)
+    project_name = project.name
+    project.status = 'cancelled'
+    project.save(update_fields=['status'])
 
-    if not success:
-        messages.error(request, error)
-    else:
-        messages.success(request, f'Proyecto "{project.name}" eliminado')
-
+    from apps.core.domain.services.notification_service import create_audit_log
+    create_audit_log(request.user, 'PROJECT_CANCEL', 'project', pk, f'Proyecto cancelado: {project_name}')
+    messages.success(request, f'Proyecto "{project_name}" cancelado y archivado')
     return redirect('ver_proyectos')
 
 

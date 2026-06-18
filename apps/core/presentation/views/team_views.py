@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 
 from apps.core.infrastructure.models.models import UserProfile, Area, Specialty, Project, Client
 from apps.core.domain.services.permission_service import (
-    get_user_role, can_manage_admin, can_delete_user, filter_queryset_by_role,
+    get_user_role, can_manage_admin, can_deactivate_user, filter_queryset_by_role,
 )
 from apps.core.domain.services.user_service import UserService
 from apps.core.presentation.forms import MemberForm
@@ -50,7 +50,7 @@ def ver_equipo(request):
     ).filter(status='active')
 
     areas = Area.objects.filter(status='active')
-    clients = Client.objects.all().order_by('name')
+    clients = Client.active.all().order_by('name')
     projects = filter_queryset_by_role(Project.objects.all(), user, role, model_type='project')
 
     if role == 'jefe-area' and getattr(user, 'profile', None) and user.profile.area:
@@ -140,8 +140,8 @@ def registrar_usuario(request):
         return redirect('ver_equipo')
 
     areas = Area.objects.filter(status='active')
-    specialties = Specialty.objects.all()
-    clients = Client.objects.all().order_by('name')
+    specialties = Specialty.active.all()
+    clients = Client.active.all().order_by('name')
 
     if request.method == 'POST':
         form = MemberForm(
@@ -204,8 +204,8 @@ def editar_usuario(request, pk):
     profile = get_object_or_404(UserProfile, pk=pk)
 
     areas = Area.objects.filter(status='active')
-    specialties = Specialty.objects.all()
-    clients = Client.objects.all().order_by('name')
+    specialties = Specialty.active.all()
+    clients = Client.active.all().order_by('name')
 
     if request.method == 'POST':
         form = MemberForm(
@@ -273,7 +273,7 @@ def desactivar_usuario(request, pk):
     """
     profile = get_object_or_404(UserProfile, pk=pk)
 
-    if not can_delete_user(request.user, profile.user):
+    if not can_deactivate_user(request.user, profile.user):
         messages.error(request, 'No tienes permiso para desactivar este usuario')
         return redirect('ver_equipo')
 

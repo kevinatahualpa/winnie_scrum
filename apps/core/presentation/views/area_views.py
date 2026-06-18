@@ -79,7 +79,11 @@ def editar_area(request, pk):
 @require_POST
 @login_required
 def eliminar_area(request, pk):
-    """Delete an area. Requires admin role."""
+    """Soft delete an area (mark as inactive). Requires admin role.
+
+    El area no se elimina fisicamente para preservar el historial
+    de proyectos y usuarios que la referencian.
+    """
     area = get_object_or_404(Area, pk=pk)
 
     if not can_manage_admin(request.user):
@@ -87,9 +91,10 @@ def eliminar_area(request, pk):
         return redirect('ver_areas')
 
     name = area.name
-    area.delete()
+    area.status = 'inactive'
+    area.save(update_fields=['status'])
 
     from apps.core.domain.services.notification_service import create_audit_log
-    create_audit_log(request.user, 'AREA_DELETE', 'area', pk, f'Area eliminada: {name}')
-    messages.success(request, f'Area "{name}" eliminada')
+    create_audit_log(request.user, 'AREA_ARCHIVE', 'area', pk, f'Area archivada: {name}')
+    messages.success(request, f'Area "{name}" archivada')
     return redirect('ver_areas')

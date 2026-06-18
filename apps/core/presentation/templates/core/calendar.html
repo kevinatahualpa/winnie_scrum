@@ -58,8 +58,9 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ events|json_script:"calendar-events-data" }}
 <script>
-window.calendarEvents = {{ events|safe }};
+window.calendarEvents = JSON.parse(document.getElementById('calendar-events-data').textContent);
 window.calendarYear = {{ year }};
 window.calendarMonth = {{ month }};
 </script>

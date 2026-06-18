@@ -67,7 +67,7 @@ def crear_tarea(request):
 
     user_ids = list(UserProfile.objects.filter(status='active').values_list('user_id', flat=True))
     users = User.objects.filter(is_active=True, id__in=user_ids).select_related('profile', 'profile__specialty')
-    specialties = Specialty.objects.all()
+    specialties = Specialty.active.all()
 
     form.fields['project'].queryset = projects
     form.fields['assignee'].queryset = users
@@ -123,7 +123,7 @@ def editar_tarea(request, pk):
     projects = Project.objects.filter(status='active')
     user_ids = list(UserProfile.objects.filter(status='active').values_list('user_id', flat=True))
     users = User.objects.filter(is_active=True, id__in=user_ids).select_related('profile', 'profile__specialty')
-    specialties = Specialty.objects.all()
+    specialties = Specialty.active.all()
     sprints = Sprint.objects.filter(project=task.project)
 
     tags_str = ', '.join(task.tags.values_list('name', flat=True))

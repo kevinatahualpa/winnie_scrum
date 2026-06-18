@@ -85,7 +85,9 @@ class ProjectViewsTest(TestCase):
         self.client.login(username='superadmin@test.com', password='pass')
         response = self.client.post(reverse('eliminar_proyecto', args=[self.project.pk]))
         self.assertRedirects(response, reverse('ver_proyectos'))
-        self.assertFalse(Project.objects.filter(id=self.project.pk).exists())
+        # Soft delete: el proyecto sigue existiendo pero con status='cancelled'
+        project = Project.objects.get(id=self.project.pk)
+        self.assertEqual(project.status, 'cancelled')
 
     def test_project_delete_miembro_denied(self):
         self.client.login(username='member@test.com', password='pass')

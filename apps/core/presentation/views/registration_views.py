@@ -30,7 +30,7 @@ def ver_pendientes(request):
         .order_by('-created_at')
     )
     areas = Area.objects.filter(status='active')
-    specialties = Specialty.objects.select_related('parent').order_by('category', 'name')
+    specialties = Specialty.active.select_related('parent').order_by('category', 'name')
 
     return render(request, 'core/pending_registrations.html', {
         'pending_users': pending_users,
@@ -96,7 +96,7 @@ def aprobar_registro(request, pk):
         return redirect('ver_pendientes')
 
     areas = Area.objects.filter(status='active')
-    specialties = Specialty.objects.select_related('parent').order_by('category', 'name')
+    specialties = Specialty.active.select_related('parent').order_by('category', 'name')
     cp = CandidateProfile.objects.filter(user=user_profile.user).first()
     return render(request, 'core/approve_registration.html', {
         'user_profile': user_profile,
@@ -109,7 +109,11 @@ def aprobar_registro(request, pk):
 @require_POST
 @login_required
 def rechazar_registro(request, pk):
-    """Rechaza y elimina un candidato pendiente."""
+    """Rechaza un candidato pendiente (soft delete via profile.status='rejected').
+
+    El usuario NO se elimina fisicamente: se marca como 'rejected' y se
+    desactiva la cuenta. Esto preserva el historial y permite auditoria.
+    """
     role = get_user_role(request.user)
     if role not in ('super-admin', 'admin'):
         messages.error(request, 'No tienes permiso')
@@ -132,6 +136,10 @@ def rechazar_registro(request, pk):
         f'Usuario rechazado: {user_name}',
     )
 
-    user_obj.delete()
-    messages.success(request, f'Usuario "{user_name}" rechazado y eliminado')
+    user_profile.status = 'rejected'
+    user_obj.is_active = False
+    user_profile.save(update_fields=['status'])
+    user_obj.save(update_fields=['is_active'])
+
+    messages.success(request, f'Usuario "{user_name}" rechazado y archivado')
     return redirect('ver_pendientes')

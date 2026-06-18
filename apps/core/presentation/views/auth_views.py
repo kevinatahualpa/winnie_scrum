@@ -20,8 +20,11 @@ def iniciar_sesion(request):
     if request.user.is_authenticated:
         return redirect('ver_dashboard')
     if request.method == 'POST':
-        email = request.POST.get('email', '')
+        email = (request.POST.get('email') or '').strip().lower()
         password = request.POST.get('password', '')
+        if not email or not password:
+            messages.error(request, 'Email y contrasena son obligatorios')
+            return render(request, 'core/login.html')
         user = authenticate(request, username=email, password=password)
         if user is not None:
             profile = getattr(user, 'profile', None)
@@ -65,10 +68,13 @@ def registrarse(request):
     if request.user.is_authenticated:
         return redirect('ver_dashboard')
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
+        email = (request.POST.get('email') or '').strip().lower()
+        password = request.POST.get('password', '')
+        first_name = (request.POST.get('first_name') or '').strip()
+        last_name = (request.POST.get('last_name') or '').strip()
+        if not email or not password or len(password) < 8:
+            messages.error(request, 'Email y contrasena (min 8 caracteres) son obligatorios')
+            return render(request, 'core/login.html', {'show_register': True})
         if User.objects.filter(username=email).exists():
             messages.error(request, 'Email ya registrado')
             return render(request, 'core/login.html', {'show_register': True})

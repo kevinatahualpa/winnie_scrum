@@ -49,7 +49,15 @@
         <div class="nav-section">
             <div class="nav-section-title">Administracion</div>
             {% if user|has_role:"super-admin,admin" %}
-            <a href="{% url 'ver_areas' %}" class="nav-link {% if request.resolver_match.url_name == 'areas' %}active{% endif %}" aria-label="Areas"><i class="fas fa-sitemap" aria-hidden="true"></i> Areas</a>
+            <a href="{% url 'ver_auditoria' %}" class="nav-link {% if request.resolver_match.url_name == 'audit' %}active{% endif %}" aria-label="Auditoria"><i class="fas fa-shield-alt" aria-hidden="true"></i> Auditoria</a>
+            {% endif %}
+            {% if user|has_role:"super-admin,admin" %}
+            <a href="{% url 'ver_archivados' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_archivados' %}active{% endif %}" aria-label="Items archivados">
+                <i class="fas fa-archive" aria-hidden="true"></i> Archivados
+                {% if archived_count > 0 %}
+                <span class="pending-badge" aria-label="{{ archived_count }} items archivados">{{ archived_count }}</span>
+                {% endif %}
+            </a>
             {% endif %}
             {% if user|has_role:"super-admin,admin" %}
             <a href="{% url 'ver_especialidades' %}" class="nav-link {% if request.resolver_match.url_name == 'specialties' %}active{% endif %}" aria-label="Especialidades"><i class="fas fa-cogs" aria-hidden="true"></i> Especialidades</a>
@@ -81,9 +89,13 @@
         </div>
     </nav>
     <div class="sidebar-footer d-flex align-items-center gap-2">
+        {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" alt="" class="rounded-circle flex-shrink-0" style="width:32px;height:32px;object-fit:cover;">
+        {% else %}
         <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;font-size:0.75rem;background:var(--accent);color:#fff;font-weight:600;" aria-hidden="true">
             {{ user.first_name|first }}{{ user.last_name|first }}
         </div>
+        {% endif %}
         <div class="user-info min-w-0">
             <div class="user-name">{{ user.get_full_name }}</div>
             <span class="role-badge role-{{ user.profile.role|default:'miembro' }}">{{ user.profile.get_role_display|default:'Miembro' }}</span>

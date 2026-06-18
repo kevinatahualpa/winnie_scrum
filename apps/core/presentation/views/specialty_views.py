@@ -10,9 +10,19 @@ from apps.core.presentation.forms import SpecialtyForm
 
 @login_required
 def ver_especialidades(request):
-    """Render the list of specialties ordered by category and name."""
-    specialties = Specialty.objects.order_by('category', 'name')
-    return render(request, 'core/specialties.html', {'specialties': specialties})
+    """Render the list of active specialties ordered by category and name.
+
+    Por defecto no muestra especialidades archivadas (is_active=False).
+    Use ?archived=1 para ver archivadas (solo admins).
+    """
+    show_archived = request.GET.get('archived') == '1'
+    qs = Specialty.active.order_by('category', 'name')
+    if not show_archived:
+        qs = qs.filter(is_active=True)
+    return render(request, 'core/specialties.html', {
+        'specialties': qs,
+        'show_archived': show_archived,
+    })
 
 
 @require_http_methods(["GET", "POST"])
@@ -64,7 +74,11 @@ def editar_especialidad(request, pk):
 @require_POST
 @login_required
 def eliminar_especialidad(request, pk):
-    """Delete a specialty. Requires admin role."""
+    """Soft delete a specialty (mark as inactive). Requires admin role.
+
+    La especialidad no se elimina fisicamente: usuarios que la
+    referencian en su perfil mantienen la asociacion visible.
+    """
     specialty = get_object_or_404(Specialty, pk=pk)
 
     if not can_manage_admin(request.user):
@@ -72,9 +86,10 @@ def eliminar_especialidad(request, pk):
         return redirect('ver_especialidades')
 
     name = specialty.name
-    specialty.delete()
+    specialty.is_active = False
+    specialty.save(update_fields=['is_active'])
 
     from apps.core.domain.services.notification_service import create_audit_log
-    create_audit_log(request.user, 'SPECIALTY_DELETE', 'specialty', pk, f'Especialidad eliminada: {name}')
-    messages.success(request, f'Especialidad "{name}" eliminada')
+    create_audit_log(request.user, 'SPECIALTY_ARCHIVE', 'specialty', pk, f'Especialidad archivada: {name}')
+    messages.success(request, f'Especialidad "{name}" archivada')
     return redirect('ver_especialidades')

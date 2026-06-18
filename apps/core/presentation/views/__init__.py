@@ -1,4 +1,5 @@
 from .auth_views import iniciar_sesion, cerrar_sesion, registrarse
+from .archived_views import ver_archivados, restaurar
 from .dashboard_views import ver_dashboard
 from .project_views import ver_proyectos, ver_detalle_proyecto, crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto
 from .task_views import crear_tarea, editar_tarea, eliminar_tarea, actualizar_estado_tarea, comentar_tarea
@@ -28,11 +29,12 @@ from .project_views import gestionar_miembros_proyecto
 
 __all__ = [
     'iniciar_sesion', 'cerrar_sesion', 'registrarse',
+    'ver_archivados', 'restaurar',
     'ver_dashboard',
     'ver_proyectos', 'ver_detalle_proyecto', 'crear_proyecto', 'editar_proyecto', 'eliminar_proyecto', 'comentar_proyecto',
     'crear_tarea', 'editar_tarea', 'eliminar_tarea', 'actualizar_estado_tarea', 'comentar_tarea',
     'ver_sprints', 'crear_sprint', 'iniciar_sprint', 'completar_sprint',
-    'ver_equipo', 'registrar_usuario', 'editar_usuario', 'eliminar_usuario',
+    'ver_equipo', 'registrar_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'ver_equipo_desactivados',
     'ver_areas', 'crear_area', 'editar_area', 'eliminar_area',
     'ver_especialidades', 'crear_especialidad', 'editar_especialidad', 'eliminar_especialidad',
     'ver_clientes', 'crear_cliente', 'editar_cliente', 'eliminar_cliente',

@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Q, Max
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST, require_GET
 
 from apps.core.infrastructure.models.models import Message, UserProfile, Project, Comment
@@ -173,6 +174,10 @@ def enviar_mensaje(request):
     )
 
     messages.success(request, f'Mensaje enviado a {receiver.get_full_name() or receiver.username}')
-    if next_url:
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
         return redirect(next_url)
     return redirect('ver_conversacion', user_id=receiver.id)

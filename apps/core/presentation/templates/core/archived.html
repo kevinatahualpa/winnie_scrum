@@ -1,0 +1,399 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% block title %}Archivados - Winnie{% endblock %}
+{% block page_title %}Archivados{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1">Items Archivados</h5>
+                    <small class="text-muted">Total: {{ total_archived }} item{{ total_archived|pluralize:"s" }} archivado{{ total_archived|pluralize:"s" }}</small>
+                </div>
+                <a href="{% url 'ver_auditoria' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-shield-alt"></i> Ver Auditoria
+                </a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="alert alert-info py-2 small">
+                <i class="fas fa-info-circle"></i>
+                Los items archivados se conservan indefinidamente para mantener el historial.
+                Solo admin+ puede restaurar. Cada accion queda registrada en auditoria.
+                Items <strong>criticos</strong> (proyectos y usuarios) requieren escribir el nombre exacto para confirmar.
+            </div>
+
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-projects" type="button">
+                        <i class="fas fa-folder"></i> Proyectos
+                        <span class="badge bg-secondary ms-1">{{ cancelled_projects|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-areas" type="button">
+                        <i class="fas fa-sitemap"></i> Areas
+                        <span class="badge bg-secondary ms-1">{{ inactive_areas|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-clients" type="button">
+                        <i class="fas fa-building"></i> Clientes
+                        <span class="badge bg-secondary ms-1">{{ archived_clients|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-specialties" type="button">
+                        <i class="fas fa-cogs"></i> Especialidades
+                        <span class="badge bg-secondary ms-1">{{ inactive_specialties|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-services" type="button">
+                        <i class="fas fa-concierge-bell"></i> Servicios
+                        <span class="badge bg-secondary ms-1">{{ cancelled_service_requests|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-documents" type="button">
+                        <i class="fas fa-file-alt"></i> Documentos
+                        <span class="badge bg-secondary ms-1">{{ archived_documents|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-users" type="button">
+                        <i class="fas fa-users"></i> Usuarios
+                        <span class="badge bg-secondary ms-1">{{ dismissed_users|length }}</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="tab-projects" role="tabpanel">
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Proyecto</th>
+                                        <th>Area</th>
+                                        <th>Lider</th>
+                                        <th>Archivado</th>
+                                        <th class="text-end">Accion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in cancelled_projects %}
+                                    <tr>
+                                        <td class="fw-medium">{{ p.name }}</td>
+                                        <td>{{ p.area.name|default:"-" }}</td>
+                                        <td>{{ p.lead.get_full_name|default:"-" }}</td>
+                                        <td class="text-muted small">
+                                            {% if p.archived_by %}
+                                            por <strong>{{ p.archived_by.get_full_name|default:p.archived_by.username }}</strong>
+                                            {% if p.archived_at %}hace <span title="{{ p.archived_at|date:'d/m/Y H:i' }}">{{ p.archived_at|timesince }}</span>{% endif %}
+                                            {% else %}fecha desconocida{% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#restoreModal" data-tipo="project" data-pk="{{ p.id }}" data-nombre="{{ p.name|escape }}">
+                                                <i class="fas fa-undo"></i> Restaurar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="5" class="text-center text-muted py-4">Sin proyectos cancelados</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-areas" role="tabpanel">
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr><th>Codigo</th><th>Nombre</th><th>Archivado</th><th class="text-end">Accion</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for a in inactive_areas %}
+                                    <tr>
+                                        <td><code>{{ a.code }}</code></td>
+                                        <td>{{ a.name }}</td>
+                                        <td class="text-muted small">
+                                            {% if a.archived_by %}
+                                            por <strong>{{ a.archived_by.get_full_name|default:a.archived_by.username }}</strong>
+                                            {% if a.archived_at %}hace <span title="{{ a.archived_at|date:'d/m/Y H:i' }}">{{ a.archived_at|timesince }}</span>{% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="post" action="{% url 'restaurar' 'area' a.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar area {{ a.name|escapejs }}?')">
+                                                    <i class="fas fa-undo"></i> Restaurar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">Sin areas inactivas</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-clients" role="tabpanel">
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr><th>Cliente</th><th>Contacto</th><th>Email</th><th>Archivado</th><th class="text-end">Accion</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in archived_clients %}
+                                    <tr>
+                                        <td class="fw-medium">{{ c.name }}</td>
+                                        <td>{{ c.contact|default:"-" }}</td>
+                                        <td>{{ c.email|default:"-" }}</td>
+                                        <td class="text-muted small">
+                                            {% if c.archived_by %}
+                                            por <strong>{{ c.archived_by.get_full_name|default:c.archived_by.username }}</strong>
+                                            {% if c.archived_at %}hace <span title="{{ c.archived_at|date:'d/m/Y H:i' }}">{{ c.archived_at|timesince }}</span>{% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="post" action="{% url 'restaurar' 'client' c.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar cliente {{ c.name|escapejs }}?')">
+                                                    <i class="fas fa-undo"></i> Restaurar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="5" class="text-center text-muted py-4">Sin clientes archivados</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-specialties" role="tabpanel">
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr><th>Categoria</th><th>Nombre</th><th>Archivado</th><th class="text-end">Accion</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in inactive_specialties %}
+                                    <tr>
+                                        <td><small class="text-muted">{{ s.get_category_display }}</small></td>
+                                        <td class="fw-medium">{{ s.name }}</td>
+                                        <td class="text-muted small">
+                                            {% if s.archived_by %}
+                                            por <strong>{{ s.archived_by.get_full_name|default:s.archived_by.username }}</strong>
+                                            {% if s.archived_at %}hace <span title="{{ s.archived_at|date:'d/m/Y H:i' }}">{{ s.archived_at|timesince }}</span>{% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="post" action="{% url 'restaurar' 'specialty' s.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar especialidad {{ s.name|escapejs }}?')">
+                                                    <i class="fas fa-undo"></i> Restaurar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">Sin especialidades inactivas</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-services" role="tabpanel">
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr><th>Servicio</th><th>Cliente</th><th>Asignado a</th><th>Archivado</th><th class="text-end">Accion</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for sr in cancelled_service_requests %}
+                                    <tr>
+                                        <td>{{ sr.get_service_display }}</td>
+                                        <td>{{ sr.client.name|default:"-" }}</td>
+                                        <td>{{ sr.assigned_to.get_full_name|default:"-" }}</td>
+                                        <td class="text-muted small">
+                                            {% if sr.archived_by %}
+                                            por <strong>{{ sr.archived_by.get_full_name|default:sr.archived_by.username }}</strong>
+                                            {% if sr.archived_at %}hace <span title="{{ sr.archived_at|date:'d/m/Y H:i' }}">{{ sr.archived_at|timesince }}</span>{% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="post" action="{% url 'restaurar' 'service_request' sr.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar solicitud?')">
+                                                    <i class="fas fa-undo"></i> Restaurar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="5" class="text-center text-muted py-4">Sin solicitudes canceladas</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-documents" role="tabpanel">
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr><th>Documento</th><th>Proyecto</th><th>Subido por</th><th>Archivado</th><th class="text-end">Accion</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for d in archived_documents %}
+                                    <tr>
+                                        <td class="fw-medium">{{ d.name }}</td>
+                                        <td>{{ d.project.name|default:"-" }}</td>
+                                        <td>{{ d.uploaded_by.get_full_name|default:"-" }}</td>
+                                        <td class="text-muted small">
+                                            {% if d.archived_by %}
+                                            por <strong>{{ d.archived_by.get_full_name|default:d.archived_by.username }}</strong>
+                                            {% if d.archived_at %}hace <span title="{{ d.archived_at|date:'d/m/Y H:i' }}">{{ d.archived_at|timesince }}</span>{% endif %}
+                                            {% elif d.deleted_at %}hace <span title="{{ d.deleted_at|date:'d/m/Y H:i' }}">{{ d.deleted_at|timesince }}</span>{% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="post" action="{% url 'restaurar' 'document' d.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar documento {{ d.name|escapejs }}?')">
+                                                    <i class="fas fa-undo"></i> Restaurar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="5" class="text-center text-muted py-4">Sin documentos archivados</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-users" role="tabpanel">
+                    <div class="card shadow-sm border-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th>Archivado</th><th class="text-end">Accion</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for u in dismissed_users %}
+                                    {% with u.user.get_full_name|default:u.user.username as user_name %}
+                                    <tr>
+                                        <td class="fw-medium">{{ user_name }}</td>
+                                        <td>{{ u.user.email }}</td>
+                                        <td>{{ u.get_role_display }}</td>
+                                        <td>
+                                            {% if u.status == 'dismissed' %}
+                                                <span class="badge bg-warning text-dark">Desactivado</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Rechazado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted small">
+                                            {% if u.archived_by %}
+                                            por <strong>{{ u.archived_by.get_full_name|default:u.archived_by.username }}</strong>
+                                            {% if u.archived_at %}hace <span title="{{ u.archived_at|date:'d/m/Y H:i' }}">{{ u.archived_at|timesince }}</span>{% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#restoreModal" data-tipo="user" data-pk="{{ u.id }}" data-nombre="{{ user_name|escape }}">
+                                                <i class="fas fa-undo"></i> Restaurar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endwith %}
+                                    {% empty %}
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Sin usuarios desactivados/rechazados</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="restoreForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="restoreModalLabel">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        Restaurar item critico
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Vas a restaurar el siguiente item <strong class="text-danger">critico</strong>:</p>
+                    <p class="fw-bold fs-5" id="restoreItemName"></p>
+                    <p class="text-muted small">Para confirmar, escribe el nombre exacto del item abajo:</p>
+                    <input type="text" name="confirmacion" id="restoreConfirmInput" class="form-control" autocomplete="off" required>
+                    <div class="form-text">Esta proteccion evita clicks accidentales en cambios criticos.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-undo"></i> Restaurar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const restoreModal = document.getElementById('restoreModal');
+    if (restoreModal) {
+        restoreModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const tipo = button.getAttribute('data-tipo');
+            const pk = button.getAttribute('data-pk');
+            const nombre = button.getAttribute('data-nombre');
+            document.getElementById('restoreItemName').textContent = nombre;
+            document.getElementById('restoreConfirmInput').value = '';
+            document.getElementById('restoreForm').action = '/restaurar/' + tipo + '/' + pk + '/';
+        });
+    }
+});
+</script>
+{% endblock %}

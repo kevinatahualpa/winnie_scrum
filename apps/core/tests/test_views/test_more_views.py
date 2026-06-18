@@ -127,7 +127,10 @@ class DocumentsViewsTest(TestCase):
         self.client.login(username='admin@test.com', password='pass')
         response = self.client.post(reverse('eliminar_documento', args=[self.doc.pk]))
         self.assertRedirects(response, reverse('ver_documentos'))
-        self.assertFalse(Document.objects.filter(id=self.doc.pk).exists())
+        # Soft delete: el documento sigue existiendo pero con is_active=False
+        doc = Document.objects.get(id=self.doc.pk)
+        self.assertFalse(doc.is_active)
+        self.assertIsNotNone(doc.deleted_at)
 
     def test_document_delete_requires_login(self):
         response = self.client.post(reverse('eliminar_documento', args=[self.doc.pk]))
@@ -188,7 +191,7 @@ class TeamViewsTest(TestCase):
 
     def test_member_delete_admin(self):
         self.client.login(username='admin@test.com', password='pass')
-        response = self.client.post(reverse('eliminar_usuario', args=[UserProfile.objects.get(user=self.member).pk]))
+        response = self.client.post(reverse('desactivar_usuario', args=[UserProfile.objects.get(user=self.member).pk]))
         self.assertRedirects(response, reverse('ver_equipo'))
 
     def test_member_update_admin(self):
@@ -241,7 +244,9 @@ class ServiceViewsTest(TestCase):
         pk = self.sr.pk
         response = self.client.post(reverse('eliminar_servicio', args=[pk]))
         self.assertRedirects(response, reverse('ver_servicios'))
-        self.assertFalse(ServiceRequest.objects.filter(id=pk).exists())
+        # Soft delete: el registro sigue existiendo pero con status='cancelled'
+        sr = ServiceRequest.objects.get(id=pk)
+        self.assertEqual(sr.status, 'cancelled')
 
 
 class SubstitutionViewsTest(TestCase):

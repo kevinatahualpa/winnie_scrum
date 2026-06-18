@@ -285,5 +285,10 @@ def candidato_decidir(request, pk):
         request.user, 'USER_REJECT', 'user', user_obj.id,
         f'Usuario rechazado: {user_name} (score {score}/{total})',
     )
-    user_obj.delete()
+
+    profile.status = 'rejected'
+    user_obj.is_active = False
+    profile.save(update_fields=['status'])
+    user_obj.save(update_fields=['is_active'])
+
     return JsonResponse({'ok': True, 'redirect': '/ver_pendientes/'})

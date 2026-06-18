@@ -141,7 +141,7 @@ class MemberForm(forms.ModelForm):
     password_confirm = forms.CharField(required=False, widget=forms.PasswordInput(attrs={'class': 'form-control'}), help_text='Repetir contrasena para confirmar (opcional)')
 
     client = forms.ModelChoiceField(
-        queryset=Client.objects.all(),
+        queryset=Client.active.all(),
         required=False,
         empty_label='Sin cliente',
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_client'}),

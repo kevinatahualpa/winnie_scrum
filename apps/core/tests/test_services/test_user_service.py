@@ -34,7 +34,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='cliente@empresa.com',
             first_name='Juan',
             last_name='Cliente',
-            password='cli1234',
+            password='cli12345',
             role='cliente',
             client_id=self.client.id,
         )
@@ -49,7 +49,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='sincliente@empresa.com',
             first_name='Sin',
             last_name='Cliente',
-            password='cli1234',
+            password='cli12345',
             role='cliente',
         )
         self.assertIsNone(profile)
@@ -62,7 +62,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='auditor@empresa.com',
             first_name='Maria',
             last_name='Auditora',
-            password='aud1234',
+            password='aud12345',
             role='observer',
         )
         self.assertIsNotNone(profile)
@@ -76,7 +76,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='m1@test.com',
             first_name='M',
             last_name='One',
-            password='m123456',
+            password='m1234567',
             role='miembro',
             area_id=self.area.id,
         )
@@ -90,7 +90,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='m2@test.com',
             first_name='M',
             last_name='X',
-            password='m123456',
+            password='m1234567',
             role='miembro',
             area_id=self.area.id,
         )
@@ -112,7 +112,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='m2b@test.com',
             first_name='M',
             last_name='X',
-            password='m123456',
+            password='m1234567',
             role='miembro',
             area_id=self.area.id,
         )
@@ -132,7 +132,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='m3@test.com',
             first_name='M',
             last_name='X',
-            password='m123456',
+            password='m1234567',
             role='miembro',
         )
         updated, error = UserService.editar_usuario(
@@ -149,7 +149,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='c@test.com',
             first_name='C',
             last_name='L',
-            password='c123456',
+            password='c1234567',
             role='cliente',
             client_id=self.client.id,
         )
@@ -171,7 +171,7 @@ class UserServiceRoleManagementTest(TestCase):
             email='o@test.com',
             first_name='O',
             last_name='B',
-            password='o123456',
+            password='o1234567',
             role='miembro',
             area_id=self.area.id,
         )
@@ -199,8 +199,9 @@ class UserServiceRoleManagementTest(TestCase):
             email='m4@test.com',
             first_name='M',
             last_name='X',
-            password='m123456',
+            password='m1234567',
             role='miembro',
             area_id=self.area.id,
         )
+        self.assertIsNotNone(profile)
         self.assertEqual(profile.user.projects.count(), 0)

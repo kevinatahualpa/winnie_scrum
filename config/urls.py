@@ -7,6 +7,7 @@ from django.shortcuts import render
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/', include('apps.core.infrastructure.api.urls')),
     path('', include('apps.core.presentation.urls')),
     path('robots.txt', lambda r: HttpResponse(
         'User-agent: *\nDisallow: /admin/\nDisallow: /pending/\nDisallow: /ver_auditoria/\nSitemap: https://127.0.0.1/sitemap.xml\n',

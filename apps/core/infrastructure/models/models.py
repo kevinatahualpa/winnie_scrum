@@ -12,6 +12,24 @@ class ActiveAreaManager(models.Manager):
         return super().get_queryset().filter(status='active')
 
 
+class ActiveSpecialtyManager(models.Manager):
+    """Custom manager that returns only active (not archived) specialties."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
+class ActiveDocumentManager(models.Manager):
+    """Custom manager that returns only active (not archived) documents."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
+class ActiveClientManager(models.Manager):
+    """Custom manager that returns only active clients."""
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
 class Area(models.Model):
     """Organizational area model representing departments or divisions."""
     code = models.CharField(max_length=10, unique=True)
@@ -54,6 +72,10 @@ class Specialty(models.Model):
     description = models.TextField(blank=True)
     color = models.CharField(max_length=7, default='#00bcd4')
     icon = models.CharField(max_length=50, default='fa-code', blank=True)
+    is_active = models.BooleanField(default=True, help_text='False = archivada (soft delete)')
+
+    objects = models.Manager()
+    active = ActiveSpecialtyManager()
 
     class Meta:
         ordering = ['category', 'name']
@@ -210,7 +232,7 @@ class UserProfile(models.Model):
     ], default='miembro', db_index=True)
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pendiente de aprobacion'), ('active', 'Activo'), ('vacation', 'Vacaciones'),
-        ('leave', 'Licencia'), ('dismissed', 'Desactivado'),
+        ('leave', 'Licencia'), ('dismissed', 'Desactivado'), ('rejected', 'Rechazado'),
     ], default='pending', db_index=True)
     color = models.CharField(max_length=7, default='#00bcd4')
     avatar = models.ImageField(upload_to='avatars/%Y/%m/', null=True, blank=True)
@@ -324,7 +346,11 @@ class Client(models.Model):
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=50, blank=True)
     industry = models.CharField(max_length=100, blank=True)
+    is_active = models.BooleanField(default=True, help_text='False = archivado (soft delete)')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = models.Manager()
+    active = ActiveClientManager()
 
     class Meta:
         ordering = ['name']
@@ -341,6 +367,7 @@ class Project(models.Model):
     status = models.CharField(max_length=20, choices=[
         ('active', 'Activo'), ('planned', 'Planificado'),
         ('completed', 'Completado'), ('paused', 'Pausado'),
+        ('cancelled', 'Cancelado'),
     ], default='planned', db_index=True)
     lead = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='led_projects')
     members = models.ManyToManyField(User, blank=True, related_name='projects')
@@ -492,7 +519,12 @@ class Document(models.Model):
     file = models.FileField(upload_to='documents/%Y/%m/', blank=True)
     size = models.PositiveIntegerField(default=0, help_text='Size in bytes')
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    is_active = models.BooleanField(default=True, help_text='False = archivado (soft delete)')
     created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = models.Manager()
+    active = ActiveDocumentManager()
 
     class Meta:
         ordering = ['-created_at']
@@ -500,12 +532,24 @@ class Document(models.Model):
     def __str__(self):
         return self.name
 
+    def soft_delete(self):
+        from django.utils import timezone
+        self.is_active = False
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['is_active', 'deleted_at'])
+
+    def restore(self):
+        self.is_active = True
+        self.deleted_at = None
+        self.save(update_fields=['is_active', 'deleted_at'])
+
 
 class ServiceRequest(models.Model):
     """Service request model for IT service management (help desk, consulting, etc.)."""
     STATUS_CHOICES = [
         ('new', 'Nuevo'), ('reviewing', 'En Revision'),
         ('in-progress', 'En Progreso'), ('completed', 'Completado'),
+        ('cancelled', 'Cancelado'),
     ]
     SERVICE_CHOICES = [
         ('consultoria', 'Consultoria TI'), ('mesa-ayuda', 'Mesa de Ayuda TI'),

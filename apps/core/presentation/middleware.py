@@ -4,7 +4,10 @@ from django.http import HttpResponse
 
 
 class RateLimitMiddleware:
-    RATE_LIMIT_ENDPOINTS = {'login', 'register', 'registro_paso1', 'registro_paso2', 'registro_paso3'}
+    RATE_LIMIT_ENDPOINTS = {
+        'iniciar_sesion', 'registrarse', 'solicitar_acceso',
+        'registro_paso1', 'registro_paso2', 'registro_paso3',
+    }
     MAX_REQUESTS = 5
     WINDOW_SECONDS = 3600  # 1 hora
 
@@ -17,13 +20,16 @@ class RateLimitMiddleware:
             if url_name in self.RATE_LIMIT_ENDPOINTS:
                 ip = self._get_client_ip(request)
                 cache_key = f'ratelimit:{url_name}:{ip}'
-                attempts = cache.get(cache_key, 0)
-                if attempts >= self.MAX_REQUESTS:
+                try:
+                    attempts = cache.incr(cache_key)
+                except ValueError:
+                    cache.set(cache_key, 1, self.WINDOW_SECONDS)
+                    attempts = 1
+                if attempts > self.MAX_REQUESTS:
                     return HttpResponse(
                         '<h1>429 Too Many Requests</h1><p>Intente nuevamente en 60 segundos.</p>',
                         status=429
                     )
-                cache.set(cache_key, attempts + 1, self.WINDOW_SECONDS)
         return self.get_response(request)
 
     def _get_client_ip(self, request):

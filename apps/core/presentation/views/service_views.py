@@ -81,13 +81,22 @@ def editar_servicio(request, pk):
 @require_POST
 @login_required
 def eliminar_servicio(request, pk):
-    """Delete a service request. Requires area management permission."""
+    """Cancel a service request (soft delete via status). Requires area management permission.
+
+    La solicitud no se elimina: se marca como 'cancelled' para
+    preservar el historial y permitir auditoria.
+    """
     sr = get_object_or_404(ServiceRequest, pk=pk)
 
     if not can_manage_area(request.user):
         messages.error(request, 'No tienes permiso para eliminar solicitudes')
         return redirect('ver_servicios')
 
-    sr.delete()
-    messages.success(request, 'Solicitud eliminada')
+    sr.status = 'cancelled'
+    sr.save(update_fields=['status'])
+
+    from apps.core.domain.services.notification_service import create_audit_log
+    create_audit_log(request.user, 'SERVICE_CANCEL', 'service_request', sr.id,
+                     f'Solicitud cancelada: {sr.get_service_display()}')
+    messages.success(request, 'Solicitud cancelada')
     return redirect('ver_servicios')

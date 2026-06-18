@@ -4,7 +4,7 @@ from apps.core.infrastructure.models.models import Area, Specialty, UserProfile,
 from apps.core.domain.services.permission_service import (
     get_user_role, can_manage_admin, can_manage_area,
     can_manage_project, can_manage_task, can_assign_to_project,
-    can_view_project, can_change_user_role, can_delete_user,
+    can_view_project, can_change_user_role, can_delete_user, can_deactivate_user,
     can_view_audit_log, can_view_all_audit_log, can_view_settings,
     can_delete_project,
     filter_queryset_by_role,
@@ -322,6 +322,15 @@ class RoleHierarchyTest(TestCase):
         self.assertFalse(can_delete_user(self.admin, self.member_user))
         self.assertFalse(can_delete_user(self.super_admin, self.super_admin))
         self.assertFalse(can_delete_user(self.super_admin, self.other_super_admin))
+
+    def test_can_deactivate_user_admin_and_super_admin(self):
+        """Both admin and super-admin can deactivate (soft delete)."""
+        self.assertTrue(can_deactivate_user(self.admin, self.member_user))
+        self.assertTrue(can_deactivate_user(self.super_admin, self.member_user))
+        self.assertTrue(can_deactivate_user(self.super_admin, self.admin))
+        self.assertFalse(can_deactivate_user(self.member_user, self.member_user))
+        self.assertFalse(can_deactivate_user(self.admin, self.super_admin))
+        self.assertFalse(can_deactivate_user(self.admin, self.admin))
 
     def test_can_view_audit_log_for_both_admins(self):
         self.assertTrue(can_view_audit_log(self.super_admin))
