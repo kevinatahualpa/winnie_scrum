@@ -98,6 +98,10 @@ document.addEventListener('DOMContentLoaded', function() {
             lvl.type = 'hidden'; lvl.name = 'level'; lvl.value = level;
             lvl.dataset.techId = id;
             form.appendChild(lvl);
+            const yrs = document.createElement('input');
+            yrs.type = 'hidden'; yrs.name = 'years_using'; yrs.value = '0';
+            yrs.dataset.techId = id;
+            form.appendChild(yrs);
         });
     }
 
