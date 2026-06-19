@@ -1,4 +1,5 @@
 from django.urls import path
+from django.shortcuts import redirect
 from .views import (
     iniciar_sesion, cerrar_sesion, registrarse, ver_dashboard, ver_proyectos, ver_detalle_proyecto,
     ver_tablero, ver_equipo, ver_servicios, ver_clientes, ver_areas, ver_especialidades,
@@ -39,8 +40,8 @@ from .views.client_views import (
 urlpatterns = [
     path('iniciar_sesion/', iniciar_sesion, name='iniciar_sesion'),
     path('cerrar_sesion/', cerrar_sesion, name='cerrar_sesion'),
-    path('solicitar-acceso/', registrarse, name='solicitar_acceso'),
-    path('registrarse/', registrarse, name='registrarse'),
+    path('solicitar-acceso/', lambda r: redirect('registro_paso1'), name='solicitar_acceso'),
+    path('registrarse/', lambda r: redirect('registro_paso1'), name='registrarse'),
     path('registro/', registro_paso1, name='registro_paso1'),
     path('registro/paso-2/', registro_paso2, name='registro_paso2'),
     path('registro/paso-3/', registro_paso3, name='registro_paso3'),
