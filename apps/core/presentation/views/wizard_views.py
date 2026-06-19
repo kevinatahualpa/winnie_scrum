@@ -385,9 +385,9 @@ def verificar_registro(request, token):
                 user, 'USER_REGISTER_WIZARD', 'user', user.id,
                 f'Registro wizard verificado: {user.get_full_name()}',
             )
-        except Exception:
+        except Exception as e:
             logger.exception('Error al verificar registro')
-            messages.error(request, 'Error al procesar la verificación. Por favor intenta de nuevo.')
+            messages.error(request, f'Error al procesar la verificación: {e}')
             return redirect('iniciar_sesion')
 
         req.status = 'verified'
