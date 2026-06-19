@@ -241,6 +241,8 @@ def registro_paso3(request):
                     token=token,
                     email=wiz['email'],
                     data={
+                        'email': wiz['email'],
+                        'password': wiz['password'],
                         'first_name': wiz['first_name'],
                         'last_name': wiz['last_name'],
                         'headline': wiz.get('headline', ''),
