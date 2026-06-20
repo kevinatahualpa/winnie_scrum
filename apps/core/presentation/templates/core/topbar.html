@@ -9,6 +9,9 @@
             <input type="text" class="form-control form-control-sm" placeholder="Buscar..." aria-label="Busqueda global" style="width:180px;font-size:0.7rem;padding:0.3rem 0.5rem;" id="globalSearch">
             <i class="fas fa-search position-absolute" aria-hidden="true" style="right:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-secondary);"></i>
         </div>
+        <a href="{% url 'cerrar_sesion' %}" class="btn btn-sm d-none d-md-inline-flex align-items-center gap-1" aria-label="Cerrar sesion" title="Salir" style="font-size:0.7rem;color:var(--text-secondary);padding:0.3rem 0.5rem;">
+            <i class="fas fa-sign-out-alt" aria-hidden="true" style="font-size:0.7rem;"></i> Salir
+        </a>
         <div class="dropdown">
             <button class="btn btn-sm position-relative" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones" style="border:none;padding:0.3rem 0.4rem;color:var(--text-secondary);">
                 <i class="fas fa-bell" aria-hidden="true" style="font-size:0.75rem;"></i>
