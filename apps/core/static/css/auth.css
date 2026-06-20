@@ -338,7 +338,15 @@
 .wizard-strength.medium { color: #f57f17; }
 .wizard-strength.strong { color: var(--success); }
 
-.spec-group-label,
+.spec-group-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin: 0.85rem 0 0.5rem;
+    letter-spacing: 0.04em;
+}
+
 .tech-group-label {
     font-size: 0.72rem;
     font-weight: 600;
@@ -346,6 +354,22 @@
     text-transform: uppercase;
     margin: 0.85rem 0 0.5rem;
     letter-spacing: 0.04em;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: color 0.15s;
+}
+.tech-group-label:hover {
+    color: var(--accent);
+}
+.tech-group-chevron {
+    font-size: 0.6rem;
+    transition: transform 0.2s ease;
+}
+.tech-group-label.open .tech-group-chevron {
+    transform: rotate(180deg);
 }
 
 .spec-group-label:first-child,

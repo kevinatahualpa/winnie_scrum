@@ -44,17 +44,21 @@
 
             {% regroup technologies by get_category_display as tech_groups %}
             {% for group in tech_groups %}
-            <div class="tech-group-label">{{ group.grouper }}</div>
-            <div class="tech-grid">
-                {% for tech in group.list %}
-                <label class="tech-card" data-name="{{ tech.name|lower }}" data-id="{{ tech.id }}">
-                    <input type="checkbox" name="technology" value="{{ tech.id }}" data-tech-id="{{ tech.id }}">
-                    <div class="tech-icon" style="background:{{ tech.color }}"><i class="fas {{ tech.icon }}"></i></div>
-                    <div style="flex:1;min-width:0;">
-                        <div class="tech-name">{{ tech.name }}</div>
-                    </div>
-                </label>
-                {% endfor %}
+            <div class="tech-group">
+                <div class="tech-group-label" data-tech-group>
+                    <i class="fas fa-chevron-down tech-group-chevron"></i> {{ group.grouper }}
+                </div>
+                <div class="tech-grid">
+                    {% for tech in group.list %}
+                    <label class="tech-card" data-name="{{ tech.name|lower }}" data-id="{{ tech.id }}">
+                        <input type="checkbox" name="technology" value="{{ tech.id }}" data-tech-id="{{ tech.id }}">
+                        <div class="tech-icon" style="background:{{ tech.color }}"><i class="fas {{ tech.icon }}"></i></div>
+                        <div style="flex:1;min-width:0;">
+                            <div class="tech-name">{{ tech.name }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
             </div>
             {% endfor %}
 
@@ -127,9 +131,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     search.addEventListener('input', function() {
         const q = this.value.toLowerCase();
-        cards.forEach(c => {
-            c.style.display = c.dataset.name.includes(q) ? '' : 'none';
+        document.querySelectorAll('.tech-group').forEach(g => {
+            let visibleCount = 0;
+            g.querySelectorAll('.tech-card').forEach(c => {
+                const match = !q || c.dataset.name.includes(q);
+                c.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+            const grid = g.querySelector('.tech-grid');
+            const label = g.querySelector('.tech-group-label');
+            if (q) {
+                g.style.display = visibleCount > 0 ? '' : 'none';
+                if (visibleCount > 0) {
+                    grid.style.display = '';
+                    label.classList.add('open');
+                }
+            } else {
+                g.style.display = '';
+                grid.style.display = label.classList.contains('open') ? '' : 'none';
+            }
         });
+    });
+
+    document.querySelectorAll('.tech-group-label').forEach((label, idx) => {
+        label.addEventListener('click', function() {
+            const grid = this.parentElement.querySelector('.tech-grid');
+            const isOpen = this.classList.toggle('open');
+            grid.style.display = isOpen ? '' : 'none';
+        });
+        if (idx === 0) {
+            label.classList.add('open');
+        } else {
+            label.parentElement.querySelector('.tech-grid').style.display = 'none';
+        }
     });
 
     form.addEventListener('submit', syncHidden);
