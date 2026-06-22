@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if technology %}Editar{% else %}Nueva{% endif %} Tecnologia - Winnie{% endblock %}
+{% block page_title %}{% if technology %}Editar{% else %}Nueva{% endif %} Tecnologia{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post" action="{% if technology %}{% url 'editar_tecnologia' technology.id %}{% else %}{% url 'crear_tecnologia' %}{% endif %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" name="name" class="form-control" value="{% if technology %}{{ technology.name }}{% endif %}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Categoria</label>
+                                <select name="category" class="form-select">
+                                    <option value="language" {% if technology.category == 'language' %}selected{% endif %}>Lenguaje</option>
+                                    <option value="framework" {% if technology.category == 'framework' %}selected{% endif %}>Framework</option>
+                                    <option value="database" {% if technology.category == 'database' %}selected{% endif %}>Base de datos</option>
+                                    <option value="tool" {% if technology.category == 'tool' %}selected{% endif %}>Herramienta</option>
+                                    <option value="platform" {% if technology.category == 'platform' %}selected{% endif %}>Plataforma</option>
+                                    <option value="other" {% if technology.category == 'other' %}selected{% endif %}>Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Color</label>
+                                <input type="color" name="color" class="form-control form-control-color" value="{% if technology %}{{ technology.color }}{% else %}#64748b{% endif %}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Icono (FontAwesome)</label>
+                                <input type="text" name="icon" class="form-control" value="{% if technology %}{{ technology.icon }}{% else %}fa-cog{% endif %}" placeholder="fa-brands fa-python">
+                                <small class="text-muted">Ej: fa-brands fa-python, fa-database, fa-brands fa-react</small>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'ver_tecnologias' %}" class="btn btn-ghost">Cancelar</a>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -61,6 +61,7 @@
             {% endif %}
             {% if user|has_role:"super-admin,admin" %}
             <a href="{% url 'ver_especialidades' %}" class="nav-link {% if request.resolver_match.url_name == 'specialties' %}active{% endif %}" aria-label="Especialidades"><i class="fas fa-cogs" aria-hidden="true"></i> Especialidades</a>
+            <a href="{% url 'ver_tecnologias' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_tecnologias' %}active{% endif %}" aria-label="Tecnologias"><i class="fas fa-code" aria-hidden="true"></i> Tecnologias</a>
             {% endif %}
             {% if user|has_role:"super-admin,admin" %}
             <a href="{% url 'ver_pendientes' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_pendientes' %}active{% endif %}" aria-label="Registros pendientes">

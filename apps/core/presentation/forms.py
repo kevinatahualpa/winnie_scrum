@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from apps.core.infrastructure.models.models import (
-    Area, Specialty, Client, Project, Sprint, Task,
+    Area, Specialty, Technology, Client, Project, Sprint, Task,
     ServiceRequest, Substitution, UserProfile, Document
 )
 
@@ -211,6 +211,19 @@ class ServiceRequestForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'assigned_to': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class TechnologyForm(forms.ModelForm):
+    """Form for creating and editing technologies."""
+    class Meta:
+        model = Technology
+        fields = ['name', 'category', 'icon', 'color']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la tecnologia'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'fa-brands fa-python'}),
+            'color': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color'}),
         }
 
 

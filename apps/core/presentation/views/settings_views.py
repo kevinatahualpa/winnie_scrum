@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from apps.core.infrastructure.models.models import User, Project, Task, Sprint, Area, Specialty, Client, AuditLog
+from apps.core.infrastructure.models.models import User, Project, Task, Sprint, Area, Specialty, Technology, Client, AuditLog
 from apps.core.domain.services.permission_service import can_view_settings
 
 
@@ -23,6 +23,7 @@ def ver_configuracion(request):
         'total_sprints': Sprint.objects.count(),
         'total_areas': Area.objects.count(),
         'total_specialties': Specialty.active.count(),
+        'total_technologies': Technology.objects.filter(is_active=True).count(),
         'total_clients': Client.active.count(),
         'total_audit_logs': AuditLog.objects.count(),
     }

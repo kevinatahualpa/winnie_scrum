@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from apps.core.domain.services.notification_service import create_audit_log
 from apps.core.domain.services.permission_service import is_admin
 from apps.core.infrastructure.models.models import (
-    Area, AuditLog, Client, Document, Project, ServiceRequest, Specialty, User, UserProfile,
+    Area, AuditLog, Client, Document, Project, ServiceRequest, Specialty, Technology, User, UserProfile,
 )
 
 
@@ -21,6 +21,7 @@ ARCHIVE_ACTIONS = {
     'area': ['AREA_ARCHIVE', 'AREA_INACTIVE'],
     'client': ['CLIENT_ARCHIVE'],
     'specialty': ['SPECIALTY_ARCHIVE'],
+    'technology': ['TECHNOLOGY_ARCHIVE'],
     'service_request': ['SERVICE_CANCEL'],
     'document': ['DOCUMENT_ARCHIVE'],
     'user': ['USER_REJECT', 'USER_DEACTIVATE'],
@@ -77,6 +78,9 @@ def ver_archivados(request):
     inactive_specialties = list(
         Specialty.objects.filter(is_active=False).order_by('category', 'name')
     )
+    inactive_technologies = list(
+        Technology.objects.filter(is_active=False).order_by('category', 'name')
+    )
     cancelled_service_requests = list(
         ServiceRequest.objects.filter(status='cancelled')
         .select_related('client', 'assigned_to').order_by('-created_at')
@@ -106,6 +110,10 @@ def ver_archivados(request):
         user, ts = _archive_info('specialty', s.id)
         s.archived_by = user
         s.archived_at = ts
+    for t in inactive_technologies:
+        user, ts = _archive_info('technology', t.id)
+        t.archived_by = user
+        t.archived_at = ts
     for sr in cancelled_service_requests:
         user, ts = _archive_info('service_request', sr.id)
         sr.archived_by = user
@@ -124,6 +132,7 @@ def ver_archivados(request):
         'inactive_areas': inactive_areas,
         'archived_clients': archived_clients,
         'inactive_specialties': inactive_specialties,
+        'inactive_technologies': inactive_technologies,
         'cancelled_service_requests': cancelled_service_requests,
         'archived_documents': archived_documents,
         'dismissed_users': dismissed_users,
@@ -209,6 +218,16 @@ def restaurar(request, tipo, pk):
         obj.is_active = True
         obj.save(update_fields=['is_active'])
         create_audit_log(user, 'SPECIALTY_RESTORE', 'specialty', pk, f'Especialidad restaurada: {name}')
+
+    elif tipo == 'technology':
+        obj = Technology.objects.filter(pk=pk, is_active=False).first()
+        if not obj:
+            messages.error(request, 'Tecnologia no encontrada o no archivada')
+            return redirect('ver_archivados')
+        name = obj.name
+        obj.is_active = True
+        obj.save(update_fields=['is_active'])
+        create_audit_log(user, 'TECHNOLOGY_RESTORE', 'technology', pk, f'Tecnologia restaurada: {name}')
 
     elif tipo == 'service_request':
         obj = ServiceRequest.objects.filter(pk=pk, status='cancelled').first()

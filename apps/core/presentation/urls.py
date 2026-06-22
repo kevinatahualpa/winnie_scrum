@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from .views import (
     iniciar_sesion, cerrar_sesion, registrarse, ver_dashboard, ver_proyectos, ver_detalle_proyecto,
     ver_tablero, ver_equipo, ver_servicios, ver_clientes, ver_areas, ver_especialidades,
+    ver_tecnologias, crear_tecnologia, editar_tecnologia, eliminar_tecnologia,
     ver_reportes, ver_auditoria, ver_perfil, actualizar_estado_tarea, crear_tarea, editar_tarea, eliminar_tarea,
     ver_backlog, ver_sprints, ver_documentos, ver_tiempo, ver_calendario,
     ver_pendientes, ver_configuracion, crear_sprint, iniciar_sprint,
@@ -88,6 +89,10 @@ urlpatterns = [
     path('ver_especialidades/create/', crear_especialidad, name='crear_especialidad'),
     path('ver_especialidades/<int:pk>/edit/', editar_especialidad, name='editar_especialidad'),
     path('ver_especialidades/<int:pk>/delete/', eliminar_especialidad, name='eliminar_especialidad'),
+    path('ver_tecnologias/', ver_tecnologias, name='ver_tecnologias'),
+    path('ver_tecnologias/create/', crear_tecnologia, name='crear_tecnologia'),
+    path('ver_tecnologias/<int:pk>/edit/', editar_tecnologia, name='editar_tecnologia'),
+    path('ver_tecnologias/<int:pk>/delete/', eliminar_tecnologia, name='eliminar_tecnologia'),
     path('ver_pendientes/', ver_pendientes, name='ver_pendientes'),
     path('pending/<int:pk>/approve/', aprobar_registro, name='aprobar_registro'),
     path('pending/<int:pk>/reject/', rechazar_registro, name='rechazar_registro'),

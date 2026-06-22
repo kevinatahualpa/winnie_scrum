@@ -7,6 +7,7 @@ from .sprint_views import ver_sprints, crear_sprint, iniciar_sprint, completar_s
 from .team_views import ver_equipo, registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_equipo_desactivados
 from .area_views import ver_areas, crear_area, editar_area, eliminar_area
 from .specialty_views import ver_especialidades, crear_especialidad, editar_especialidad, eliminar_especialidad
+from .technology_views import ver_tecnologias, crear_tecnologia, editar_tecnologia, eliminar_tecnologia
 from .client_views import ver_clientes, crear_cliente, editar_cliente, eliminar_cliente
 from .service_views import ver_servicios, crear_servicio, editar_servicio, eliminar_servicio
 from .board_views import ver_tablero
@@ -37,6 +38,7 @@ __all__ = [
     'ver_equipo', 'registrar_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'ver_equipo_desactivados',
     'ver_areas', 'crear_area', 'editar_area', 'eliminar_area',
     'ver_especialidades', 'crear_especialidad', 'editar_especialidad', 'eliminar_especialidad',
+    'ver_tecnologias', 'crear_tecnologia', 'editar_tecnologia', 'eliminar_tecnologia',
     'ver_clientes', 'crear_cliente', 'editar_cliente', 'eliminar_cliente',
     'ver_servicios', 'crear_servicio', 'editar_servicio', 'eliminar_servicio',
     'ver_tablero',
