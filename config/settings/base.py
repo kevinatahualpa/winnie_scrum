@@ -117,7 +117,7 @@ AWS_S3_CUSTOM_DOMAIN = os.getenv('R2_PUBLIC_URL', '').replace('https://', '')
 R2_PUBLIC_URL = os.getenv('R2_PUBLIC_URL', '')
 
 # Email via Resend (SMTP en produccion, consola en desarrollo)
-if os.getenv('RESEND_API_KEY') and not DEBUG:
+if os.getenv('RESEND_API_KEY'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = 'smtp.resend.com'
     EMAIL_PORT = 587
