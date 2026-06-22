@@ -150,6 +150,7 @@ LOGOUT_REDIRECT_URL = 'iniciar_sesion'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'same-origin'
 SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 CSRF_COOKIE_HTTPONLY = True
 # X_FRAME_OPTIONS: lo sobreescribimos manualmente en cv_embed y
 # candidato_detalle a 'SAMEORIGIN' para que el PDF viewer embebido
