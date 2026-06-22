@@ -11,3 +11,4 @@ django-storages[s3]>=1.14,<2.0
 dj-database-url>=2.0,<3.0
 Pillow>=10.0,<11.0
 whitenoise>=6.0,<7.0
+requests>=2.32,<3.0

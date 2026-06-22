@@ -13,13 +13,13 @@ Pasos:
 Estado guardado en request.session bajo la clave 'reg_wizard'.
 """
 
+import os
 import secrets
 import uuid
 from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -27,6 +27,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.core.exceptions import ValidationError
 from django.db import transaction
 import logging
+import requests
 
 from apps.core.infrastructure.models.models import (
     CandidateProfile, CandidateTechnology, RegistrationRequest, Specialty, Technology, UserProfile,
@@ -40,6 +41,38 @@ logger = logging.getLogger(__name__)
 WIZARD_SESSION_KEY = 'reg_wizard'
 ALLOWED_CV_EXT = {'.pdf', '.doc', '.docx'}
 MAX_CV_BYTES = 5 * 1024 * 1024  # 5MB
+
+
+def _send_resend_email(subject, message, from_email, recipient_list):
+    """Send email via Resend HTTP API (port 443) instead of SMTP (port 587).
+
+    Railway bloquea/bloquea SMTP (smtp.resend.com:587) en algunas regiones,
+    causando timeout. La API HTTP usa puerto 443 y funciona siempre.
+    """
+    api_key = os.getenv('RESEND_API_KEY')
+    if not api_key:
+        logger.warning('RESEND_API_KEY no configurada, saltando envio')
+        return
+
+    payload = {
+        'from': from_email,
+        'to': recipient_list,
+        'subject': subject,
+        'text': message,
+    }
+    try:
+        resp = requests.post(
+            'https://api.resend.com/emails',
+            json=payload,
+            headers={'Authorization': f'Bearer {api_key}'},
+            timeout=10,
+        )
+        if resp.status_code not in (200, 201):
+            logger.warning(f'Resend API error {resp.status_code}: {resp.text}')
+        else:
+            logger.info(f'Email enviado a {recipient_list}')
+    except requests.RequestException as e:
+        logger.warning(f'Error al enviar email via Resend API: {e}')
 
 
 def _get_wizard(request):
@@ -296,16 +329,12 @@ Si no solicitaste acceso, ignora este mensaje.
 
 Equipo Winnie
 """
-            try:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[wiz['email']],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                logger.warning(f'Error al enviar email a {wiz["email"]}: {e}')
+            _send_resend_email(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[wiz['email']],
+            )
 
         except Exception as e:
             logger.exception('Error al guardar solicitud de registro')
@@ -437,52 +466,11 @@ Gracias por tu interés en Winnie.
 
 Equipo Winnie
 """
-    send_mail(
+    _send_resend_email(
         subject=subject,
         message=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
-        fail_silently=True,
-    )
-
-    messages.success(
-        request,
-        '¡Tu solicitud fue confirmada! Un administrador la revisará y te notificará por email.',
-    )
-    return redirect('iniciar_sesion')
-
-    # Notificar a admins
-    admins = User.objects.filter(
-        profile__role__in=['super-admin', 'admin'],
-        profile__status='active',
-    )
-    for admin in admins:
-        create_notification(
-            admin, 'new_registration', 'Nueva solicitud de acceso',
-            f'{user.get_full_name()} ({user.email}) solicito acceso. '
-            f'Especialidad: {cp.primary_specialty.name if cp.primary_specialty else "no indicada"}. '
-            f'{len(data.get("technologies", []))} tecnologia(s) declarada(s).',
-            'fa-user-clock',
-        )
-
-    # Notificar al usuario
-    subject = 'Winnie - Solicitud confirmada'
-    message = f"""Hola {user.first_name},
-
-Tu solicitud de acceso fue confirmada y enviada al equipo.
-
-Un administrador revisará tu perfil y te notificará cuando sea aprobada.
-
-Gracias por tu interés en Winnie.
-
-Equipo Winnie
-"""
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=True,
     )
 
     messages.success(
