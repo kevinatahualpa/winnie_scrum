@@ -214,6 +214,20 @@ def registro_paso3(request):
                 'years_using': max(0, years_using),
             })
 
+        tech_ids_set = {t['technology_id'] for t in tech_data}
+        techs = Technology.objects.filter(id__in=tech_ids_set).select_related()
+        from collections import Counter
+        cat_counts: Counter = Counter(t.category for t in techs)
+        for cat, count in cat_counts.items():
+            if count > 3:
+                cat_label = dict(Technology._meta.get_field('category').choices).get(cat, cat)
+                messages.error(
+                    request,
+                    f'Solo puedes seleccionar hasta 3 tecnologías en "{cat_label}". '
+                    f'Seleccionaste {count}.'
+                )
+                return _render_step3(request, technologies, wiz)
+
         wiz['technologies'] = tech_data
         _set_wizard(request, wiz)
 

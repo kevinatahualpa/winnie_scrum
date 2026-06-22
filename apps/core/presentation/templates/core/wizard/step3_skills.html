@@ -44,9 +44,10 @@
 
             {% regroup technologies by get_category_display as tech_groups %}
             {% for group in tech_groups %}
-            <div class="tech-group">
+            <div class="tech-group" data-max="3">
                 <div class="tech-group-label" data-tech-group>
                     <i class="fas fa-chevron-down tech-group-chevron"></i> {{ group.grouper }}
+                    <span class="tech-counter" style="margin-left:auto;font-size:0.7rem;color:var(--text-muted);font-weight:400;">0 / 3</span>
                 </div>
                 <div class="tech-grid">
                     {% for tech in group.list %}
@@ -86,9 +87,28 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const MAX_PER_CATEGORY = 3;
+
     const search = document.getElementById('techSearch');
     const cards = document.querySelectorAll('.tech-card');
     const form = document.getElementById('step3Form');
+
+    function updateCategoryCounters() {
+        document.querySelectorAll('.tech-group').forEach(group => {
+            const checked = group.querySelectorAll('.tech-card.selected').length;
+            const counter = group.querySelector('.tech-counter');
+            const inputs = group.querySelectorAll('input[name="technology"]');
+            const max = parseInt(group.dataset.max) || MAX_PER_CATEGORY;
+            if (counter) counter.textContent = `${checked} / ${max}`;
+            if (checked >= max) {
+                inputs.forEach(inp => {
+                    if (!inp.checked) inp.disabled = true;
+                });
+            } else {
+                inputs.forEach(inp => inp.disabled = false);
+            }
+        });
+    }
 
     function syncHidden() {
         const checked = form.querySelectorAll('input[name="technology"]:checked');
@@ -122,11 +142,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         card.addEventListener('click', function(e) {
             if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION') return;
+            if (cb.disabled) return;
             setTimeout(() => {
                 card.classList.toggle('selected', cb.checked);
+                updateCategoryCounters();
             }, 0);
         });
-        cb.addEventListener('change', () => card.classList.toggle('selected', cb.checked));
+        cb.addEventListener('change', () => {
+            card.classList.toggle('selected', cb.checked);
+            updateCategoryCounters();
+        });
     });
 
     search.addEventListener('input', function() {
@@ -166,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    updateCategoryCounters();
     form.addEventListener('submit', syncHidden);
 
     const drop = document.getElementById('cvDrop');
