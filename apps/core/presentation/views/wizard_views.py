@@ -296,13 +296,16 @@ Si no solicitaste acceso, ignora este mensaje.
 
 Equipo Winnie
 """
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[wiz['email']],
-                fail_silently=True,
-            )
+            try:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[wiz['email']],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.warning(f'Error al enviar email a {wiz["email"]}: {e}')
 
         except Exception as e:
             logger.exception('Error al guardar solicitud de registro')
