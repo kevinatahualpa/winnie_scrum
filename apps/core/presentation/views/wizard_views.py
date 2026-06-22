@@ -278,11 +278,11 @@ def registro_paso3(request):
                     req.cv_file = cv
                     req.save()
 
-                verify_url = request.build_absolute_uri(
-                    reverse('verificar_registro', kwargs={'token': token})
-                )
-                subject = 'Winnie - Verifica tu solicitud de acceso'
-                message = f"""Hola {wiz['first_name']},
+            verify_url = request.build_absolute_uri(
+                reverse('verificar_registro', kwargs={'token': token})
+            )
+            subject = 'Winnie - Verifica tu solicitud de acceso'
+            message = f"""Hola {wiz['first_name']},
 
 Recibimos tu solicitud de acceso a Winnie.
 
@@ -296,13 +296,13 @@ Si no solicitaste acceso, ignora este mensaje.
 
 Equipo Winnie
 """
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[wiz['email']],
-                    fail_silently=False,
-                )
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[wiz['email']],
+                fail_silently=True,
+            )
 
         except Exception as e:
             logger.exception('Error al guardar solicitud de registro')
