@@ -66,7 +66,7 @@
                           placeholder="Cuentanos brevemente tu experiencia, que te motiva, en que proyectos has trabajado...">{{ form_data.bio|default:'' }}</textarea>
             </div>
 
-            <div class="spec-group-label">Especialidad principal <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(la que mejor dominas)</span></div>
+            <div class="spec-group-label">Especialidad principal <span class="spec-hint-inline">(la que mejor dominas)</span></div>
             <div class="auth-field">
                 <select name="primary_specialty" class="auth-input">
                     <option value="">Sin definir aun</option>
@@ -83,7 +83,7 @@
                 </select>
             </div>
 
-            <div class="spec-group-label">Otras especialidades que manejas <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(opcional, multiples)</span></div>
+            <div class="spec-group-label">Otras especialidades que manejas <span class="spec-hint-inline">(opcional, multiples)</span></div>
             <div class="auth-field">
                 <select name="secondary_specialties" class="auth-input" multiple size="5">
                     {% for spec in specialties %}

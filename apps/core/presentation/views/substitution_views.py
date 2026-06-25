@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,10 +11,6 @@ from apps.core.presentation.forms import SubstitutionForm
 
 @login_required
 def ver_suplencias(request):
-    """Render the substitutions management page. Restricted to admin/jefe-area roles.
-
-    Shows active and past substitutions (last 10) with user details.
-    """
     role = get_user_role(request.user)
     if role not in ('super-admin', 'admin', 'jefe-area'):
         messages.error(request, 'No tienes permiso para gestionar suplencias')
@@ -23,21 +20,21 @@ def ver_suplencias(request):
     active_subs = [s for s in all_subs if s.is_current]
     past_subs = [s for s in all_subs if not s.is_current]
 
+    users = User.objects.filter(is_active=True).select_related('profile')
+
     return render(request, 'core/substitutions.html', {
         'active_subs': active_subs, 'past_subs': past_subs[:10],
+        'users': users,
     })
 
 
 @require_http_methods(["GET", "POST"])
 @login_required
 def crear_suplencia(request):
-    """Create a new substitution (one user covering for another). Admin/jefe-area only.
-
-    GET: Render the substitution creation form with active users.
-    POST: Create substitution record and audit log entry.
-    """
     role = get_user_role(request.user)
     if role not in ('super-admin', 'admin', 'jefe-area'):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para crear suplencias')
         return redirect('ver_dashboard')
 
@@ -48,8 +45,12 @@ def crear_suplencia(request):
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'SUBSTITUTION_CREATE', 'substitution',
                             sub.id, f'{sub.substitute_user} suple a {sub.original_user}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': sub.id, 'original_user': sub.original_user.get_full_name(), 'substitute_user': sub.substitute_user.get_full_name()}})
             messages.success(request, f'Suplencia creada: {sub.substitute_user.get_full_name()} suple a {sub.original_user.get_full_name()}')
             return redirect('ver_suplencias')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = SubstitutionForm()
 

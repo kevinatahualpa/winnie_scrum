@@ -16,40 +16,37 @@
         {% else %}
         <div class="nav-section">
             <div class="nav-section-title">Principal</div>
-            <a href="{% url 'ver_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard"><i class="fas fa-home" aria-hidden="true"></i> Dashboard</a>
-            <a href="{% url 'ver_proyectos' %}" class="nav-link {% if request.resolver_match.url_name == 'projects' %}active{% endif %}" aria-label="Proyectos"><i class="fas fa-folder" aria-hidden="true"></i> Proyectos</a>
-            <a href="{% url 'ver_tablero' %}" class="nav-link {% if request.resolver_match.url_name == 'board' %}active{% endif %}" aria-label="Tablero Scrum"><i class="fas fa-columns" aria-hidden="true"></i> Tablero</a>
-            <a href="{% url 'ver_backlog' %}" class="nav-link {% if request.resolver_match.url_name == 'backlog' %}active{% endif %}" aria-label="Backlog"><i class="fas fa-list" aria-hidden="true"></i> Backlog</a>
-            <a href="{% url 'ver_sprints' %}" class="nav-link {% if request.resolver_match.url_name == 'sprints' %}active{% endif %}" aria-label="Sprints"><i class="fas fa-running" aria-hidden="true"></i> Sprints</a>
+            <a href="{% url 'ver_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_dashboard' %}active{% endif %}" aria-label="Dashboard"><i class="fas fa-home" aria-hidden="true"></i> Dashboard</a>
+            <a href="{% url 'ver_proyectos' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_proyectos' %}active{% endif %}" aria-label="Proyectos"><i class="fas fa-folder" aria-hidden="true"></i> Proyectos</a>
+            <a href="{% url 'ver_tablero' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_tablero' %}active{% endif %}" aria-label="Tablero Scrum"><i class="fas fa-columns" aria-hidden="true"></i> Tablero</a>
+            <a href="{% url 'ver_backlog' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_backlog' %}active{% endif %}" aria-label="Backlog"><i class="fas fa-list" aria-hidden="true"></i> Backlog</a>
+            <a href="{% url 'ver_sprints' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_sprints' %}active{% endif %}" aria-label="Sprints"><i class="fas fa-running" aria-hidden="true"></i> Sprints</a>
         </div>
         <div class="nav-section">
             <div class="nav-section-title">Gestion</div>
             {% if user|has_role:"super-admin,admin,jefe-area" %}
-            <a href="{% url 'ver_servicios' %}" class="nav-link {% if request.resolver_match.url_name == 'services' %}active{% endif %}" aria-label="Servicios"><i class="fas fa-concierge-bell" aria-hidden="true"></i> Servicios</a>
+            <a href="{% url 'ver_clientes' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_clientes' %}active{% endif %}" aria-label="Clientes"><i class="fas fa-building" aria-hidden="true"></i> Clientes</a>
             {% endif %}
-            {% if user|has_role:"super-admin,admin,jefe-area" %}
-            <a href="{% url 'ver_clientes' %}" class="nav-link {% if request.resolver_match.url_name == 'clients' %}active{% endif %}" aria-label="Clientes"><i class="fas fa-building" aria-hidden="true"></i> Clientes</a>
-            {% endif %}
-            <a href="{% url 'ver_documentos' %}" class="nav-link {% if request.resolver_match.url_name == 'documents' %}active{% endif %}" aria-label="Documentos"><i class="fas fa-file-alt" aria-hidden="true"></i> Documentos</a>
+            <a href="{% url 'ver_documentos' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_documentos' %}active{% endif %}" aria-label="Documentos"><i class="fas fa-file-alt" aria-hidden="true"></i> Documentos</a>
             {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto,miembro" %}
-            <a href="{% url 'ver_equipo' %}" class="nav-link {% if request.resolver_match.url_name == 'team' %}active{% endif %}" aria-label="Usuarios"><i class="fas fa-users" aria-hidden="true"></i> Equipo</a>
+            <a href="{% url 'ver_equipo' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_equipo' %}active{% endif %}" aria-label="Usuarios"><i class="fas fa-users" aria-hidden="true"></i> Equipo</a>
             {% endif %}
-            <a href="{% url 'ver_mensajes' %}" class="nav-link {% if 'mensajes' in request.resolver_match.url_name %}active{% endif %}" aria-label="Mensajes">
+            <a href="{% url 'ver_mensajes' %}" class="nav-link {% if 'mensaje' in request.resolver_match.url_name %}active{% endif %}" aria-label="Mensajes">
                 <i class="fas fa-comment-dots" aria-hidden="true"></i> Mensajes
                 {% if unread_messages > 0 %}
                 <span class="pending-badge" aria-label="{{ unread_messages }} mensajes no leidos">{{ unread_messages }}</span>
                 {% endif %}
             </a>
             {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto,miembro" %}
-            <a href="{% url 'ver_tiempo' %}" class="nav-link {% if request.resolver_match.url_name == 'time_tracking' %}active{% endif %}" aria-label="Registro de tiempo"><i class="fas fa-clock" aria-hidden="true"></i> Tiempo</a>
+            <a href="{% url 'ver_tiempo' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_tiempo' %}active{% endif %}" aria-label="Registro de tiempo"><i class="fas fa-clock" aria-hidden="true"></i> Tiempo</a>
             {% endif %}
-            <a href="{% url 'ver_calendario' %}" class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}" aria-label="Calendario"><i class="fas fa-calendar" aria-hidden="true"></i> Calendario</a>
+            <a href="{% url 'ver_calendario' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_calendario' %}active{% endif %}" aria-label="Calendario"><i class="fas fa-calendar" aria-hidden="true"></i> Calendario</a>
         </div>
         {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
         <div class="nav-section">
             <div class="nav-section-title">Administracion</div>
             {% if user|has_role:"super-admin,admin" %}
-            <a href="{% url 'ver_auditoria' %}" class="nav-link {% if request.resolver_match.url_name == 'audit' %}active{% endif %}" aria-label="Auditoria"><i class="fas fa-shield-alt" aria-hidden="true"></i> Auditoria</a>
+            <a href="{% url 'ver_auditoria' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_auditoria' %}active{% endif %}" aria-label="Auditoria"><i class="fas fa-shield-alt" aria-hidden="true"></i> Auditoria</a>
             {% endif %}
             {% if user|has_role:"super-admin,admin" %}
             <a href="{% url 'ver_archivados' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_archivados' %}active{% endif %}" aria-label="Items archivados">
@@ -60,7 +57,8 @@
             </a>
             {% endif %}
             {% if user|has_role:"super-admin,admin" %}
-            <a href="{% url 'ver_especialidades' %}" class="nav-link {% if request.resolver_match.url_name == 'specialties' %}active{% endif %}" aria-label="Especialidades"><i class="fas fa-cogs" aria-hidden="true"></i> Especialidades</a>
+            <a href="{% url 'ver_areas' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_areas' %}active{% endif %}" aria-label="Areas"><i class="fas fa-sitemap" aria-hidden="true"></i> Areas</a>
+            <a href="{% url 'ver_especialidades' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_especialidades' %}active{% endif %}" aria-label="Especialidades"><i class="fas fa-cogs" aria-hidden="true"></i> Especialidades</a>
             <a href="{% url 'ver_tecnologias' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_tecnologias' %}active{% endif %}" aria-label="Tecnologias"><i class="fas fa-code" aria-hidden="true"></i> Tecnologias</a>
             {% endif %}
             {% if user|has_role:"super-admin,admin" %}
@@ -70,30 +68,29 @@
                 <span class="pending-badge" aria-label="{{ pending_count }} registros pendientes">{{ pending_count }}</span>
                 {% endif %}
             </a>
-            <a href="{% url 'ver_auditoria' %}" class="nav-link {% if request.resolver_match.url_name == 'audit' %}active{% endif %}" aria-label="Auditoria"><i class="fas fa-shield-alt" aria-hidden="true"></i> Auditoria</a>
             {% endif %}
             {% if user|has_role:"super-admin,admin,jefe-area" %}
             <a href="{% url 'ver_suplencias' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_suplencias' %}active{% endif %}" aria-label="Suplencias"><i class="fas fa-exchange-alt" aria-hidden="true"></i> Suplencias</a>
             {% endif %}
             {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-            <a href="{% url 'ver_reportes' %}" class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" aria-label="Reportes"><i class="fas fa-chart-bar" aria-hidden="true"></i> Reportes</a>
+            <a href="{% url 'ver_reportes' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_reportes' %}active{% endif %}" aria-label="Reportes"><i class="fas fa-chart-bar" aria-hidden="true"></i> Reportes</a>
             {% endif %}
         </div>
         {% endif %}
         {% endif %}
         <div class="nav-section">
             <div class="nav-section-title">Cuenta</div>
-            <a href="{% url 'ver_perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" aria-label="Mi perfil"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
+            <a href="{% url 'ver_perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_perfil' %}active{% endif %}" aria-label="Mi perfil"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
             {% if user|role_is:"super-admin" %}
-            <a href="{% url 'ver_configuracion' %}" class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" aria-label="Configuracion del sistema"><i class="fas fa-cog" aria-hidden="true"></i> Configuracion</a>
+            <a href="{% url 'ver_configuracion' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_configuracion' %}active{% endif %}" aria-label="Configuracion del sistema"><i class="fas fa-cog" aria-hidden="true"></i> Configuracion</a>
             {% endif %}
         </div>
     </nav>
     <div class="sidebar-footer d-flex align-items-center gap-2">
         {% if user.profile.avatar %}
-        <img src="{{ user.profile.avatar.url }}" alt="" class="rounded-circle flex-shrink-0" style="width:32px;height:32px;object-fit:cover;">
+        <img src="{{ user.profile.avatar.url }}" alt="" class="rounded-circle avatar-sm">
         {% else %}
-        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;font-size:0.75rem;background:var(--accent);color:#fff;font-weight:600;" aria-hidden="true">
+        <div class="rounded-circle avatar-sm sidebar-avatar-initials" aria-hidden="true">
             {{ user.first_name|first }}{{ user.last_name|first }}
         </div>
         {% endif %}
@@ -101,8 +98,8 @@
             <div class="user-name">{{ user.get_full_name }}</div>
             <span class="role-badge role-{{ user.profile.role|default:'miembro' }}">{{ user.profile.get_role_display|default:'Miembro' }}</span>
         </div>
-        <a href="{% url 'cerrar_sesion' %}" aria-label="Cerrar sesion" title="Salir" class="btn btn-sm btn-ghost flex-shrink-0" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
-            <i class="fas fa-sign-out-alt" aria-hidden="true" style="font-size:0.85rem;"></i>
+        <a href="{% url 'cerrar_sesion' %}" aria-label="Cerrar sesion" title="Salir" class="btn btn-sm btn-ghost sidebar-logout" onclick="event.preventDefault(); showConfirm('Salir', '¿Estás seguro de que quieres cerrar sesión?', function(){ window.location.href = this.href; }.bind(this))">
+            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
         </a>
     </div>
 </div>

@@ -1,3 +1,77 @@
+.sidebar-toggle {
+    border: none;
+    padding: 0.2rem;
+}
+.sidebar-toggle i {
+    font-size: 0.8rem;
+}
+.page-title {
+    font-weight: 400;
+}
+.global-search-group {
+    width: 200px;
+}
+.global-search-group .input-group-text {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+}
+.global-search-group .form-control {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-color: var(--border);
+}
+.notif-btn {
+    border: none;
+    padding: 0.3rem 0.4rem;
+    color: var(--text-secondary);
+}
+.notif-btn i {
+    font-size: 0.75rem;
+}
+.notif-count {
+    font-size: 0.5rem;
+    background: var(--accent);
+}
+.notif-dropdown {
+    width: 340px;
+    max-height: 420px;
+    overflow: hidden;
+}
+a.dropdown-item.pending-reg-link {
+    background: var(--warning-bg);
+    border-bottom: 1px solid var(--warning-border);
+}
+a.dropdown-item.pending-reg-link:hover {
+    background: var(--warning-bg);
+}
+.notif-icon-warning {
+    background: var(--warning);
+}
+.notif-dot-warning {
+    background: var(--warning);
+}
+.notif-scroll {
+    max-height: 350px;
+    overflow-y: auto;
+}
+.notif-empty-state {
+    font-size: 0.75rem;
+}
+.notif-empty-state i {
+    font-size: 1.5rem;
+    opacity: 0.3;
+}
+.mark-read-btn {
+    font-size: 0.65rem;
+    color: var(--accent);
+}
+.notif-view-all {
+    color: var(--accent);
+    font-weight: 500;
+}
 .notif-dropdown {
     border: 1px solid var(--border);
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
@@ -10,7 +84,7 @@
     align-items: flex-start;
     gap: 0.6rem;
     padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-light);
     transition: background 0.1s;
     text-decoration: none;
     color: inherit;
@@ -21,15 +95,15 @@
 }
 
 .notif-dropdown-item:hover {
-    background: #fafafa;
+    background: var(--surface-hover);
 }
 
 .notif-dropdown-item.unread {
-    background: #fff8f0;
+    background: var(--accent-light);
 }
 
 .notif-dropdown-item.unread:hover {
-    background: #fff3e6;
+    background: var(--accent-light);
 }
 
 .notif-drop-icon {
@@ -39,7 +113,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0f0f0;
+    background: var(--bg);
     color: var(--text-secondary);
     font-size: 0.7rem;
     flex-shrink: 0;
@@ -94,11 +168,4 @@
     50% { transform: scale(1.15); }
 }
 
-.pending-reg-link {
-    background: #fffbeb !important;
-    border-bottom: 1px solid #fde68a;
-}
 
-.pending-reg-link:hover {
-    background: #fef3c7 !important;
-}

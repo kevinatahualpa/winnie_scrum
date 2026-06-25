@@ -189,30 +189,28 @@ def cv_embed(request, pk):
     profile = get_object_or_404(UserProfile, pk=pk, status='pending')
     candidate = CandidateProfile.objects.filter(user=profile.user).first()
     if not candidate or not candidate.cv_file:
-        # Igual sobreescribimos X-Frame para que el iframe del drawer
-        # no muestre "refused to connect" si el endpoint falla
         resp = HttpResponseBadRequest('Sin CV')
         resp['X-Frame-Options'] = 'SAMEORIGIN'
         return resp
 
-    file_path = candidate.cv_file.path
-    if not os.path.isfile(file_path):
-        resp = HttpResponseBadRequest('Archivo no encontrado')
+    try:
+        cv = candidate.cv_file
+        content_type, _ = mimetypes.guess_type(cv.name)
+        if not content_type:
+            content_type = 'application/octet-stream'
+
+        response = FileResponse(cv.open('rb'), content_type=content_type)
+        response['Content-Disposition'] = (
+            f'inline; filename="{os.path.basename(cv.name)}"'
+        )
+        response['X-Frame-Options'] = 'SAMEORIGIN'
+        response['Content-Security-Policy'] = "frame-ancestors 'self'"
+        response['Cache-Control'] = 'private, max-age=300'
+        return response
+    except Exception:
+        resp = HttpResponseBadRequest('Error al leer el archivo')
         resp['X-Frame-Options'] = 'SAMEORIGIN'
         return resp
-
-    content_type, _ = mimetypes.guess_type(file_path)
-    if not content_type:
-        content_type = 'application/octet-stream'
-
-    response = FileResponse(open(file_path, 'rb'), content_type=content_type)
-    response['Content-Disposition'] = (
-        f'inline; filename="{os.path.basename(file_path)}"'
-    )
-    response['X-Frame-Options'] = 'SAMEORIGIN'
-    response['Content-Security-Policy'] = "frame-ancestors 'self'"
-    response['Cache-Control'] = 'private, max-age=300'
-    return response
 
 
 @login_required

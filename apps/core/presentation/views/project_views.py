@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -40,10 +41,14 @@ def ver_proyectos(request):
     projects = paginator.get_page(page)
 
     areas = Area.objects.filter(status='active')
+    users = User.objects.filter(is_active=True).select_related('profile')
+    clients = Client.active.order_by('name')
 
     return render(request, 'core/projects.html', {
         'projects': projects,
         'areas': areas,
+        'users': users,
+        'clients': clients,
         'selected_area': area_id,
     })
 
@@ -98,12 +103,9 @@ def ver_detalle_proyecto(request, pk):
 @require_http_methods(["GET", "POST"])
 @login_required
 def crear_proyecto(request):
-    """Create a new project. Requires area management role (admin or jefe-area).
-
-    GET: Render the project creation form.
-    POST: Create project via ProjectService, notify lead and members, redirect to list.
-    """
     if not can_manage_area(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para crear proyectos')
         return redirect('ver_proyectos')
 
@@ -137,11 +139,17 @@ def crear_proyecto(request):
             )
 
             if error:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': error}, status=400)
                 messages.error(request, error)
                 return redirect('ver_proyectos')
 
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': project.id, 'name': project.name, 'status': project.status}})
             messages.success(request, f'Proyecto "{project.name}" creado')
             return redirect('ver_proyectos')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
         else:
             for field, errs in form.errors.items():
                 for e in errs:
@@ -159,11 +167,6 @@ def crear_proyecto(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def editar_proyecto(request, pk):
-    """Update an existing project. Requires project management permission.
-
-    GET: Render the project edit form with current data.
-    POST: Update project via ProjectService, notify new lead/members, redirect to list.
-    """
     project = get_object_or_404(Project, pk=pk)
     areas = Area.objects.filter(status='active')
     users = User.objects.filter(is_active=True)
@@ -196,11 +199,17 @@ def editar_proyecto(request, pk):
             )
 
             if error:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': error}, status=400)
                 messages.error(request, error)
                 return redirect('ver_proyectos')
 
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': updated_project.id, 'name': updated_project.name, 'status': updated_project.status}})
             messages.success(request, f'Proyecto "{updated_project.name}" actualizado')
             return redirect('ver_proyectos')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
         else:
             for field, errs in form.errors.items():
                 for e in errs:

@@ -231,26 +231,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateCounts();
 
                 if (newStatus !== oldStatus) {
-                    fetch(`/task/${taskId}/status/`, {
+                    var boardEl = document.getElementById('board');
+                    if (boardEl) boardEl.classList.add('board-loading');
+
+                    fetch('/task/' + taskId + '/status/', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                             'X-CSRFToken': csrfToken
                         },
-                        body: `status=${newStatus}`
+                        body: 'status=' + newStatus
                     })
-                    .then(r => r.json())
-                    .then(data => {
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (boardEl) boardEl.classList.remove('board-loading');
                         if (data.success) {
-                            showToast(`Tarea movida a "${getStatusName(newStatus)}"`);
+                            showToast('Tarea movida a "' + getStatusName(newStatus) + '"');
                         } else {
                             showToast('Error al actualizar', 'error');
-                            setTimeout(() => location.reload(), 1000);
+                            setTimeout(function() { location.reload(); }, 1000);
                         }
                     })
-                    .catch(() => {
+                    .catch(function() {
+                        if (boardEl) boardEl.classList.remove('board-loading');
                         showToast('Error de conexion', 'error');
-                        setTimeout(() => location.reload(), 1000);
+                        setTimeout(function() { location.reload(); }, 1000);
                     });
                 }
             }
@@ -283,6 +288,200 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    /* ─── Quick Create Modal ─── */
+    var quickForm = document.getElementById('quickTaskForm');
+    var quickBtn = document.getElementById('quickTaskBtn');
+    var quickModalEl = document.getElementById('quickTaskModal');
+
+    function openQuickModal() {
+        if (!quickModalEl) return;
+        var modal = new bootstrap.Modal(quickModalEl);
+        modal.show();
+        setTimeout(function() {
+            var input = quickModalEl.querySelector('input[name="title"]');
+            if (input) input.focus();
+        }, 300);
+    }
+
+    if (quickBtn) quickBtn.addEventListener('click', openQuickModal);
+
+    if (quickForm) {
+        quickForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var btn = this.querySelector('[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            var formData = new URLSearchParams(new FormData(this));
+            fetch('/task/quick-create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    var modal = bootstrap.Modal.getInstance(quickModalEl);
+                    if (modal) modal.hide();
+                    showToast('Tarea creada: ' + data.task.title);
+                    setTimeout(function() { location.reload(); }, 300);
+                } else {
+                    showToast(data.error || 'Error al crear tarea', 'error');
+                }
+            })
+            .catch(function() {
+                showToast('Error de conexion', 'error');
+            })
+            .finally(function() {
+                btn.disabled = false;
+                btn.innerHTML = 'Crear Tarea';
+            });
+        });
+    }
+
+    /* ─── Inline Editing ─── */
+    document.querySelectorAll('.task-card').forEach(function(card) {
+        /* Title inline edit */
+        var titleEl = card.querySelector('.task-title');
+        if (titleEl) {
+            titleEl.addEventListener('dblclick', function() {
+                var taskId = card.dataset.taskId;
+                var current = this.textContent.trim();
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-control form-control-sm';
+                input.value = current;
+                this.replaceWith(input);
+                input.focus();
+                input.select();
+
+                function save() {
+                    var val = input.value.trim();
+                    if (val && val !== current) {
+                        fetch('/task/' + taskId + '/field/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken
+                            },
+                            body: JSON.stringify({field: 'title', value: val})
+                        })
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) {
+                            if (!d.success) showToast(d.error, 'error');
+                        });
+                    }
+                    var p = document.createElement('p');
+                    p.className = 'fw-medium small mb-1 task-title';
+                    p.textContent = val || current;
+                    input.replaceWith(p);
+                }
+
+                input.addEventListener('blur', save);
+                input.addEventListener('keydown', function(ev) {
+                    if (ev.key === 'Enter') { ev.preventDefault(); save(); }
+                    if (ev.key === 'Escape') { ev.preventDefault(); input.value = current; save(); }
+                });
+            });
+        }
+
+        /* Priority inline edit */
+        var prioBadge = card.querySelector('.priority-badge');
+        if (prioBadge) {
+            prioBadge.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                var taskId = card.dataset.taskId;
+                var select = document.createElement('select');
+                select.className = 'form-select form-select-sm';
+                select.innerHTML = '<option value="high">Alta</option><option value="medium">Media</option><option value="low">Baja</option>';
+                select.value = card.dataset.priority || 'medium';
+                this.replaceWith(select);
+                select.focus();
+
+                function save() {
+                    var val = select.value;
+                    fetch('/task/' + taskId + '/field/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({field: 'priority', value: val})
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d.success) location.reload();
+                        else showToast(d.error, 'error');
+                    });
+                }
+
+                select.addEventListener('change', save);
+                select.addEventListener('blur', save);
+                select.addEventListener('keydown', function(ev) {
+                    if (ev.key === 'Escape') { ev.preventDefault(); location.reload(); }
+                });
+            });
+        }
+
+        /* Assignee inline edit */
+        var assigneeEl = card.querySelector('.assignee-badge');
+        if (assigneeEl) {
+            assigneeEl.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                var taskId = card.dataset.taskId;
+                var select = document.createElement('select');
+                select.className = 'form-select form-select-sm';
+                select.innerHTML = '<option value="">Sin asignar</option>';
+                var users = card.querySelectorAll('[data-user-option]');
+                if (window.assigneeOptions) {
+                    window.assigneeOptions.forEach(function(u) {
+                        var opt = document.createElement('option');
+                        opt.value = u.id;
+                        opt.textContent = u.name;
+                        select.appendChild(opt);
+                    });
+                }
+                select.style.width = '120px';
+                this.replaceWith(select);
+                select.focus();
+
+                function save() {
+                    var val = select.value;
+                    fetch('/task/' + taskId + '/field/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({field: 'assignee', value: val})
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d.success) location.reload();
+                        else showToast(d.error, 'error');
+                    });
+                }
+
+                select.addEventListener('change', save);
+                select.addEventListener('blur', save);
+            });
+        }
+    });
+
+    /* ─── Keyboard Shortcuts ─── */
+    document.addEventListener('keydown', function(e) {
+        var tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+        if (e.key === 'c' || e.key === 'C') {
+            e.preventDefault();
+            openQuickModal();
+        }
+    });
 
     function applyFilters() {
         const params = new URLSearchParams();

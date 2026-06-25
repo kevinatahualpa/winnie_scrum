@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,22 +11,29 @@ from apps.core.presentation.forms import ServiceRequestForm
 
 @login_required
 def ver_servicios(request):
-    """Render the service requests list. Admins see all; others see only assigned requests."""
     user = request.user
     role = get_user_role(user)
 
-    requests = ServiceRequest.objects.select_related('assigned_to').order_by('-created_at')
+    requests = ServiceRequest.objects.select_related('assigned_to', 'client').order_by('-created_at')
     if role in ('jefe-proyecto', 'miembro'):
         requests = requests.filter(assigned_to=user)
 
-    return render(request, 'core/services.html', {'service_requests': requests})
+    clients = Client.active.order_by('name')
+    users = User.objects.filter(is_active=True).select_related('profile')
+
+    return render(request, 'core/services.html', {
+        'service_requests': requests,
+        'clients': clients,
+        'users': users,
+    })
 
 
 @require_http_methods(["GET", "POST"])
 @login_required
 def crear_servicio(request):
-    """Create a new service request. Requires area management permission."""
     if not can_manage_area(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para crear solicitudes')
         return redirect('ver_servicios')
 
@@ -36,8 +44,12 @@ def crear_servicio(request):
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'SERVICE_REQUEST', 'service_request', sr.id,
                             f'Solicitud de servicio: {sr.client.name if sr.client else "N/A"}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': sr.id, 'service': sr.service, 'description': sr.description, 'client': sr.client.name if sr.client else '-', 'status': sr.status}})
             messages.success(request, 'Solicitud de servicio creada')
             return redirect('ver_servicios')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = ServiceRequestForm()
 
@@ -47,13 +59,11 @@ def crear_servicio(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def editar_servicio(request, pk):
-    """Update a service request (status, assignment). Requires area management permission.
-
-    Notifies the newly assigned user when assignment changes.
-    """
     sr = get_object_or_404(ServiceRequest, pk=pk)
 
     if not can_manage_area(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para editar solicitudes')
         return redirect('ver_servicios')
 
@@ -65,13 +75,15 @@ def editar_servicio(request, pk):
             from apps.core.domain.services.notification_service import create_audit_log, notify_service_assignment
             create_audit_log(request.user, 'SERVICE_STATUS', 'service_request', sr.id,
                             f'Estado actualizado: {sr.get_status_display()}')
-
             if sr.assigned_to_id and sr.assigned_to_id != old_assigned_id:
                 assigned = User.objects.get(id=sr.assigned_to_id)
                 notify_service_assignment(sr, request.user, assigned)
-
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': sr.id, 'service': sr.service, 'description': sr.description, 'status': sr.status, 'assigned_to_id': sr.assigned_to_id}})
             messages.success(request, 'Solicitud actualizada')
             return redirect('ver_servicios')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = ServiceRequestForm(instance=sr)
 

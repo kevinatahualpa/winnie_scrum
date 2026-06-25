@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
+{% load static %}
 {% load role_tags %}
 {% block title %}Areas - Winnie{% endblock %}
-{% block page_title %}Areas{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -11,7 +11,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="fas fa-sitemap me-2"></i>Areas</h4>
                 {% if user|has_role:"super-admin,admin" %}
-                <a href="{% url 'crear_area' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nueva Area</a>
+                <button class="btn btn-success btn-sm" onclick="openCrudDrawer('area')"><i class="fas fa-plus me-1"></i>Nueva Area</button>
                 {% endif %}
             </div>
 
@@ -45,7 +45,7 @@
                                 <td><span class="badge" style="background:var(--bg);color:var(--text-secondary);font-size:0.65rem;">{{ area.project_count }} proyectos</span></td>
                                 {% if user|has_role:"super-admin,admin" %}
                                 <td class="text-end">
-                                    <a href="{% url 'editar_area' area.id %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('area', {id:'{{ area.id }}',name:'{{ area.name|escapejs }}',code:'{{ area.code }}',color:'{{ area.color }}',icon:'{{ area.icon }}',description:'{{ area.description|escapejs }}'})" title="Editar"><i class="fas fa-edit"></i></button>
                                     <form method="post" action="{% url 'eliminar_area' area.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ area.name }}?')">
                                         {% csrf_token %}
                                         <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
@@ -67,4 +67,27 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user|has_role:"super-admin,admin" %}
+<script src="{% static 'js/crud_drawer.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initCrudDrawer({
+        entity: 'area',
+        label: 'Area',
+        fields: [
+            {name: 'code', label: 'Codigo', type: 'text', required: true},
+            {name: 'name', label: 'Nombre', type: 'text', required: true},
+            {name: 'description', label: 'Descripcion', type: 'textarea'},
+            {name: 'color', label: 'Color', type: 'color', default: '#00bcd4'},
+            {name: 'icon', label: 'Icono (FontAwesome)', type: 'text', default: 'fa-building'},
+        ],
+        createUrl: '{% url "crear_area" %}',
+        editUrl: '/ver_areas/',
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

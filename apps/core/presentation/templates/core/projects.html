@@ -1,8 +1,7 @@
 {% extends 'core/base.html' %}
-{% load role_tags %}
 {% load static %}
+{% load role_tags %}
 {% block title %}Proyectos - Winnie{% endblock %}
-{% block page_title %}Proyectos{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -22,6 +21,9 @@
                     <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtro"><i class="fas fa-times"></i></a>
                     {% endif %}
                 </div>
+                {% if user|has_role:"super-admin,admin,jefe-area" %}
+                <button class="btn btn-success btn-sm" onclick="openCrudDrawer('project')"><i class="fas fa-plus me-1"></i>Crear Proyecto</button>
+                {% endif %}
             </div>
 
             {% if projects %}
@@ -30,7 +32,6 @@
                     <table class="table table-hover mb-0 align-middle">
                         <thead>
                             <tr>
-                                <th style="width:36px"></th>
                                 <th>Nombre</th>
                                 <th>Area</th>
                                 <th>Cliente</th>
@@ -42,9 +43,6 @@
                         <tbody>
                             {% for project in projects %}
                             <tr>
-                                <td>
-                                    <div class="entity-icon" style="color:{{ project.color }}"><i class="fas fa-folder"></i></div>
-                                </td>
                                 <td>
                                     <div class="fw-medium" style="font-size:0.8rem;">
                                         <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="text-decoration-none">{{ project.name }}</a>
@@ -60,17 +58,20 @@
                                         <small class="text-muted" style="min-width:30px;">{{ project.progress }}%</small>
                                     </div>
                                 </td>
-                                <td class="text-end">
-                                    <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="btn btn-sm btn-ghost" title="Ver"><i class="fas fa-eye"></i></a>
-                                    {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                                    <a href="{% url 'editar_proyecto' project.pk %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
-                                    {% endif %}
-                                    {% if user|has_role:"super-admin,admin,jefe-area" %}
-                                    <form method="post" action="{% url 'eliminar_proyecto' project.pk %}" class="d-inline" onsubmit="return confirm('Eliminar {{ project.name }}?')">
-                                        {% csrf_token %}
-                                        <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                    </form>
-                                    {% endif %}
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="btn btn-sm btn-ghost" title="Ver"><i class="fas fa-eye"></i></a>
+                                        {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                                        <button class="btn btn-sm btn-ghost" title="Editar"
+                                         onclick="openCrudDrawer('project', {id:'{{ project.pk }}',name:'{{ project.name|escapejs }}',area:'{{ project.area_id|default:'' }}',description:'{{ project.description|escapejs|default:'' }}',status:'{{ project.status }}',lead:'{{ project.lead_id|default:'' }}',client:'{{ project.client_id|default:'' }}',budget:'{{ project.budget|default:0 }}',start_date:'{{ project.start_date|date:'Y-m-d'|default:'' }}',end_date:'{{ project.end_date|date:'Y-m-d'|default:'' }}',color:'{{ project.color|default:'#00bcd4' }}',members:'{% for m in project.members.all %}{{ m.id }}{% if not forloop.last %},{% endif %}{% endfor %}'})"><i class="fas fa-edit"></i></button>
+                                        {% endif %}
+                                        {% if user|has_role:"super-admin,admin,jefe-area" %}
+                                        <form method="post" action="{% url 'eliminar_proyecto' project.pk %}" class="d-inline" onsubmit="return confirm('Eliminar {{ project.name }}?')">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -87,8 +88,56 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/projects.css' %}" rel="stylesheet">
 {% endblock %}
+
+{% block extra_js %}
+{% if user|has_role:"super-admin,admin,jefe-area" %}
+<script src="{% static 'js/crud_drawer.js' %}"></script>
+<script>
+window.projectUserOptions = [
+    {% for u in users %}
+    {value:'{{ u.id }}', label:'{{ u.get_full_name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+window.projectAreaOptions = [
+    {% for a in areas %}
+    {value:'{{ a.id }}', label:'{{ a.name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+window.projectClientOptions = [
+    {% for c in clients %}
+    {value:'{{ c.id }}', label:'{{ c.name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initCrudDrawer({
+        entity: 'project',
+        label: 'Proyecto',
+        fields: [
+            {name:'name', label:'Nombre', type:'text', required:true},
+            {name:'area', label:'Area', type:'select', optionsData:'projectAreaOptions'},
+            {name:'description', label:'Descripcion', type:'textarea', rows:2},
+            {name:'status', label:'Estado', type:'select', options:[
+                {value:'active', label:'Activo'}, {value:'planned', label:'Planificado'},
+                {value:'completed', label:'Completado'}, {value:'paused', label:'Pausado'},
+            ]},
+            {name:'lead', label:'Jefe de Proyecto', type:'select', optionsData:'projectUserOptions'},
+            {name:'client', label:'Cliente', type:'select', optionsData:'projectClientOptions'},
+            {name:'budget', label:'Presupuesto (S/.)', type:'number', step:'0.01', default:0},
+            {name:'start_date', label:'Fecha Inicio', type:'date'},
+            {name:'end_date', label:'Fecha Fin', type:'date'},
+            {name:'color', label:'Color', type:'color', default:'#00bcd4'},
+            {name:'members', label:'Miembros del Equipo', type:'checkbox_group', optionsData:'projectUserOptions'},
+        ],
+        createUrl: '{% url "crear_proyecto" %}',
+        editUrl: '/ver_proyectos/',
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

@@ -1,9 +1,12 @@
+#board {
+    position: relative;
+}
 .task-card {
     transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     cursor: grab;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--surface);
 }
 .task-card:hover {
     transform: translateY(-2px);
@@ -18,13 +21,13 @@
     box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
 }
 .task-card.priority-high {
-    border: 1.5px solid #dc3545;
+    border: 1.5px solid var(--danger);
 }
 .task-card.priority-medium {
-    border: 1.5px solid #ffc107;
+    border: 1.5px solid var(--warning);
 }
 .task-card.priority-low {
-    border: 1.5px solid #28a745;
+    border: 1.5px solid var(--success);
 }
 .task-column {
     transition: background 0.2s ease;
@@ -32,15 +35,15 @@
     min-height: 150px;
 }
 .task-column.drag-over {
-    background: #e8f4fd;
-    box-shadow: inset 0 0 0 2px #0d6efd;
+    background: var(--info-bg);
+    box-shadow: inset 0 0 0 2px var(--info);
 }
 .task-column.drag-over .empty-msg {
     display: none;
 }
 .drop-indicator {
     height: 3px;
-    background: #0d6efd;
+    background: var(--info);
     border-radius: 2px;
     margin: 4px 0;
     transition: opacity 0.15s;
@@ -49,7 +52,7 @@
     transition: box-shadow 0.2s ease;
 }
 .column-card.drag-over {
-    box-shadow: 0 0 0 2px #0d6efd, 0 4px 12px rgba(13,110,253,0.15) !important;
+    box-shadow: 0 0 0 2px var(--info), 0 4px 12px rgba(37, 99, 235, 0.15) !important;
 }
 .task-title {
     line-height: 1.3;
@@ -79,15 +82,15 @@
     gap: 0.25em;
 }
 .priority-badge.priority-high {
-    background: #dc3545;
+    background: var(--danger);
     color: #fff;
 }
 .priority-badge.priority-medium {
-    background: #ffc107;
-    color: #000;
+    background: var(--warning);
+    color: #fff;
 }
 .priority-badge.priority-low {
-    background: #28a745;
+    background: var(--success);
     color: #fff;
 }
 
@@ -100,6 +103,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: inline-block;
+}
+
+.toggle-obs-btn {
+    font-size: 0.65rem;
+    border: none;
+    background: none;
+    color: var(--warning);
+}
+.obs-submit-btn {
+    background: var(--warning);
+    color: var(--button-text);
+    font-size: 0.65rem;
 }
 
 @media (max-width: 768px) {

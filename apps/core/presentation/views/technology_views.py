@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core.infrastructure.models.models import Technology
@@ -29,8 +30,9 @@ def ver_tecnologias(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def crear_tecnologia(request):
-    """Create a new technology. Requires admin role."""
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para crear tecnologias')
         return redirect('ver_tecnologias')
 
@@ -41,8 +43,12 @@ def crear_tecnologia(request):
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'TECHNOLOGY_CREATE', 'technology', technology.id,
                              f'Tecnologia creada: {technology.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': technology.id, 'name': technology.name, 'category': technology.category, 'category_display': technology.get_category_display(), 'color': technology.color, 'icon': technology.icon}})
             messages.success(request, f'Tecnologia "{technology.name}" creada')
             return redirect('ver_tecnologias')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = TechnologyForm()
 
@@ -52,10 +58,11 @@ def crear_tecnologia(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def editar_tecnologia(request, pk):
-    """Update an existing technology. Requires admin role."""
     technology = get_object_or_404(Technology, pk=pk)
 
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para editar tecnologias')
         return redirect('ver_tecnologias')
 
@@ -66,8 +73,12 @@ def editar_tecnologia(request, pk):
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'TECHNOLOGY_EDIT', 'technology', technology.id,
                              f'Tecnologia editada: {technology.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': technology.id, 'name': technology.name, 'category': technology.category, 'category_display': technology.get_category_display(), 'color': technology.color, 'icon': technology.icon}})
             messages.success(request, f'Tecnologia "{technology.name}" actualizada')
             return redirect('ver_tecnologias')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = TechnologyForm(instance=technology)
 

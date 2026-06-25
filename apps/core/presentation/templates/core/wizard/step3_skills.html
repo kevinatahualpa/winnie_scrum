@@ -13,6 +13,9 @@
 .tech-row .tech-name { flex:1; font-weight:500; }
 .tech-row select, .tech-row input[type=number] { padding:0.2rem 0.4rem; border:1px solid var(--border); border-radius:4px; font-size:0.7rem; }
 .tech-row .tech-remove { background:none; border:none; color:var(--danger); cursor:pointer; }
+.tech-counter { margin-left:auto; font-size:0.7rem; color:var(--text-muted); font-weight:400; }
+.tech-card .tech-info { flex:1; min-width:0; }
+.cv-field { margin-top:1.25rem; }
 </style>
 
 <div class="auth-page">
@@ -47,14 +50,14 @@
             <div class="tech-group" data-max="3">
                 <div class="tech-group-label" data-tech-group>
                     <i class="fas fa-chevron-down tech-group-chevron"></i> {{ group.grouper }}
-                    <span class="tech-counter" style="margin-left:auto;font-size:0.7rem;color:var(--text-muted);font-weight:400;">0 / 3</span>
+                    <span class="tech-counter">0 / 3</span>
                 </div>
                 <div class="tech-grid">
                     {% for tech in group.list %}
                     <label class="tech-card" data-name="{{ tech.name|lower }}" data-id="{{ tech.id }}">
                         <input type="checkbox" name="technology" value="{{ tech.id }}" data-tech-id="{{ tech.id }}">
                         <div class="tech-icon" style="background:{{ tech.color }}"><i class="fas {{ tech.icon }}"></i></div>
-                        <div style="flex:1;min-width:0;">
+                        <div class="tech-info">
                             <div class="tech-name">{{ tech.name }}</div>
                         </div>
                     </label>
@@ -63,7 +66,7 @@
             </div>
             {% endfor %}
 
-            <div class="auth-field" style="margin-top:1.25rem;">
+            <div class="auth-field cv-field">
                 <label class="auth-label">CV (PDF, DOC o DOCX - max 5MB)</label>
                 <label class="cv-drop" id="cvDrop">
                     <i class="fas fa-cloud-upload-alt"></i>

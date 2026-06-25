@@ -1,8 +1,7 @@
 {% extends 'core/base.html' %}
-{% load role_tags %}
 {% load static %}
+{% load role_tags %}
 {% block title %}Suplencias - Winnie{% endblock %}
-{% block page_title %}Suplencias{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -12,7 +11,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0">Suplencias</h4>
                 {% if user|has_role:"super-admin,admin,jefe-area" %}
-                <a href="{% url 'crear_suplencia' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nueva Suplencia</a>
+                <button class="btn btn-success btn-sm" onclick="openCrudDrawer('substitution')"><i class="fas fa-plus me-1"></i>Nueva Suplencia</button>
                 {% endif %}
             </div>
 
@@ -32,7 +31,7 @@
                                 <span class="sub-target">{{ sub.substitute_user.get_full_name }}</span>
                             </div>
                             <div class="sub-meta">
-                                <span><i class="fas fa-calendar me-1"></i>{{ sub.start_date }} → {{ sub.end_date }}</span>
+                                <span><i class="fas fa-calendar me-1"></i>{{ sub.start_date }} &rarr; {{ sub.end_date }}</span>
                                 <span class="badge badge-scope-{{ sub.scope }}">{{ sub.get_scope_display }}</span>
                             </div>
                             {% if sub.reason %}
@@ -65,7 +64,7 @@
                                 <span>{{ sub.substitute_user.get_full_name }}</span>
                             </div>
                             <div class="sub-meta">
-                                <span>{{ sub.start_date }} → {{ sub.end_date }}</span>
+                                <span>{{ sub.start_date }} &rarr; {{ sub.end_date }}</span>
                             </div>
                         </div>
                     </div>
@@ -75,13 +74,48 @@
             {% endif %}
 
             {% if not active_subs and not past_subs %}
-            <div class="text-center text-secondary py-5"><small>Sin suplencias registradas</small></div>
+            <div class="text-center py-5">
+                <i class="fas fa-exchange-alt fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                <h6 class="text-muted">Sin suplencias registradas</h6>
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/substitutions.css' %}" rel="stylesheet">
 {% endblock %}
+
+{% block extra_js %}
+{% if user|has_role:"super-admin,admin,jefe-area" %}
+<script src="{% static 'js/crud_drawer.js' %}"></script>
+<script>
+window.subUserOptions = [
+    {% for u in users %}
+    {value:'{{ u.id }}', label:'{{ u.get_full_name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initCrudDrawer({
+        entity: 'substitution',
+        label: 'Suplencia',
+        fields: [
+            {name:'original_user', label:'Usuario Titular', type:'select', optionsData:'subUserOptions', required:true},
+            {name:'substitute_user', label:'Usuario Suplente', type:'select', optionsData:'subUserOptions', required:true},
+            {name:'start_date', label:'Fecha Inicio', type:'date', required:true},
+            {name:'end_date', label:'Fecha Fin', type:'date', required:true},
+            {name:'scope', label:'Alcance', type:'select', options:[
+                {value:'all', label:'Todo'}, {value:'area', label:'Solo Area'}, {value:'projects', label:'Solo Proyectos'},
+            ]},
+            {name:'reason', label:'Motivo', type:'textarea', rows:2},
+        ],
+        createUrl: '{% url "crear_suplencia" %}',
+        editUrl: null, // No edit support for substitutions
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
+{% load static %}
 {% load role_tags %}
 {% block title %}Clientes - Winnie{% endblock %}
-{% block page_title %}Clientes{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -11,7 +11,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="fas fa-building me-2"></i>Clientes</h4>
                 {% if user|has_role:"super-admin,admin" %}
-                <a href="{% url 'crear_cliente' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nuevo Cliente</a>
+                <button class="btn btn-success btn-sm" onclick="openCrudDrawer('client')"><i class="fas fa-plus me-1"></i>Nuevo Cliente</button>
                 {% endif %}
             </div>
 
@@ -21,8 +21,7 @@
                     <table class="table table-hover mb-0 align-middle">
                         <thead>
                             <tr>
-                                <th style="width:36px"></th>
-                                <th>Nombre</th>
+                                <th>Empresa</th>
                                 <th>Contacto</th>
                                 <th>Email</th>
                                 <th>Telefono</th>
@@ -36,9 +35,6 @@
                             {% for client in clients %}
                             <tr>
                                 <td>
-                                    <div class="entity-icon"><i class="fas fa-building"></i></div>
-                                </td>
-                                <td>
                                     <a href="{% url 'client_detail' pk=client.id %}" class="fw-medium text-decoration-none" style="font-size:0.8rem;">
                                         {{ client.name }}
                                     </a>
@@ -48,13 +44,15 @@
                                 <td><small>{{ client.phone|default:"-" }}</small></td>
                                 <td><small class="text-muted">{{ client.industry|default:"-" }}</small></td>
                                 {% if user|has_role:"super-admin,admin" %}
-                                <td class="text-end">
-                                    <a href="{% url 'client_detail' pk=client.id %}" class="btn btn-sm btn-ghost" title="Ver detalle"><i class="fas fa-eye"></i></a>
-                                    <a href="{% url 'editar_cliente' client.id %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
-                                    <form method="post" action="{% url 'eliminar_cliente' client.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ client.name }}?')">
-                                        {% csrf_token %}
-                                        <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                    </form>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a href="{% url 'client_detail' pk=client.id %}" class="btn btn-sm btn-ghost" title="Ver detalle"><i class="fas fa-eye"></i></a>
+                                        <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('client', {id:'{{ client.id }}',name:'{{ client.name|escapejs }}',contact:'{{ client.contact|escapejs|default:'' }}',email:'{{ client.email|escapejs|default:'' }}',phone:'{{ client.phone|escapejs|default:'' }}',industry:'{{ client.industry|escapejs|default:'' }}'})" title="Editar"><i class="fas fa-edit"></i></button>
+                                        <form method="post" action="{% url 'eliminar_cliente' client.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ client.name }}?')">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                                 {% endif %}
                             </tr>
@@ -72,4 +70,27 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user|has_role:"super-admin,admin" %}
+<script src="{% static 'js/crud_drawer.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initCrudDrawer({
+        entity: 'client',
+        label: 'Cliente',
+        fields: [
+            {name:'name', label:'Nombre', type:'text', required:true},
+            {name:'contact', label:'Contacto', type:'text'},
+            {name:'email', label:'Email', type:'email'},
+            {name:'phone', label:'Telefono', type:'tel'},
+            {name:'industry', label:'Industria', type:'text'},
+        ],
+        createUrl: '{% url "crear_cliente" %}',
+        editUrl: '/ver_clientes/',
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

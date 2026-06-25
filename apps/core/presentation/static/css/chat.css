@@ -38,11 +38,43 @@
     flex-shrink: 0;
 }
 
+.online-dot {
+    background: var(--success);
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+}
+.read-indicator {
+    font-size: 0.55rem;
+    color: var(--success);
+}
+.unread-badge {
+    background: var(--success);
+    font-size: 0.55rem;
+    min-width: 18px;
+}
+.chat-sidebar {
+    background: var(--bg);
+}
+#chatMessages {
+    background: #efeae2;
+}
+.msg-sender {
+    font-size: 0.65rem;
+}
+.msg-sender-self {
+    color: #53bdeb;
+}
+.msg-sender-other {
+    color: var(--accent);
+}
+
 .obs-badge {
     position: absolute;
     top: 2px;
     right: 2px;
-    background: #f59e0b;
+    background: var(--warning);
     color: #fff;
     border-radius: 50%;
     width: 16px;

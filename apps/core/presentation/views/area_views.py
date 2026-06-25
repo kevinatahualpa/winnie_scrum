@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.db.models import Q, Count
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -33,8 +34,9 @@ def ver_areas(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def crear_area(request):
-    """Create a new organizational area. Requires admin role."""
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para crear areas')
         return redirect('ver_areas')
 
@@ -44,8 +46,12 @@ def crear_area(request):
             area = form.save()
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'AREA_CREATE', 'area', area.id, f'Area creada: {area.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': area.id, 'name': area.name, 'code': area.code, 'color': area.color, 'icon': area.icon, 'description': area.description, 'status': area.status, 'project_count': 0}})
             messages.success(request, f'Area "{area.name}" creada')
             return redirect('ver_areas')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = AreaForm()
 
@@ -55,10 +61,11 @@ def crear_area(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def editar_area(request, pk):
-    """Update an existing area. Requires admin role."""
     area = get_object_or_404(Area, pk=pk)
 
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para editar areas')
         return redirect('ver_areas')
 
@@ -68,8 +75,12 @@ def editar_area(request, pk):
             form.save()
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'AREA_EDIT', 'area', area.id, f'Area editada: {area.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': area.id, 'name': area.name, 'code': area.code, 'color': area.color, 'icon': area.icon, 'description': area.description, 'status': area.status, 'project_count': getattr(area, 'project_count', 0)}})
             messages.success(request, f'Area "{area.name}" actualizada')
             return redirect('ver_areas')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = AreaForm(instance=area)
 

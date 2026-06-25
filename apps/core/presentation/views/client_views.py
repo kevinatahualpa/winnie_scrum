@@ -1,7 +1,9 @@
+import json
 import secrets
 import string
 
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -33,8 +35,9 @@ def ver_clientes(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def crear_cliente(request):
-    """Create a new client. Requires admin role."""
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para crear clientes')
         return redirect('ver_clientes')
 
@@ -44,8 +47,12 @@ def crear_cliente(request):
             client = form.save()
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'CLIENT_CREATE', 'client', client.id, f'Cliente creado: {client.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': client.id, 'name': client.name, 'contact': client.contact, 'email': client.email, 'phone': client.phone, 'industry': client.industry}})
             messages.success(request, f'Cliente "{client.name}" creado')
             return redirect('ver_clientes')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = ClientForm()
 
@@ -55,10 +62,11 @@ def crear_cliente(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def editar_cliente(request, pk):
-    """Update an existing client. Requires admin role."""
     client = get_object_or_404(Client, pk=pk)
 
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para editar clientes')
         return redirect('ver_clientes')
 
@@ -68,8 +76,12 @@ def editar_cliente(request, pk):
             form.save()
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'CLIENT_EDIT', 'client', client.id, f'Cliente editado: {client.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': client.id, 'name': client.name, 'contact': client.contact, 'email': client.email, 'phone': client.phone, 'industry': client.industry}})
             messages.success(request, f'Cliente "{client.name}" actualizado')
             return redirect('ver_clientes')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = ClientForm(instance=client)
 

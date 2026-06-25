@@ -4,7 +4,7 @@ from .views import (
     iniciar_sesion, cerrar_sesion, registrarse, ver_dashboard, ver_proyectos, ver_detalle_proyecto,
     ver_tablero, ver_equipo, ver_servicios, ver_clientes, ver_areas, ver_especialidades,
     ver_tecnologias, crear_tecnologia, editar_tecnologia, eliminar_tecnologia,
-    ver_reportes, ver_auditoria, ver_perfil, actualizar_estado_tarea, crear_tarea, editar_tarea, eliminar_tarea,
+    ver_reportes, ver_auditoria, ver_perfil, actualizar_estado_tarea, crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea,
     ver_backlog, ver_sprints, ver_documentos, ver_tiempo, ver_calendario,
     ver_pendientes, ver_configuracion, crear_sprint, iniciar_sprint,
     completar_sprint, registrar_tiempo, subir_documento,
@@ -25,6 +25,7 @@ from .views import (
     ver_portal_cliente, ver_detalle_proyecto_cliente, crear_solicitud_cliente,
     gestionar_miembros_proyecto,
     ver_archivados, restaurar,
+    reordenar_backlog,
 )
 from .views.wizard_views import (
     registro_paso1, registro_paso2, registro_paso3, registro_cancelar,
@@ -89,6 +90,7 @@ urlpatterns = [
     path('ver_especialidades/create/', crear_especialidad, name='crear_especialidad'),
     path('ver_especialidades/<int:pk>/edit/', editar_especialidad, name='editar_especialidad'),
     path('ver_especialidades/<int:pk>/delete/', eliminar_especialidad, name='eliminar_especialidad'),
+    path('backlog/reorder/', reordenar_backlog, name='reordenar_backlog'),
     path('ver_tecnologias/', ver_tecnologias, name='ver_tecnologias'),
     path('ver_tecnologias/create/', crear_tecnologia, name='crear_tecnologia'),
     path('ver_tecnologias/<int:pk>/edit/', editar_tecnologia, name='editar_tecnologia'),
@@ -113,6 +115,8 @@ urlpatterns = [
     path('task/create/', crear_tarea, name='crear_tarea'),
     path('task/<int:pk>/edit/', editar_tarea, name='editar_tarea'),
     path('task/<int:pk>/delete/', eliminar_tarea, name='eliminar_tarea'),
+    path('task/quick-create/', crear_tarea_rapida, name='crear_tarea_rapida'),
+    path('task/<int:pk>/field/', actualizar_campo_tarea, name='actualizar_campo_tarea'),
     path('task/<int:pk>/status/', actualizar_estado_tarea, name='actualizar_estado_tarea'),
     path('task/<int:task_pk>/comment/', comentar_tarea, name='comentar_tarea'),
     path('sprint/create/', crear_sprint, name='crear_sprint'),

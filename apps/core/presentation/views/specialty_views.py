@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core.infrastructure.models.models import Specialty
@@ -28,8 +29,9 @@ def ver_especialidades(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def crear_especialidad(request):
-    """Create a new specialty. Requires admin role."""
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para crear especialidades')
         return redirect('ver_especialidades')
 
@@ -39,8 +41,12 @@ def crear_especialidad(request):
             specialty = form.save()
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'SPECIALTY_CREATE', 'specialty', specialty.id, f'Especialidad creada: {specialty.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': specialty.id, 'name': specialty.name, 'category': specialty.category, 'category_display': specialty.get_category_display(), 'color': specialty.color, 'description': specialty.description}})
             messages.success(request, f'Especialidad "{specialty.name}" creada')
             return redirect('ver_especialidades')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = SpecialtyForm()
 
@@ -50,10 +56,11 @@ def crear_especialidad(request):
 @require_http_methods(["GET", "POST"])
 @login_required
 def editar_especialidad(request, pk):
-    """Update an existing specialty. Requires admin role."""
     specialty = get_object_or_404(Specialty, pk=pk)
 
     if not can_manage_admin(request.user):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
         messages.error(request, 'No tienes permiso para editar especialidades')
         return redirect('ver_especialidades')
 
@@ -63,8 +70,12 @@ def editar_especialidad(request, pk):
             form.save()
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'SPECIALTY_EDIT', 'specialty', specialty.id, f'Especialidad editada: {specialty.name}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'object': {'id': specialty.id, 'name': specialty.name, 'category': specialty.category, 'category_display': specialty.get_category_display(), 'color': specialty.color, 'description': specialty.description}})
             messages.success(request, f'Especialidad "{specialty.name}" actualizada')
             return redirect('ver_especialidades')
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     else:
         form = SpecialtyForm(instance=specialty)
 

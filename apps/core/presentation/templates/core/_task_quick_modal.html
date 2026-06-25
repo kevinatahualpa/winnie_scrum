@@ -1,0 +1,67 @@
+<div class="modal fade" id="quickTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title">Nueva Tarea</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickTaskForm">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <input type="text" name="title" class="form-control form-control-sm" placeholder="Titulo de la tarea..." required autofocus>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <select name="project" class="form-select form-select-sm" required>
+                                <option value="">Proyecto</option>
+                                {% for p in projects %}
+                                <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <select name="assignee" class="form-select form-select-sm">
+                                <option value="">Asignar a...</option>
+                                {% for u in assignees %}
+                                <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <select name="type" class="form-select form-select-sm">
+                                <option value="task">Tarea</option>
+                                <option value="story">Historia</option>
+                                <option value="bug">Bug</option>
+                                <option value="epic">Epic</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <select name="priority" class="form-select form-select-sm">
+                                <option value="medium">Media</option>
+                                <option value="high">Alta</option>
+                                <option value="low">Baja</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <select name="points" class="form-select form-select-sm">
+                                <option value="1">1 pt</option>
+                                <option value="2">2 pts</option>
+                                <option value="3">3 pts</option>
+                                <option value="5">5 pts</option>
+                                <option value="8">8 pts</option>
+                                <option value="13">13 pts</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="quickTaskForm" class="btn btn-sm btn-success">Crear Tarea</button>
+            </div>
+        </div>
+    </div>
+</div>

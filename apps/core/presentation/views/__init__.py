@@ -2,7 +2,7 @@ from .auth_views import iniciar_sesion, cerrar_sesion, registrarse
 from .archived_views import ver_archivados, restaurar
 from .dashboard_views import ver_dashboard
 from .project_views import ver_proyectos, ver_detalle_proyecto, crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto
-from .task_views import crear_tarea, editar_tarea, eliminar_tarea, actualizar_estado_tarea, comentar_tarea
+from .task_views import crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea, actualizar_estado_tarea, comentar_tarea
 from .sprint_views import ver_sprints, crear_sprint, iniciar_sprint, completar_sprint
 from .team_views import ver_equipo, registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_equipo_desactivados
 from .area_views import ver_areas, crear_area, editar_area, eliminar_area
@@ -11,7 +11,7 @@ from .technology_views import ver_tecnologias, crear_tecnologia, editar_tecnolog
 from .client_views import ver_clientes, crear_cliente, editar_cliente, eliminar_cliente
 from .service_views import ver_servicios, crear_servicio, editar_servicio, eliminar_servicio
 from .board_views import ver_tablero
-from .backlog_views import ver_backlog
+from .backlog_views import ver_backlog, reordenar_backlog
 from .document_views import ver_documentos, subir_documento, eliminar_documento, subir_documento_proyecto, eliminar_documento_proyecto
 from .time_tracking_views import ver_tiempo, registrar_tiempo
 from .calendar_views import ver_calendario
@@ -33,7 +33,7 @@ __all__ = [
     'ver_archivados', 'restaurar',
     'ver_dashboard',
     'ver_proyectos', 'ver_detalle_proyecto', 'crear_proyecto', 'editar_proyecto', 'eliminar_proyecto', 'comentar_proyecto',
-    'crear_tarea', 'editar_tarea', 'eliminar_tarea', 'actualizar_estado_tarea', 'comentar_tarea',
+    'crear_tarea', 'crear_tarea_rapida', 'actualizar_campo_tarea', 'editar_tarea', 'eliminar_tarea', 'actualizar_estado_tarea', 'comentar_tarea',
     'ver_sprints', 'crear_sprint', 'iniciar_sprint', 'completar_sprint',
     'ver_equipo', 'registrar_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'ver_equipo_desactivados',
     'ver_areas', 'crear_area', 'editar_area', 'eliminar_area',
@@ -42,7 +42,7 @@ __all__ = [
     'ver_clientes', 'crear_cliente', 'editar_cliente', 'eliminar_cliente',
     'ver_servicios', 'crear_servicio', 'editar_servicio', 'eliminar_servicio',
     'ver_tablero',
-    'ver_backlog',
+    'ver_backlog', 'reordenar_backlog',
     'ver_documentos', 'subir_documento', 'eliminar_documento', 'subir_documento_proyecto', 'eliminar_documento_proyecto',
     'ver_tiempo', 'registrar_tiempo',
     'ver_calendario',

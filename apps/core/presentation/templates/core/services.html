@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
+{% load static %}
 {% load role_tags %}
 {% block title %}Servicios - Winnie{% endblock %}
-{% block page_title %}Servicios{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -11,7 +11,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Solicitudes de Servicio</h4>
                 {% if user|has_role:"super-admin,admin,jefe-area" %}
-                <a href="{% url 'crear_servicio' %}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i>Nueva Solicitud</a>
+                <button class="btn btn-success btn-sm" onclick="openCrudDrawer('service')"><i class="fas fa-plus me-1"></i>Nueva Solicitud</button>
                 {% endif %}
             </div>
 
@@ -21,7 +21,6 @@
                     <table class="table table-hover mb-0 align-middle">
                         <thead>
                             <tr>
-                                <th style="width:36px"></th>
                                 <th>Cliente</th>
                                 <th>Servicio</th>
                                 <th>Estado</th>
@@ -35,23 +34,20 @@
                         <tbody>
                             {% for sr in service_requests %}
                             <tr>
-                                <td>
-                                    <div class="entity-icon"><i class="fas fa-concierge-bell"></i></div>
-                                </td>
-                                <td>
-                                    <div class="fw-medium" style="font-size:0.8rem;">{{ sr.client.name|default:"-" }}</div>
-                                </td>
+                                <td><div class="fw-medium" style="font-size:0.8rem;">{{ sr.client.name|default:"-" }}</div></td>
                                 <td><small>{{ sr.get_service_display }}</small></td>
                                 <td><span class="badge badge-status-{{ sr.status }} small">{{ sr.get_status_display }}</span></td>
                                 <td><small>{{ sr.assigned_to.get_full_name|default:"Sin asignar" }}</small></td>
                                 <td><small class="text-muted">{{ sr.created_at|date:"d/m/Y" }}</small></td>
                                 {% if user|has_role:"super-admin,admin,jefe-area" %}
-                                <td class="text-end">
-                                    <a href="{% url 'editar_servicio' sr.id %}" class="btn btn-sm btn-ghost" title="Editar"><i class="fas fa-edit"></i></a>
-                                    <form method="post" action="{% url 'eliminar_servicio' sr.id %}" class="d-inline" onsubmit="return confirm('Eliminar solicitud?')">
-                                        {% csrf_token %}
-                                        <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                    </form>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('service', {id:'{{ sr.id }}',service:'{{ sr.service }}',description:'{{ sr.description|escapejs }}',status:'{{ sr.status }}',assigned_to:'{{ sr.assigned_to_id|default:'' }}',client:'{{ sr.client_id|default:'' }}'})" title="Editar"><i class="fas fa-edit"></i></button>
+                                        <form method="post" action="{% url 'eliminar_servicio' sr.id %}" class="d-inline" onsubmit="return confirm('Eliminar solicitud?')">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                                 {% endif %}
                             </tr>
@@ -69,4 +65,53 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user|has_role:"super-admin,admin,jefe-area" %}
+<script src="{% static 'js/crud_drawer.js' %}"></script>
+<script>
+// Pre-populated options for the drawer select fields
+window.clientOptions = [
+    {% for c in clients %}
+    {value:'{{ c.id }}', label:'{{ c.name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+window.userOptions = [
+    {% for u in users %}
+    {value:'{{ u.id }}', label:'{{ u.get_full_name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+window.serviceOptions = [
+    {value:'consultoria', label:'Consultoria TI'}, {value:'mesa-ayuda', label:'Mesa de Ayuda TI'},
+    {value:'remoto', label:'Trabajo Remoto'}, {value:'cloud', label:'Cloud Computing'},
+    {value:'capacitacion', label:'Learning Center'}, {value:'seguridad', label:'Seguridad Informatica'},
+    {value:'web', label:'Paginas Web y E-commerce'}, {value:'hosting', label:'Hosting y VPS'},
+    {value:'camaras', label:'Camara de Videovigilancia'}, {value:'soporte', label:'Soporte Tecnico'},
+    {value:'marketing', label:'Marketing Digital'}, {value:'community', label:'Community Manager'},
+    {value:'desarrollo', label:'Desarrollo de Software'},
+];
+window.serviceStatusOptions = [
+    {value:'new', label:'Nuevo'}, {value:'reviewing', label:'En Revision'},
+    {value:'in-progress', label:'En Progreso'}, {value:'completed', label:'Completado'},
+    {value:'cancelled', label:'Cancelado'},
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initCrudDrawer({
+        entity: 'service',
+        label: 'Solicitud',
+        fields: [
+            {name:'client', label:'Cliente', type:'select', optionsData:'clientOptions'},
+            {name:'service', label:'Servicio', type:'select', optionsData:'serviceOptions', required:true},
+            {name:'description', label:'Descripcion', type:'textarea', required:true},
+            {name:'status', label:'Estado', type:'select', optionsData:'serviceStatusOptions'},
+            {name:'assigned_to', label:'Asignado a', type:'select', optionsData:'userOptions'},
+        ],
+        createUrl: '{% url "crear_servicio" %}',
+        editUrl: '/ver_servicios/',
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

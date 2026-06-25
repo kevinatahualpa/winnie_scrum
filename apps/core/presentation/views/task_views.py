@@ -158,6 +158,107 @@ def eliminar_tarea(request, pk):
 
 @require_POST
 @login_required
+def crear_tarea_rapida(request):
+    """Quick task creation via AJAX modal. Returns JSON."""
+    import json
+    user = request.user
+    role = get_user_role(user)
+
+    if role == 'miembro' or not can_manage_task(user):
+        return JsonResponse({'success': False, 'error': 'No tienes permiso para crear tareas'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, AttributeError):
+        data = request.POST
+
+    project_id = data.get('project')
+    title = data.get('title', '').strip()
+
+    if not title or not project_id:
+        return JsonResponse({'success': False, 'error': 'Título y proyecto son requeridos'}, status=400)
+
+    project = get_object_or_404(Project, pk=project_id)
+
+    task, error = TaskService.crear_tarea(
+        user=user,
+        project=project,
+        title=title,
+        type=data.get('type', 'task'),
+        priority=data.get('priority', 'medium'),
+        points=int(data.get('points', 1)),
+        status=data.get('status', 'backlog'),
+        description='',
+        assignee_id=data.get('assignee') or None,
+        sprint_id=None,
+        required_specialty_id=None,
+        tags='',
+    )
+
+    if error:
+        return JsonResponse({'success': False, 'error': error}, status=400)
+
+    return JsonResponse({
+        'success': True,
+        'task': {
+            'id': task.pk,
+            'title': task.title,
+            'type': task.type,
+            'get_type_display': task.get_type_display(),
+            'priority': task.priority,
+            'get_priority_display': task.get_priority_display(),
+            'points': task.points,
+            'status': task.status,
+            'assignee': task.assignee.get_full_name() if task.assignee else None,
+            'assignee_id': task.assignee_id,
+            'project_id': task.project_id,
+            'project_name': task.project.name,
+        }
+    })
+
+
+@require_POST
+@login_required
+def actualizar_campo_tarea(request, pk):
+    """Update a single task field via AJAX (inline editing)."""
+    task = get_object_or_404(Task, pk=pk)
+    if not can_manage_task(request.user, task):
+        return JsonResponse({'success': False, 'error': 'Sin permiso'}, status=403)
+
+    import json
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, AttributeError):
+        data = request.POST
+
+    field = data.get('field')
+    value = data.get('value', '').strip()
+
+    valid_fields = {'title', 'priority', 'assignee', 'points'}
+
+    if field not in valid_fields:
+        return JsonResponse({'success': False, 'error': 'Campo inválido'}, status=400)
+
+    kwargs = {}
+    if field == 'assignee':
+        kwargs['assignee_id'] = value or None
+    elif field == 'points':
+        kwargs['points'] = int(value) if value else 1
+    else:
+        kwargs[field] = value
+
+    updated, error = TaskService.editar_tarea(
+        user=request.user, task=task, **kwargs
+    )
+
+    if error:
+        return JsonResponse({'success': False, 'error': error}, status=400)
+
+    return JsonResponse({'success': True, 'field': field, 'value': value})
+
+
+@require_POST
+@login_required
 def actualizar_estado_tarea(request, pk):
     """Update task status via AJAX (used by board drag-and-drop).
 

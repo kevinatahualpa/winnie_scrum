@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load role_tags %}
 {% block title %}Dashboard - Winnie{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -34,19 +35,7 @@
                     {% endif %}
                     {% endif %}
                 </div>
-                {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                <div class="dropdown">
-                    <button class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-plus me-1"></i> Crear</button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        {% if user|has_role:"super-admin,admin,jefe-area" %}
-                        <li><a class="dropdown-item" href="{% url 'crear_proyecto' %}"><i class="fas fa-folder me-2"></i>Nuevo Proyecto</a></li>
-                        {% endif %}
-                        {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                        <li><a class="dropdown-item" href="{% url 'crear_tarea' %}"><i class="fas fa-tasks me-2"></i>Nueva Tarea</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-                {% elif user|role_is:"miembro" %}
+                {% if user|role_is:"miembro" %}
                 <a href="{% url 'crear_tarea' %}" class="btn btn-warning btn-sm"><i class="fas fa-bug me-1"></i> Reportar Bug</a>
                 {% endif %}
             </div>
@@ -116,15 +105,6 @@
                 </div>
             </div>
 
-            <!-- Alertas -->
-            {% if pending_count > 0 %}
-            <div class="alert alert-warning mb-3 d-flex align-items-center gap-2">
-                <i class="fas fa-user-clock"></i>
-                <span>Hay <strong>{{ pending_count }}</strong> usuarios pendientes de aprobacion.</span>
-                <a href="{% url 'ver_pendientes' %}" class="btn btn-sm btn-warning ms-auto">Ver</a>
-            </div>
-            {% endif %}
-
             <div class="row g-2">
                 <!-- Proyectos Recientes -->
                 <div class="col-lg-6">
@@ -170,28 +150,28 @@
                                         <small class="text-muted">Backlog / Por Hacer</small>
                                         <small class="fw-medium">{{ todo_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%; background:#f59e0b;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">En Progreso</small>
                                         <small class="fw-medium">{{ in_progress_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%; background:#3b82f6;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Completadas</small>
                                         <small class="fw-medium">{{ done_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%; background:#10b981;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Bugs Abiertos</small>
                                         <small class="fw-medium text-danger">{{ bugs }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%; background:#ef4444;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%"></div></div>
                                 </div>
                             </div>
                             {% else %}
@@ -362,28 +342,28 @@
                                         <small class="text-muted">Backlog / Por Hacer</small>
                                         <small class="fw-medium">{{ todo_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%; background:#f59e0b;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">En Progreso</small>
                                         <small class="fw-medium">{{ in_progress_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%; background:#3b82f6;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Completadas</small>
                                         <small class="fw-medium">{{ done_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%; background:#10b981;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Bugs Abiertos</small>
                                         <small class="fw-medium text-danger">{{ bugs }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%; background:#ef4444;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%"></div></div>
                                 </div>
                             </div>
                             {% else %}
@@ -534,28 +514,28 @@
                                         <small class="text-muted">Backlog / Por Hacer</small>
                                         <small class="fw-medium">{{ todo_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%; background:#f59e0b;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">En Progreso</small>
                                         <small class="fw-medium">{{ in_progress_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%; background:#3b82f6;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Completadas</small>
                                         <small class="fw-medium">{{ done_tasks }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%; background:#10b981;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%"></div></div>
                                 </div>
                                 <div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Bugs Abiertos</small>
                                         <small class="fw-medium text-danger">{{ bugs }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%; background:#ef4444;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%"></div></div>
                                 </div>
                             </div>
                             {% else %}
@@ -732,28 +712,28 @@
                                         <small class="text-muted">Backlog / Por Hacer</small>
                                         <small class="fw-medium">{{ my_task_stats.todo }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.todo my_task_stats.total 100 %}%; background:#f59e0b;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.todo my_task_stats.total 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">En Progreso</small>
                                         <small class="fw-medium">{{ my_task_stats.in_progress }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.in_progress my_task_stats.total 100 %}%; background:#3b82f6;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.in_progress my_task_stats.total 100 %}%"></div></div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Completadas</small>
                                         <small class="fw-medium">{{ my_task_stats.done }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.done my_task_stats.total 100 %}%; background:#10b981;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.done my_task_stats.total 100 %}%"></div></div>
                                 </div>
                                 <div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Bugs Abiertos</small>
                                         <small class="fw-medium text-danger">{{ my_task_stats.bugs }}</small>
                                     </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.bugs my_task_stats.total 100 %}%; background:#ef4444;"></div></div>
+                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.bugs my_task_stats.total 100 %}%"></div></div>
                                 </div>
                             </div>
                             {% else %}

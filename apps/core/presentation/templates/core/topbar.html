@@ -1,48 +1,45 @@
 {% load static %}
 <div class="top-bar d-flex justify-content-between align-items-center" role="banner">
     <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-sm btn-outline-secondary d-md-none" id="sidebarToggle" aria-label="Abrir menu de navegacion" style="border:none;padding:0.2rem;"><i class="fas fa-bars" aria-hidden="true" style="font-size:0.8rem;"></i></button>
-        <h5 class="mb-0" style="font-weight:400;">{% block page_title %}Dashboard{% endblock %}</h5>
+        <button class="btn btn-sm btn-outline-secondary d-md-none sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu de navegacion"><i class="fas fa-bars" aria-hidden="true"></i></button>
+        <h5 class="mb-0 page-title">{% block page_title %}{% endblock %}</h5>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <div class="position-relative">
-            <input type="text" class="form-control form-control-sm" placeholder="Buscar..." aria-label="Busqueda global" style="width:180px;font-size:0.7rem;padding:0.3rem 0.5rem;" id="globalSearch">
-            <i class="fas fa-search position-absolute" aria-hidden="true" style="right:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-secondary);"></i>
+        <div class="input-group input-group-sm global-search-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar..." aria-label="Busqueda global" id="globalSearch">
         </div>
-        <a href="{% url 'cerrar_sesion' %}" class="btn btn-sm d-none d-md-inline-flex align-items-center gap-1" aria-label="Cerrar sesion" title="Salir" style="font-size:0.7rem;color:var(--text-secondary);padding:0.3rem 0.5rem;">
-            <i class="fas fa-sign-out-alt" aria-hidden="true" style="font-size:0.7rem;"></i> Salir
-        </a>
         <div class="dropdown">
-            <button class="btn btn-sm position-relative" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones" style="border:none;padding:0.3rem 0.4rem;color:var(--text-secondary);">
-                <i class="fas fa-bell" aria-hidden="true" style="font-size:0.75rem;"></i>
+            <button class="btn btn-sm position-relative notif-btn" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+                <i class="fas fa-bell" aria-hidden="true"></i>
                 {% if unread_count %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill notif-badge" style="font-size:0.5rem;background:var(--accent);">{{ unread_count }}</span>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill notif-badge notif-count">{{ unread_count }}</span>
                 {% endif %}
             </button>
-            <div class="dropdown-menu dropdown-menu-end notif-dropdown p-0" aria-labelledby="notifDropdown" style="width:340px;max-height:420px;overflow:hidden;">
+            <div class="dropdown-menu dropdown-menu-end notif-dropdown p-0" aria-labelledby="notifDropdown">
                 <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
                     <span class="fw-semibold small">Notificaciones</span>
                     {% if unread_count > 0 %}
                     <form method="post" action="{% url 'marcar_todas_leidas' %}">
                         {% csrf_token %}
-                        <button class="btn btn-link btn-sm p-0 text-decoration-none" aria-label="Marcar todas las notificaciones como leidas" style="font-size:0.65rem;color:var(--accent);">Marcar todo leido</button>
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none mark-read-btn" aria-label="Marcar todas las notificaciones como leidas">Marcar todo leido</button>
                     </form>
                     {% endif %}
                 </div>
                 {% if pending_count > 0 %}
                 <a href="{% url 'ver_pendientes' %}" class="dropdown-item pending-reg-link">
-                    <div class="notif-drop-icon unread" style="background:#f59e0b;">
+                    <div class="notif-drop-icon unread notif-icon-warning">
                         <i class="fas fa-user-clock" aria-hidden="true"></i>
                     </div>
                     <div class="notif-drop-body">
                         <div class="notif-drop-title">{{ pending_count }} registro(s) pendiente(s)</div>
                         <div class="notif-drop-msg">Hay nuevos usuarios esperando aprobacion</div>
                     </div>
-                    <span class="notif-drop-dot" style="background:#f59e0b;" aria-hidden="true"></span>
+                    <span class="notif-drop-dot notif-dot-warning" aria-hidden="true"></span>
                 </a>
                 <div class="border-top"></div>
                 {% endif %}
-                <div style="max-height:350px;overflow-y:auto;">
+                <div class="notif-scroll">
                     {% if notifications_preview %}
                         {% for n in notifications_preview %}
                         <a href="{% url 'ver_notificaciones' %}" class="dropdown-item notif-dropdown-item {% if not n.read %}unread{% endif %}">
@@ -60,14 +57,14 @@
                         </a>
                         {% endfor %}
                     {% else %}
-                        <div class="text-center py-4 text-muted" style="font-size:0.75rem;">
-                            <i class="far fa-bell d-block mb-2" aria-hidden="true" style="font-size:1.5rem;opacity:0.3;"></i>
+                        <div class="text-center py-4 text-muted notif-empty-state">
+                            <i class="far fa-bell d-block mb-2" aria-hidden="true"></i>
                             Sin notificaciones
                         </div>
                     {% endif %}
                 </div>
                 <div class="border-top p-2 text-center">
-                    <a href="{% url 'ver_notificaciones' %}" class="text-decoration-none small" style="color:var(--accent);font-weight:500;">Ver todas las notificaciones</a>
+                    <a href="{% url 'ver_notificaciones' %}" class="text-decoration-none small notif-view-all">Ver todas las notificaciones</a>
                 </div>
             </div>
         </div>
