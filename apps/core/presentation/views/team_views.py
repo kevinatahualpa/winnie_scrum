@@ -30,7 +30,7 @@ def _member_form_context(form, areas, specialties, clients):
 
 
 @login_required
-def ver_equipo(request):
+def ver_usuarios(request):
     """Render la lista de USUARIOS separada en dos secciones:
        1. Equipo interno (miembros, jefes, admins, observers)
        2. Clientes (solo visible para super-admin/admin)
@@ -137,7 +137,7 @@ def registrar_usuario(request):
     """
     if not can_manage_admin(request.user):
         messages.error(request, 'No tienes permiso para crear usuarios')
-        return redirect('ver_equipo')
+        return redirect('ver_usuarios')
 
     areas = Area.objects.filter(status='active')
     specialties = Specialty.active.all()
@@ -177,7 +177,7 @@ def registrar_usuario(request):
                 f'Usuario "{profile.user.get_full_name()}" creado. '
                 f'Para asignarlo a proyectos, ve al detalle del proyecto y usa "Gestionar Miembros".'
             )
-            return redirect('ver_equipo')
+            return redirect('ver_usuarios')
         else:
             for field, errs in form.errors.items():
                 for e in errs:
@@ -240,7 +240,7 @@ def editar_usuario(request, pk):
                 return render(request, 'core/team_member_form.html', ctx)
 
             messages.success(request, f'Usuario "{updated_profile.user.get_full_name()}" actualizado')
-            return redirect('ver_equipo')
+            return redirect('ver_usuarios')
         else:
             for field, errs in form.errors.items():
                 for e in errs:
@@ -275,7 +275,7 @@ def desactivar_usuario(request, pk):
 
     if not can_deactivate_user(request.user, profile.user):
         messages.error(request, 'No tienes permiso para desactivar este usuario')
-        return redirect('ver_equipo')
+        return redirect('ver_usuarios')
 
     success, error = UserService.desactivar_usuario(request.user, profile)
 
@@ -284,7 +284,7 @@ def desactivar_usuario(request, pk):
     else:
         messages.success(request, f'Usuario "{profile.user.get_full_name()}" desactivado')
 
-    return redirect('ver_equipo')
+    return redirect('ver_usuarios')
 
 
 @require_POST
@@ -295,7 +295,7 @@ def reactivar_usuario(request, pk):
 
     if not can_manage_admin(request.user):
         messages.error(request, 'No tienes permiso para reactivar usuarios')
-        return redirect('ver_equipo_desactivados')
+        return redirect('ver_usuarios_desactivados')
 
     success, error = UserService.reactivar_usuario(request.user, profile)
 
@@ -304,18 +304,18 @@ def reactivar_usuario(request, pk):
     else:
         messages.success(request, f'Usuario "{profile.user.get_full_name()}" reactivado')
 
-    return redirect('ver_equipo_desactivados')
+    return redirect('ver_usuarios_desactivados')
 
 
 @login_required
-def ver_equipo_desactivados(request):
+def ver_usuarios_desactivados(request):
     """Show deactivated/dismissed users with option to reactivate."""
     user = request.user
     role = get_user_role(user)
 
     if not can_manage_admin(user):
         messages.error(request, 'No tienes permiso para ver usuarios desactivados')
-        return redirect('ver_equipo')
+        return redirect('ver_usuarios')
 
     desactivados_qs = UserProfile.objects.select_related(
         'user', 'area', 'specialty', 'client',

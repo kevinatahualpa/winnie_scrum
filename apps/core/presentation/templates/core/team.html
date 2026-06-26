@@ -31,7 +31,7 @@
                     {% endfor %}
                 </select>
                 {% if filters.area or filters.project or filters.role %}
-                <a href="{% url 'ver_equipo' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
+                <a href="{% url 'ver_usuarios' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
                 {% endif %}
             </div>
             {% endif %}
@@ -52,7 +52,7 @@
                     {% endfor %}
                 </select>
                 {% if filters.client or filters.project %}
-                <a href="{% url 'ver_equipo' %}?tab=clientes" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
+                <a href="{% url 'ver_usuarios' %}?tab=clientes" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
                 {% endif %}
             </div>
             {% endif %}
@@ -65,13 +65,13 @@
                 <div class="d-flex align-items-center gap-2">
                     <ul class="nav nav-pills" style="font-size:0.8rem;">
                         <li class="nav-item">
-                            <a class="nav-link {% if active_tab == 'equipo' %}active{% endif %}" href="{% url 'ver_equipo' %}?tab=equipo" style="padding:0.35rem 0.75rem;">
+                            <a class="nav-link {% if active_tab == 'equipo' %}active{% endif %}" href="{% url 'ver_usuarios' %}?tab=equipo" style="padding:0.35rem 0.75rem;">
                                 <i class="fas fa-users me-1"></i>Equipo
                                 <span class="badge bg-secondary ms-1">{{ internal_users|length }}</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if active_tab == 'clientes' %}active{% endif %}" href="{% url 'ver_equipo' %}?tab=clientes" style="padding:0.35rem 0.75rem;">
+                            <a class="nav-link {% if active_tab == 'clientes' %}active{% endif %}" href="{% url 'ver_usuarios' %}?tab=clientes" style="padding:0.35rem 0.75rem;">
                                 <i class="fas fa-user-tie me-1"></i>Portal Clientes
                                 <span class="badge bg-secondary ms-1">{{ client_users|length }}</span>
                             </a>
@@ -294,7 +294,7 @@
                     <span class="badge bg-danger ms-2">{% if dismissed_users %}{{ dismissed_users|length }}{% else %}0{% endif %}</span>
                 </h6>
                 {% if not show_dismissed %}
-                <a href="{% url 'ver_equipo_desactivados' %}" class="btn btn-sm btn-outline-secondary">
+                <a href="{% url 'ver_usuarios_desactivados' %}" class="btn btn-sm btn-outline-secondary">
                     <i class="fas fa-eye me-1"></i>Ver desactivados
                 </a>
                 {% endif %}
@@ -356,7 +356,7 @@
                 </div>
             </div>
             <div class="mb-3">
-                <a href="{% url 'ver_equipo' %}" class="btn btn-sm btn-outline-secondary">
+                <a href="{% url 'ver_usuarios' %}" class="btn btn-sm btn-outline-secondary">
                     <i class="fas fa-arrow-left me-1"></i>Volver al equipo
                 </a>
             </div>
@@ -368,7 +368,7 @@
                 </div>
             </div>
             <div class="mb-3">
-                <a href="{% url 'ver_equipo' %}" class="btn btn-sm btn-outline-secondary">
+                <a href="{% url 'ver_usuarios' %}" class="btn btn-sm btn-outline-secondary">
                     <i class="fas fa-arrow-left me-1"></i>Volver al equipo
                 </a>
             </div>

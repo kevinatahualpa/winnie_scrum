@@ -20,7 +20,7 @@ urlpatterns = [
         '<url><loc>https://127.0.0.1/ver_tablero/</loc><changefreq>always</changefreq><priority>0.9</priority></url>\n'
         '<url><loc>https://127.0.0.1/ver_backlog/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n'
         '<url><loc>https://127.0.0.1/ver_sprints/</loc><changefreq>daily</changefreq><priority>0.8</priority></url>\n'
-        '<url><loc>https://127.0.0.1/ver_equipo/</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>\n'
+        '<url><loc>https://127.0.0.1/ver_usuarios/</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>\n'
         '<url><loc>https://127.0.0.1/ver_servicios/</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>\n'
         '</urlset>',
         content_type='application/xml'

@@ -61,8 +61,8 @@ def registrarse(request):
 
     Los 3 flujos de registro en el sistema son:
     1. /solicitar-acceso/  -> Cualquier persona solicita acceso (queda pending).
-    2. /ver_equipo/create/ -> Un admin registra a un miembro del equipo (queda active).
-    3. /ver_equipo/create/ -> Un admin registra a un cliente con rol=cliente (queda active).
+    2. /ver_usuarios/create/ -> Un admin registra a un miembro del equipo (queda active).
+    3. /ver_usuarios/create/ -> Un admin registra a un cliente con rol=cliente (queda active).
 
     """
     if request.user.is_authenticated:

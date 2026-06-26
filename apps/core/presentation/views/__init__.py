@@ -4,7 +4,7 @@ from .dashboard_views import ver_dashboard
 from .project_views import ver_proyectos, ver_detalle_proyecto, crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto
 from .task_views import crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea, actualizar_estado_tarea, comentar_tarea
 from .sprint_views import ver_sprints, crear_sprint, iniciar_sprint, completar_sprint
-from .team_views import ver_equipo, registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_equipo_desactivados
+from .team_views import ver_usuarios, registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_usuarios_desactivados
 from .area_views import ver_areas, crear_area, editar_area, eliminar_area
 from .specialty_views import ver_especialidades, crear_especialidad, editar_especialidad, eliminar_especialidad
 from .technology_views import ver_tecnologias, crear_tecnologia, editar_tecnologia, eliminar_tecnologia
@@ -35,7 +35,7 @@ __all__ = [
     'ver_proyectos', 'ver_detalle_proyecto', 'crear_proyecto', 'editar_proyecto', 'eliminar_proyecto', 'comentar_proyecto',
     'crear_tarea', 'crear_tarea_rapida', 'actualizar_campo_tarea', 'editar_tarea', 'eliminar_tarea', 'actualizar_estado_tarea', 'comentar_tarea',
     'ver_sprints', 'crear_sprint', 'iniciar_sprint', 'completar_sprint',
-    'ver_equipo', 'registrar_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'ver_equipo_desactivados',
+    'ver_usuarios', 'registrar_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'ver_usuarios_desactivados',
     'ver_areas', 'crear_area', 'editar_area', 'eliminar_area',
     'ver_especialidades', 'crear_especialidad', 'editar_especialidad', 'eliminar_especialidad',
     'ver_tecnologias', 'crear_tecnologia', 'editar_tecnologia', 'eliminar_tecnologia',

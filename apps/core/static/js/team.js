@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (role) params.set('role', role);
         if (client) params.set('client', client);
         const qs = params.toString();
-        window.location.href = qs ? `/ver_equipo/?${qs}` : '/ver_equipo/';
+        window.location.href = qs ? `/ver_usuarios/?${qs}` : '/ver_usuarios/';
     }
 
     function updateProjectOptions() {

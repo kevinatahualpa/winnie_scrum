@@ -147,23 +147,23 @@ class TeamViewsTest(TestCase):
         UserProfile.objects.create(user=self.member, role='miembro', status='active', area=self.area)
 
     def test_team_requires_login(self):
-        response = self.client.get(reverse('ver_equipo'))
-        self.assertRedirects(response, f'{reverse("iniciar_sesion")}?next=/ver_equipo/')
+        response = self.client.get(reverse('ver_usuarios'))
+        self.assertRedirects(response, f'{reverse("iniciar_sesion")}?next=/ver_usuarios/')
 
     def test_team_list_loads(self):
         self.client.login(username='admin@test.com', password='pass')
-        response = self.client.get(reverse('ver_equipo'))
+        response = self.client.get(reverse('ver_usuarios'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'admin@test.com')
 
     def test_team_filter_by_area(self):
         self.client.login(username='admin@test.com', password='pass')
-        response = self.client.get(reverse('ver_equipo'), {'area': self.area.id})
+        response = self.client.get(reverse('ver_usuarios'), {'area': self.area.id})
         self.assertEqual(response.status_code, 200)
 
     def test_team_filter_by_role(self):
         self.client.login(username='admin@test.com', password='pass')
-        response = self.client.get(reverse('ver_equipo'), {'role': 'admin'})
+        response = self.client.get(reverse('ver_usuarios'), {'role': 'admin'})
         self.assertEqual(response.status_code, 200)
 
     def test_member_create_admin_access(self):
@@ -181,18 +181,18 @@ class TeamViewsTest(TestCase):
             'role': 'miembro', 'status': 'active', 'color': '#00bcd4',
             'area': self.area.id, 'specialty': specialty.id,
         })
-        self.assertRedirects(response, reverse('ver_equipo'))
+        self.assertRedirects(response, reverse('ver_usuarios'))
         self.assertTrue(User.objects.filter(email='new@test.com').exists())
 
     def test_member_create_miembro_denied(self):
         self.client.login(username='member@test.com', password='pass')
         response = self.client.get(reverse('registrar_usuario'))
-        self.assertRedirects(response, reverse('ver_equipo'))
+        self.assertRedirects(response, reverse('ver_usuarios'))
 
     def test_member_delete_admin(self):
         self.client.login(username='admin@test.com', password='pass')
         response = self.client.post(reverse('desactivar_usuario', args=[UserProfile.objects.get(user=self.member).pk]))
-        self.assertRedirects(response, reverse('ver_equipo'))
+        self.assertRedirects(response, reverse('ver_usuarios'))
 
     def test_member_update_admin(self):
         self.client.login(username='admin@test.com', password='pass')

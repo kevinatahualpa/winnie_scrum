@@ -46,7 +46,7 @@ document.getElementById('sidebarToggle')?.addEventListener('click', function() {
         if (data.users && data.users.length) {
             html += '<div class="search-group"><div class="search-group-title"><i class="fas fa-users"></i> Usuarios</div>';
             data.users.forEach(function(u) {
-                html += '<a href="/ver_equipo/' + u.id + '/edit/" class="search-item">' + escapeHtml(u.first_name + ' ' + u.last_name) + ' <span class="text-muted">\xb7 ' + escapeHtml(u.email) + '</span></a>';
+                html += '<a href="/ver_usuarios/' + u.id + '/edit/" class="search-item">' + escapeHtml(u.first_name + ' ' + u.last_name) + ' <span class="text-muted">\xb7 ' + escapeHtml(u.email) + '</span></a>';
             });
             html += '</div>';
         }
