@@ -121,6 +121,49 @@
                             <button type="submit" class="btn btn-sm text-white flex-shrink-0" style="background: var(--accent); width: 36px; height: 36px; border-radius: 50%; padding: 0;"><i class="fas fa-paper-plane" style="font-size: 0.7rem;"></i></button>
                         </form>
                     </div>
+
+                    {% elif project_chat %}
+                    <!-- Chat de proyecto -->
+                    <div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: #fff;">
+                        <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:36px;height:36px;background:{{ project_chat.color|default:'#00bcd4' }};font-size:13px;">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <div>
+                            <strong class="small">{{ project_chat.name }}</strong>
+                            <small class="text-muted d-block" style="font-size:0.6rem;">Chat de proyecto</small>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 overflow-auto p-3" id="chatMessages">
+                        {% if messages_list %}
+                            {% for cm in messages_list %}
+                            <div class="d-flex mb-2 {% if cm.author == request.user %}justify-content-end{% endif %}">
+                                <div class="message-bubble {% if cm.author == request.user %}sent{% else %}received{% endif %}" style="max-width: 70%;">
+                                    <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                                        <small class="fw-bold msg-sender-{% if cm.author == request.user %}self{% else %}other{% endif %}">
+                                            {{ cm.author.get_full_name|default:cm.author.username }}
+                                        </small>
+                                        <small style="font-size: 0.55rem; opacity: 0.6;">{{ cm.created_at|date:"d/m H:i" }}</small>
+                                    </div>
+                                    <p class="mb-0 small">{{ cm.text }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-5 text-muted small">
+                            <i class="fas fa-comments d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
+                            Sin comentarios aún — escribe uno abajo
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="border-top p-2" style="background:#fff;">
+                        <form method="post" action="{% url 'comentar_proyecto' project_chat.id %}" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'ver_conversacion_proyecto' project_chat.id %}">
+                            <textarea name="text" class="form-control form-control-sm" rows="1" placeholder="Escribe un mensaje..." required style="font-size:0.7rem;resize:none;"></textarea>
+                            <button type="submit" class="btn btn-sm text-white flex-shrink-0" style="background:var(--accent);width:36px;height:36px;border-radius:50%;padding:0;"><i class="fas fa-paper-plane" style="font-size:0.7rem;"></i></button>
+                        </form>
+                    </div>
+
                     {% else %}
                     <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-muted chat-sidebar">
                         <div class="text-center">

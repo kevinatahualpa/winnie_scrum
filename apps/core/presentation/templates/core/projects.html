@@ -11,12 +11,15 @@
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <h4 class="mb-0"><i class="fas fa-folder me-2" style="color:var(--accent);"></i>Proyectos</h4>
-                    <select class="form-select form-select-sm" style="width:160px;" onchange="window.location.href='?area='+this.value">
-                        <option value="">Todas las areas</option>
-                        {% for area in areas %}
-                        <option value="{{ area.id }}" {% if selected_area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm" style="padding-left:1.6rem;" onchange="window.location.href='?area='+this.value">
+                            <option value="">Todas las areas</option>
+                            {% for area in areas %}
+                            <option value="{{ area.id }}" {% if selected_area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     {% if selected_area %}
                     <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtro"><i class="fas fa-times"></i></a>
                     {% endif %}

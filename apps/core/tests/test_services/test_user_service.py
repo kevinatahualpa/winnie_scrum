@@ -56,18 +56,18 @@ class UserServiceRoleManagementTest(TestCase):
         self.assertIsNotNone(error)
         self.assertIn('cliente', error.lower())
 
-    def test_registrar_observer_without_area_or_projects(self):
+    def test_registrar_admin_sin_area(self):
         profile, error = UserService.registrar_usuario(
             user_creator=self.admin,
-            email='auditor@empresa.com',
-            first_name='Maria',
-            last_name='Auditora',
-            password='aud12345',
-            role='observer',
+            email='admin2@empresa.com',
+            first_name='Admin',
+            last_name='Nuevo',
+            password='adm123456',
+            role='admin',
         )
         self.assertIsNotNone(profile)
         self.assertIsNone(error)
-        self.assertEqual(profile.role, 'observer')
+        self.assertEqual(profile.role, 'admin')
         self.assertIsNone(profile.area)
 
     def test_registrar_member_with_area(self):
@@ -165,7 +165,7 @@ class UserServiceRoleManagementTest(TestCase):
         self.assertEqual(updated.role, 'miembro')
         self.assertIsNone(updated.client)
 
-    def test_editar_usuario_clears_area_for_observer(self):
+    def test_editar_usuario_clears_area_for_admin(self):
         profile, _ = UserService.registrar_usuario(
             user_creator=self.admin,
             email='o@test.com',
@@ -178,7 +178,7 @@ class UserServiceRoleManagementTest(TestCase):
         updated, error = UserService.editar_usuario(
             user_editor=self.super_admin,
             profile=profile,
-            role='observer',
+            role='admin',
         )
         self.assertIsNotNone(updated)
         self.assertIsNone(error)

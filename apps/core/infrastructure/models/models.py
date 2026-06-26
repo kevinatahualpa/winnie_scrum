@@ -225,7 +225,7 @@ class UserProfile(models.Model):
         ('super-admin', 'Super Admin'), ('admin', 'Admin'),
         ('jefe-area', 'Jefe de Area'), ('jefe-proyecto', 'Jefe de Proyecto'),
         ('miembro', 'Miembro'),
-        ('cliente', 'Cliente'), ('observer', 'Observador'),
+        ('cliente', 'Cliente'),
     ], default='miembro', db_index=True)
     status = models.CharField(max_length=20, choices=[
         ('pending', 'Pendiente de aprobacion'), ('active', 'Activo'), ('vacation', 'Vacaciones'),
@@ -251,7 +251,7 @@ class UserProfile(models.Model):
     ROLES_REQUIRING_CLIENT = ('cliente',)
     ROLES_FORBIDDING_AREA = ('cliente',)
     ROLES_FORBIDDING_CLIENT = (
-        'super-admin', 'admin', 'jefe-area', 'jefe-proyecto', 'miembro', 'observer',
+        'super-admin', 'admin', 'jefe-area', 'jefe-proyecto', 'miembro',
     )
 
     def clean(self):

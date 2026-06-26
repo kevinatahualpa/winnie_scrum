@@ -30,69 +30,46 @@
 
         <form method="post">
             {% csrf_token %}
-            <div class="auth-field">
-                <label class="auth-label">Titular profesional <span style="color:var(--text-muted);font-weight:400;">(headline)</span></label>
-                <input type="text" name="headline" class="auth-input"
-                       value="{{ form_data.headline|default:'' }}"
-                       placeholder="Ej: Backend Developer con 3 años en Django">
-            </div>
             <div class="wizard-row">
                 <div class="auth-field">
-                    <label class="auth-label">Años de experiencia</label>
+                    <label class="auth-label">Años de experiencia <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
                     <input type="number" name="years_experience" class="auth-input" min="0" max="50"
                            value="{{ form_data.years_experience|default:0 }}">
                 </div>
                 <div class="auth-field">
-                    <label class="auth-label">Portfolio (URL)</label>
+                    <label class="auth-label">Portfolio <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
                     <input type="url" name="portfolio_url" class="auth-input"
                            value="{{ form_data.portfolio_url|default:'' }}" placeholder="https://">
                 </div>
             </div>
             <div class="wizard-row">
                 <div class="auth-field">
-                    <label class="auth-label">LinkedIn</label>
+                    <label class="auth-label">LinkedIn <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
                     <input type="url" name="linkedin_url" class="auth-input"
                            value="{{ form_data.linkedin_url|default:'' }}" placeholder="https://linkedin.com/in/...">
                 </div>
                 <div class="auth-field">
-                    <label class="auth-label">GitHub</label>
+                    <label class="auth-label">GitHub <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
                     <input type="url" name="github_url" class="auth-input"
                            value="{{ form_data.github_url|default:'' }}" placeholder="https://github.com/...">
                 </div>
             </div>
             <div class="auth-field">
-                <label class="auth-label">Bio / Resumen</label>
+                <label class="auth-label">Bio / Resumen <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
                 <textarea name="bio" class="auth-input" rows="3"
                           placeholder="Cuentanos brevemente tu experiencia, que te motiva, en que proyectos has trabajado...">{{ form_data.bio|default:'' }}</textarea>
             </div>
 
-            <div class="spec-group-label">Especialidad principal <span class="spec-hint-inline">(la que mejor dominas)</span></div>
             <div class="auth-field">
+                <label class="auth-label">Especialidad</label>
                 <select name="primary_specialty" class="auth-input">
                     <option value="">Sin definir aun</option>
-                    {% regroup specialties by category as spec_groups %}
-                    {% for group in spec_groups %}
-                    <optgroup label="{{ group.grouper }}">
-                        {% for spec in group.list %}
-                        <option value="{{ spec.id }}" {% if form_data.primary_specialty|stringformat:"s" == spec.id|stringformat:"s" %}selected{% endif %}>
-                            {{ spec.name }}
-                        </option>
-                        {% endfor %}
-                    {% endfor %}
-                    </optgroup>
-                </select>
-            </div>
-
-            <div class="spec-group-label">Otras especialidades que manejas <span class="spec-hint-inline">(opcional, multiples)</span></div>
-            <div class="auth-field">
-                <select name="secondary_specialties" class="auth-input" multiple size="5">
                     {% for spec in specialties %}
-                    <option value="{{ spec.id }}" {% if spec.id|stringformat:"s" in form_data.secondary_specialties %}selected{% endif %}>
-                        {{ spec.full_path }}
+                    <option value="{{ spec.id }}" {% if form_data.primary_specialty|stringformat:"s" == spec.id|stringformat:"s" %}selected{% endif %}>
+                        {{ spec.name }}
                     </option>
                     {% endfor %}
                 </select>
-                <div class="spec-hint"><i class="fas fa-info-circle"></i> Manten Ctrl/Cmd presionado para seleccionar varias.</div>
             </div>
 
             <div class="wizard-actions">

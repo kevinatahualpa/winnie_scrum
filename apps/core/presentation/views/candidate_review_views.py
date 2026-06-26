@@ -27,6 +27,7 @@ from apps.core.domain.services.notification_service import (
 from apps.core.domain.services.permission_service import (
     get_user_role, is_super_admin,
 )
+from apps.core.domain.services.ai_service import analyze_candidate
 from apps.core.infrastructure.models.models import (
     Area, CandidateProfile, Specialty, UserProfile,
 )
@@ -267,7 +268,28 @@ def candidato_decidir(request, pk):
             f'Usuario aprobado: {profile.user.get_full_name()}, rol: {requested_role}, '
             f'score checklist: {score}/{total}',
         )
-        return JsonResponse({'ok': True, 'redirect': '/ver_pendientes/'})
+    return JsonResponse({'ok': True, 'redirect': '/ver_pendientes/'})
+
+
+@login_required
+def candidato_ai_review(request, pk):
+    """Endpoint AJAX: analiza un candidato con IA y devuelve JSON."""
+    if not _require_admin(request):
+        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    profile = get_object_or_404(UserProfile, pk=pk, status='pending')
+    candidate = (
+        CandidateProfile.objects
+        .select_related('user', 'primary_specialty')
+        .prefetch_related('candidatetechnology_set__technology')
+        .filter(user=profile.user)
+        .first()
+    )
+    if not candidate:
+        return JsonResponse({'error': 'Sin perfil de candidato'}, status=404)
+
+    result = analyze_candidate(candidate)
+    return JsonResponse(result)
 
     notes = (request.POST.get('notes') or '').strip()
     user_obj = profile.user

@@ -21,7 +21,7 @@ from .views import (
     eliminar_documento,
     subir_documento_proyecto, eliminar_documento_proyecto,
     verificar_salud, verificar_disponibilidad,
-    ver_mensajes, ver_conversacion, enviar_mensaje, buscar_usuarios,
+    ver_mensajes, ver_conversacion, ver_conversacion_proyecto, enviar_mensaje, buscar_usuarios,
     ver_portal_cliente, ver_detalle_proyecto_cliente, crear_solicitud_cliente,
     gestionar_miembros_proyecto,
     ver_archivados, restaurar,
@@ -33,6 +33,7 @@ from .views.wizard_views import (
 )
 from .views.candidate_review_views import (
     candidato_detalle, candidato_save_checklist, candidato_decidir, cv_embed,
+    candidato_ai_review,
 )
 from .views.client_views import (
     ver_clientes, crear_cliente, editar_cliente, eliminar_cliente,
@@ -102,6 +103,7 @@ urlpatterns = [
     path('pending/<int:pk>/checklist/', candidato_save_checklist, name='candidato_save_checklist'),
     path('pending/<int:pk>/decidir/', candidato_decidir, name='candidato_decidir'),
     path('pending/<int:pk>/cv/', cv_embed, name='cv_embed'),
+    path('pending/<int:pk>/ai-review/', candidato_ai_review, name='candidato_ai_review'),
     path('ver_configuracion/', ver_configuracion, name='ver_configuracion'),
     path('ver_reportes/', ver_reportes, name='ver_reportes'),
     path('ver_auditoria/', ver_auditoria, name='ver_auditoria'),
@@ -132,6 +134,7 @@ urlpatterns = [
     path('ready/', verificar_disponibilidad, name='verificar_disponibilidad'),
     path('mensajes/', ver_mensajes, name='ver_mensajes'),
     path('mensajes/<int:user_id>/', ver_conversacion, name='ver_conversacion'),
+    path('mensajes/proyecto/<int:project_id>/', ver_conversacion_proyecto, name='ver_conversacion_proyecto'),
     path('mensajes/enviar/', enviar_mensaje, name='enviar_mensaje'),
     path('api/buscar-usuarios/', buscar_usuarios, name='buscar_usuarios'),
     path('portal/', ver_portal_cliente, name='ver_portal_cliente'),

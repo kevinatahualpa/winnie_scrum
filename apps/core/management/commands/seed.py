@@ -77,7 +77,7 @@ class Command(BaseCommand):
             {'username': 'javier@hackthony.com', 'email': 'javier@hackthony.com', 'first_name': 'Javier', 'last_name': 'FullStack', 'password': 'member123', 'role': 'miembro', 'color': '#e91e63', 'area': 'D3', 'specialty': 'FullStack Developer', 'phone': '+51 994 520 025'},
             {'username': 'valeria@hackthony.com', 'email': 'valeria@hackthony.com', 'first_name': 'Valeria', 'last_name': 'QA', 'password': 'member123', 'role': 'miembro', 'color': '#9c27b0', 'area': 'D1', 'specialty': 'QA Engineer', 'phone': '+51 994 520 026'},
             {'username': 'cliente@hackthony.com', 'email': 'cliente@hackthony.com', 'first_name': 'Carlos', 'last_name': 'Mendoza', 'password': 'cliente123', 'role': 'cliente', 'color': '#26a69a', 'area': None, 'specialty': None, 'phone': '+51 994 520 027', 'client': 'Corporacion Minera SAC'},
-            {'username': 'auditor@hackthony.com', 'email': 'auditor@hackthony.com', 'first_name': 'Patricia', 'last_name': 'Auditora', 'password': 'audit123', 'role': 'observer', 'color': '#607d8b', 'area': None, 'specialty': None, 'phone': '+51 994 520 028'},
+            {'username': 'auditor@hackthony.com', 'email': 'auditor@hackthony.com', 'first_name': 'Patricia', 'last_name': 'Auditora', 'password': 'audit123', 'role': 'miembro', 'color': '#6d8b7d', 'area': None, 'specialty': None, 'phone': '+51 994 520 028'},
         ]
 
         user_objects = {}

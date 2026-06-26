@@ -7,7 +7,6 @@ from apps.core.infrastructure.models.models import (
 )
 
 ROLE_HIERARCHY: dict[str, int] = {
-    'observer': -1,
     'cliente': -1,
     'miembro': 0,
     'jefe-proyecto': 1,
@@ -16,7 +15,7 @@ ROLE_HIERARCHY: dict[str, int] = {
     'super-admin': 4,
 }
 
-READ_ONLY_ROLES = ('observer', 'cliente')
+READ_ONLY_ROLES = ('cliente',)
 
 INTERNAL_ROLES = ('miembro', 'jefe-proyecto', 'jefe-area', 'admin', 'super-admin')
 MANAGEMENT_ROLES = ('jefe-area', 'admin', 'super-admin')
@@ -42,7 +41,7 @@ def get_user_role(user: User) -> str:
 
 
 def is_read_only(user: User) -> bool:
-    """True if the user can only view, never edit (observer/cliente)."""
+    """True if the user can only view, never edit (cliente)."""
     return get_user_role(user) in READ_ONLY_ROLES
 
 
@@ -73,7 +72,7 @@ def can_manage_project(user: User, project: Optional[Project] = None) -> bool:
     - jefe-area: only projects in their own area
     - jefe-proyecto: only projects they lead
     - miembro: never (can only view and work on tasks)
-    - cliente / observer: never
+    - cliente: never
     """
     role = get_user_role(user)
     if is_admin(user):
@@ -98,7 +97,7 @@ def can_manage_task(user: User, task: Optional[Task] = None) -> bool:
     - jefe-area: tasks in projects of their own area
     - jefe-proyecto: tasks in projects they lead
     - miembro: only their assigned tasks (when task is given)
-    - cliente / observer: never
+    - cliente: never
     """
     role = get_user_role(user)
     if is_admin(user):
@@ -129,7 +128,7 @@ def can_view_project(user: User, project: Project) -> bool:
     if project is None:
         return False
     role = get_user_role(user)
-    if is_admin(user) or role == 'observer':
+    if is_admin(user) or role == 'cliente':
         return True
     if role == 'jefe-area':
         profile = getattr(user, 'profile', None)
@@ -150,7 +149,7 @@ def can_assign_to_project(user: User, project: Project) -> bool:
     - super-admin / admin: any project
     - jefe-area: only projects in their own area
     - jefe-proyecto: only projects they lead
-    - miembro / cliente / observer: never
+    - miembro / cliente: never
     """
     if project is None:
         return False
@@ -281,9 +280,6 @@ def filter_queryset_by_role(
         role = get_user_role(user)
 
     if is_admin(user):
-        return queryset
-
-    if role == 'observer':
         return queryset
 
     if role == 'cliente':

@@ -32,7 +32,7 @@ def _member_form_context(form, areas, specialties, clients):
 @login_required
 def ver_usuarios(request):
     """Render la lista de USUARIOS separada en dos secciones:
-       1. Equipo interno (miembros, jefes, admins, observers)
+       1. Equipo interno (miembros, jefes, admins)
        2. Clientes (solo visible para super-admin/admin)
 
     Soporta filtros por area, empresa (cliente), proyecto y rol.

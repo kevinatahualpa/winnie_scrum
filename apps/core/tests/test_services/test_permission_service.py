@@ -34,9 +34,6 @@ class PermissionServiceTest(TestCase):
         self.miembro = User.objects.create_user(username='member@test.com', email='member@test.com', password='pass')
         UserProfile.objects.create(user=self.miembro, role='miembro', status='active')
 
-        self.observer = User.objects.create_user(username='obs@test.com', email='obs@test.com', password='pass')
-        UserProfile.objects.create(user=self.observer, role='observer', status='active')
-
         self.cliente = User.objects.create_user(username='cli@test.com', email='cli@test.com', password='pass')
         UserProfile.objects.create(user=self.cliente, role='cliente', client=self.client_obj, status='active')
 
@@ -125,7 +122,7 @@ class PermissionServiceTest(TestCase):
 
 
 class ReadOnlyRolePermissionTest(TestCase):
-    """Verifica que cliente y observer no pueden gestionar recursos."""
+    """Verifica que cliente no puede gestionar recursos."""
 
     def setUp(self):
         self.area = Area.objects.create(code='IT01', name='TI')
@@ -133,26 +130,14 @@ class ReadOnlyRolePermissionTest(TestCase):
         self.client_project = Project.objects.create(name='Proyecto Cliente', client=self.client_obj, area=self.area)
         self.other_project = Project.objects.create(name='Otro Proyecto', area=self.area)
 
-        self.observer = User.objects.create_user(username='obs@test.com', email='obs@test.com', password='pass')
-        UserProfile.objects.create(user=self.observer, role='observer', status='active')
-
         self.cliente = User.objects.create_user(username='cli@test.com', email='cli@test.com', password='pass')
         UserProfile.objects.create(user=self.cliente, role='cliente', client=self.client_obj, status='active')
-
-    def test_observer_cannot_manage_anything(self):
-        self.assertFalse(can_manage_admin(self.observer))
-        self.assertFalse(can_manage_area(self.observer))
-        self.assertFalse(can_manage_project(self.observer))
-        self.assertFalse(can_manage_task(self.observer))
 
     def test_cliente_cannot_manage_anything(self):
         self.assertFalse(can_manage_admin(self.cliente))
         self.assertFalse(can_manage_area(self.cliente))
         self.assertFalse(can_manage_project(self.cliente))
         self.assertFalse(can_manage_task(self.cliente))
-
-    def test_is_read_only_for_observer(self):
-        self.assertTrue(is_read_only(self.observer))
 
     def test_is_read_only_for_cliente(self):
         self.assertTrue(is_read_only(self.cliente))
@@ -161,11 +146,6 @@ class ReadOnlyRolePermissionTest(TestCase):
         admin = User.objects.create_user(username='a@t.com', email='a@t.com', password='p')
         UserProfile.objects.create(user=admin, role='admin', status='active')
         self.assertFalse(is_read_only(admin))
-
-    def test_observer_sees_all_projects(self):
-        all_projects = Project.objects.all()
-        filtered = filter_queryset_by_role(all_projects, self.observer, 'observer', 'project')
-        self.assertEqual(filtered.count(), 2)
 
     def test_cliente_sees_only_their_projects(self):
         all_projects = Project.objects.all()
@@ -190,34 +170,13 @@ class ReadOnlyRolePermissionTest(TestCase):
         filtered = filter_queryset_by_role(all_profiles, self.cliente, 'cliente', 'user')
         self.assertEqual(filtered.count(), 0)
 
-    def test_observer_role_in_hierarchy(self):
-        self.assertIn('observer', ROLE_HIERARCHY)
-        self.assertIn('cliente', ROLE_HIERARCHY)
-        self.assertEqual(ROLE_HIERARCHY['observer'], ROLE_HIERARCHY['cliente'])
-
     def test_get_client_project_ids_returns_clients_projects(self):
         ids = get_client_project_ids(self.cliente)
         self.assertEqual(ids, [self.client_project.id])
 
     def test_get_client_project_ids_returns_empty_for_non_client(self):
-        self.assertEqual(get_client_project_ids(self.observer), [])
+        self.assertEqual(get_client_project_ids(self.cliente), [self.client_project.id])
 
-    def test_substitution_does_not_promote_observer_to_admin(self):
-        from apps.core.infrastructure.models.models import Substitution
-        from datetime import date, timedelta
-        from django.utils import timezone
-
-        admin_user = User.objects.create_user(username='a2@t.com', email='a2@t.com', password='p')
-        UserProfile.objects.create(user=admin_user, role='admin', status='active')
-
-        today = timezone.now().date()
-        Substitution.objects.create(
-            original_user=admin_user,
-            substitute_user=self.observer,
-            start_date=today - timedelta(days=1),
-            end_date=today + timedelta(days=1),
-        )
-        self.assertEqual(get_user_role(self.observer), 'admin')
 
 
 class CanAssignToProjectTest(TestCase):
@@ -250,9 +209,6 @@ class CanAssignToProjectTest(TestCase):
         self.cliente = User.objects.create_user(username='c@t.com', email='c@t.com', password='p')
         UserProfile.objects.create(user=self.cliente, role='cliente', status='active')
 
-        self.observer = User.objects.create_user(username='o@t.com', email='o@t.com', password='p')
-        UserProfile.objects.create(user=self.observer, role='observer', status='active')
-
     def test_admin_can_assign_to_any_project(self):
         self.assertTrue(can_assign_to_project(self.admin, self.project_in_area1))
         self.assertTrue(can_assign_to_project(self.admin, self.project_in_area2))
@@ -275,9 +231,6 @@ class CanAssignToProjectTest(TestCase):
 
     def test_cliente_cannot_assign_to_any_project(self):
         self.assertFalse(can_assign_to_project(self.cliente, self.project_in_area1))
-
-    def test_observer_cannot_assign_to_any_project(self):
-        self.assertFalse(can_assign_to_project(self.observer, self.project_in_area1))
 
     def test_none_project_returns_false(self):
         self.assertFalse(can_assign_to_project(self.admin, None))
@@ -370,9 +323,6 @@ class CanViewProjectTest(TestCase):
         self.admin = User.objects.create_user(username='a@t.com', email='a@t.com', password='p')
         UserProfile.objects.create(user=self.admin, role='admin', status='active')
 
-        self.observer = User.objects.create_user(username='o@t.com', email='o@t.com', password='p')
-        UserProfile.objects.create(user=self.observer, role='observer', status='active')
-
         self.jefe_area = User.objects.create_user(username='ja@t.com', email='ja@t.com', password='p')
         UserProfile.objects.create(user=self.jefe_area, role='jefe-area', area=self.area, status='active')
 
@@ -391,10 +341,6 @@ class CanViewProjectTest(TestCase):
     def test_admin_sees_all_projects(self):
         self.assertTrue(can_view_project(self.admin, self.project))
         self.assertTrue(can_view_project(self.admin, self.other_project))
-
-    def test_observer_sees_all_projects(self):
-        self.assertTrue(can_view_project(self.observer, self.project))
-        self.assertTrue(can_view_project(self.observer, self.other_project))
 
     def test_jefe_area_sees_own_area(self):
         self.assertTrue(can_view_project(self.jefe_area, self.project))

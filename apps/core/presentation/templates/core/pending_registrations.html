@@ -157,6 +157,9 @@
             if (typeof window.initDrawerContent === 'function') {
                 window.initDrawerContent();
             }
+            if (typeof window.initAiSection === 'function') {
+                window.initAiSection();
+            }
         } catch (err) {
             host.querySelector('.drawer-host-inner').innerHTML =
                 '<div class="p-4"><div class="alert alert-danger">Error al cargar el perfil: ' + err.message + '</div></div>';
@@ -191,4 +194,137 @@
     });
 })();
 </script>
+
+<script>
+// Boton IA para analisis de candidatos (se ejecuta al cargar la pagina,
+// y se reinvoca cada vez que se abre un drawer con initAiSection())
+window.initAiSection = function() {
+    var btn = document.getElementById('aiReviewBtn');
+    var resultEl = document.getElementById('aiResult');
+    if (!btn) return;
+
+    btn.addEventListener('click', async function() {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        // Mostrar el panel IA y descolapsar
+        var aiPanel = document.getElementById('aiPanel');
+        if (aiPanel) {
+            aiPanel.style.display = '';
+            aiPanel.classList.remove('collapsed');
+        }
+        resultEl.innerHTML = '<div class="text-center py-3 text-muted" style="font-size:0.75rem;"><i class="fas fa-spinner fa-spin me-2"></i>Analizando con IA...</div>';
+
+        var decidirUrl = document.getElementById('decidirUrl');
+        var match = decidirUrl ? decidirUrl.value.match(/pending\/(\d+)\/decidir/) : null;
+        var pk = match ? match[1] : null;
+
+        if (!pk) {
+            resultEl.innerHTML = '<div class="alert alert-danger py-1 px-2 small mb-0">Error: ID no encontrado</div>';
+            btnReset(); return;
+        }
+
+        var csrf = getCsrfToken();
+
+        try {
+            var resp = await fetch('/pending/' + pk + '/ai-review/', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrf,
+                },
+                credentials: 'same-origin',
+            });
+
+            if (!resp.ok) {
+                var errJson = {};
+                try { errJson = await resp.json(); } catch(e) {}
+                throw new Error(errJson.error || 'HTTP ' + resp.status);
+            }
+
+            var data = await resp.json();
+            var strengthsHtml = (data.strengths || []).map(function(s) { return '<li>' + s + '</li>'; }).join('');
+            var discrepanciesHtml = (data.discrepancies || []).map(function(d) { return '<li>' + d + '</li>'; }).join('');
+            var comment = data.comment || '';
+
+            resultEl.innerHTML =
+                '<h6><i class="fas fa-robot me-1"></i>Analisis IA</h6>' +
+                '<div class="ai-section">' +
+                '  <div class="ai-label">Resumen</div>' +
+                '  <div>' + (data.summary || 'No disponible') + '</div>' +
+                '</div>' +
+                (strengthsHtml ? '<div class="ai-section">' +
+                '  <div class="ai-label">Fortalezas</div>' +
+                '  <ul class="strength-list">' + strengthsHtml + '</ul>' +
+                '</div>' : '') +
+                (discrepanciesHtml ? '<div class="ai-section">' +
+                '  <div class="ai-label" style="color:#f59e0b;">Discrepancias CV vs Formulario</div>' +
+                '  <ul class="strength-list" style="color:#e67e22;">' + discrepanciesHtml + '</ul>' +
+                '</div>' : '') +
+                (comment ? '<div class="ai-section">' +
+                '  <div class="ai-label">Comentario sugerido</div>' +
+                '  <div style="font-style:italic;color:var(--text-secondary);">' + comment + '</div>' +
+                '  <div class="ai-actions">' +
+                '    <button type="button" class="btn-ai-action" id="aiUseComment">' +
+                '      <i class="fas fa-copy me-1"></i> Usar como nota' +
+                '    </button>' +
+                '  </div>' +
+                '</div>' : '');
+
+            var useBtn = document.getElementById('aiUseComment');
+            if (useBtn && comment) {
+                useBtn.addEventListener('click', function() {
+                    var note = document.getElementById('reviewNote');
+                    if (note) note.value = comment;
+                });
+            }
+
+            // Auto-rellenar checklist segun sugerencias de la IA
+            var checklist = data.checklist || {};
+            var totalChecked = 0;
+            ['cv_coherente','experiencia','tecnologias','documentacion'].forEach(function(key) {
+                var chk = document.querySelector('.cl-item[data-key="' + key + '"] input[type=checkbox]');
+                if (chk) {
+                    var suggested = checklist[key] === true;
+                    chk.checked = suggested;
+                    var label = chk.closest('.cl-item');
+                    if (label) {
+                        label.classList.toggle('ai-suggest-check', suggested);
+                        label.classList.toggle('ai-suggest-warn', !suggested);
+                    }
+                    if (suggested) totalChecked++;
+                }
+            });
+            // Actualizar score pill
+            var scorePill = document.getElementById('scorePill');
+            if (scorePill) {
+                scorePill.textContent = totalChecked + '/4';
+                scorePill.className = 'score-pill' +
+                    (totalChecked >= 3 ? ' ready' : ' warn');
+            }
+        } catch (e) {
+            resultEl.innerHTML = '<div class="alert alert-danger py-1 px-2 small mb-0">Error: ' + e.message + '</div>';
+        } finally {
+            btnReset();
+        }
+    });
+
+    function btnReset() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-robot"></i> IA';
+    }
+
+    function getCsrfToken() {
+        var name = 'csrftoken=';
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var c = cookies[i].trim();
+            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        }
+        var input = document.getElementById('csrfToken');
+        return input ? input.value : '';
+    }
+};
+</script>
+
 {% endblock %}

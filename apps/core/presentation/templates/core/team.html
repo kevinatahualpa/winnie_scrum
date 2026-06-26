@@ -9,88 +9,102 @@
         {% include 'core/topbar.html' %}
         <div class="page-content">
 
-            <!-- Filtros: Equipo -->
-            {% if role in 'super-admin,admin' and active_tab == 'equipo' %}
-            <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
-                <select class="form-select form-select-sm filter-select" id="areaFilter">
-                    <option value="">Todas las areas</option>
-                    {% for area in areas %}
-                    <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }} - {{ area.name }}</option>
-                    {% endfor %}
-                </select>
-                <select class="form-select form-select-sm filter-select" id="projectFilter">
-                    <option value="">Todos los proyectos</option>
-                    {% for project in projects %}
-                    <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
-                    {% endfor %}
-                </select>
-                <select class="form-select form-select-sm filter-select" id="roleFilter">
-                    <option value="">Todos los roles</option>
-                    {% for r_key, r_label in role_choices %}
-                    <option value="{{ r_key }}" {% if filters.role == r_key %}selected{% endif %}>{{ r_label }}</option>
-                    {% endfor %}
-                </select>
-                {% if filters.area or filters.project or filters.role %}
-                <a href="{% url 'ver_usuarios' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <!-- Filtros: Clientes -->
-            {% if role in 'super-admin,admin' and active_tab == 'clientes' %}
-            <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
-                <select class="form-select form-select-sm filter-select" id="clientFilter">
-                    <option value="">Todas las empresas</option>
-                    {% for client in clients %}
-                    <option value="{{ client.id }}" {% if filters.client == client.id|stringformat:"s" %}selected{% endif %}>{{ client.name }}</option>
-                    {% endfor %}
-                </select>
-                <select class="form-select form-select-sm filter-select" id="projectFilter">
-                    <option value="">Todos los proyectos</option>
-                    {% for project in projects %}
-                    <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
-                    {% endfor %}
-                </select>
-                {% if filters.client or filters.project %}
-                <a href="{% url 'ver_usuarios' %}?tab=clientes" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <!-- ============================================
-                 TABS: EQUIPO / CLIENTES
-                 ============================================ -->
-            <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-                {% if role in 'super-admin,admin' %}
+            <!-- Header: titulo + filtros izquierda, boton derecha -->
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
-                    <ul class="nav nav-pills" style="font-size:0.8rem;">
-                        <li class="nav-item">
-                            <a class="nav-link {% if active_tab == 'equipo' %}active{% endif %}" href="{% url 'ver_usuarios' %}?tab=equipo" style="padding:0.35rem 0.75rem;">
-                                <i class="fas fa-users me-1"></i>Equipo
-                                <span class="badge bg-secondary ms-1">{{ internal_users|length }}</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if active_tab == 'clientes' %}active{% endif %}" href="{% url 'ver_usuarios' %}?tab=clientes" style="padding:0.35rem 0.75rem;">
-                                <i class="fas fa-user-tie me-1"></i>Portal Clientes
-                                <span class="badge bg-secondary ms-1">{{ client_users|length }}</span>
-                            </a>
-                        </li>
-                    </ul>
+                    {% if role in 'super-admin,admin' %}
+                    <h4 class="mb-0"><i class="fas fa-user-circle me-2" style="color:var(--accent);"></i>Usuarios</h4>
+                    {% elif role == 'jefe-area' or role == 'jefe-proyecto' %}
+                    <h4 class="mb-0"><i class="fas fa-users me-2" style="color:var(--accent);"></i>Mi Equipo</h4>
+                    {% else %}
+                    <h4 class="mb-0"><i class="fas fa-users me-2" style="color:var(--accent);"></i>Mi Equipo</h4>
+                    {% endif %}
+                    {# Filtros del tab equipo #}
+                    {% if role in 'super-admin,admin' and active_tab == 'equipo' %}
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="areaFilter">
+                            <option value="">Todas las areas</option>
+                            {% for area in areas %}
+                            <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }} - {{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="projectFilter">
+                            <option value="">Todos los proyectos</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="roleFilter">
+                            <option value="">Todos los roles</option>
+                            {% for r_key, r_label in role_choices %}
+                            <option value="{{ r_key }}" {% if filters.role == r_key %}selected{% endif %}>{{ r_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if filters.area or filters.project or filters.role %}
+                    <a href="{% url 'ver_usuarios' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                    {% endif %}
+                    {# Filtros del tab clientes #}
+                    {% if role in 'super-admin,admin' and active_tab == 'clientes' %}
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="clientFilter">
+                            <option value="">Todas las empresas</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}" {% if filters.client == client.id|stringformat:"s" %}selected{% endif %}>{{ client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="projectFilter">
+                            <option value="">Todos los proyectos</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if filters.client or filters.project %}
+                    <a href="{% url 'ver_usuarios' %}?tab=clientes" class="btn btn-sm btn-outline-danger" title="Limpiar filtros"><i class="fas fa-times"></i></a>
+                    {% endif %}
+                    {% endif %}
                 </div>
-                {% else %}
-                <h6 class="mb-0">
-                    <i class="fas fa-users me-2" style="color:var(--accent);"></i>
-                    <strong> Mi Equipo</strong>
-                    <span class="badge bg-secondary ms-2">{{ internal_users|length }}</span>
-                </h6>
-                {% endif %}
                 {% if role in 'super-admin,admin' %}
                 <a href="{% url 'registrar_usuario' %}" class="btn btn-success btn-sm">
                     <i class="fas fa-user-plus me-1"></i>Nuevo Usuario
                 </a>
                 {% endif %}
             </div>
+
+            <!-- ============================================
+                 TABS: EQUIPO / CLIENTES
+                 ============================================ -->
+            {% if role in 'super-admin,admin' %}
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <ul class="nav nav-pills mb-0" style="font-size:0.8rem;">
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'equipo' %}active{% endif %}" href="{% url 'ver_usuarios' %}?tab=equipo" style="padding:0.35rem 0.75rem;">
+                            <i class="fas fa-users me-1"></i>Equipo
+                            <span class="badge bg-secondary ms-1">{{ internal_users|length }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_tab == 'clientes' %}active{% endif %}" href="{% url 'ver_usuarios' %}?tab=clientes" style="padding:0.35rem 0.75rem;">
+                            <i class="fas fa-user-tie me-1"></i>Portal Clientes
+                            <span class="badge bg-secondary ms-1">{{ client_users|length }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
 
             <!-- ============================================
                  TAB EQUIPO INTERNO

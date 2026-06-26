@@ -3,7 +3,7 @@
 Las reglas son:
   - miembro / jefe-area / jefe-proyecto: area_id obligatorio
   - cliente: client_id obligatorio, area_id NO debe estar
-  - super-admin / admin / observer: area_id y client_id opcionales
+  - super-admin / admin: area_id y client_id opcionales
 """
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -98,7 +98,7 @@ class UserProfileRoleValidationTest(TestCase):
             p.clean()
         self.assertIn('area', cm.exception.message_dict)
 
-    # ---- Admin / super-admin / observer: sin area ni client esta OK ----
+    # ---- Admin / super-admin: sin area ni client esta OK ----
     def test_admin_sin_area_pasa(self):
         u = self._make_user('a@x.com')
         p = UserProfile(user=u, role='admin', status='active')
@@ -109,9 +109,9 @@ class UserProfileRoleValidationTest(TestCase):
         p = UserProfile(user=u, role='super-admin', status='active')
         p.clean()
 
-    def test_observer_sin_area_pasa(self):
+    def test_admin_sin_area_pasa(self):
         u = self._make_user('o@x.com')
-        p = UserProfile(user=u, role='observer', status='active')
+        p = UserProfile(user=u, role='admin', status='active')
         p.clean()
 
     def test_admin_con_client_falla(self):

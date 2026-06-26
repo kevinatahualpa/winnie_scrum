@@ -24,7 +24,7 @@ from .substitution_views import ver_suplencias, crear_suplencia, desactivar_supl
 from .registration_views import ver_pendientes, aprobar_registro, rechazar_registro
 from .settings_views import ver_configuracion
 from .health_views import verificar_salud, verificar_disponibilidad
-from .message_views import ver_mensajes, ver_conversacion, enviar_mensaje, buscar_usuarios
+from .message_views import ver_mensajes, ver_conversacion, ver_conversacion_proyecto, enviar_mensaje, buscar_usuarios
 from .client_portal_views import ver_portal_cliente, ver_detalle_proyecto_cliente, crear_solicitud_cliente
 from .project_views import gestionar_miembros_proyecto
 
@@ -55,6 +55,6 @@ __all__ = [
     'ver_pendientes', 'aprobar_registro', 'rechazar_registro',
     'ver_configuracion',
     'verificar_salud', 'verificar_disponibilidad',
-    'ver_mensajes', 'ver_conversacion', 'enviar_mensaje', 'buscar_usuarios',
+    'ver_mensajes', 'ver_conversacion', 'ver_conversacion_proyecto', 'enviar_mensaje', 'buscar_usuarios',
     'ver_portal_cliente', 'ver_detalle_proyecto_cliente', 'crear_solicitud_cliente',
 ]

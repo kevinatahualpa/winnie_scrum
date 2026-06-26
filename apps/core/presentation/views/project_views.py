@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.db.models import Q, Count
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core.paginator import Paginator
@@ -256,6 +257,15 @@ def eliminar_proyecto(request, pk):
 
 @require_POST
 @login_required
+def _redirect_after_comment(request, next_url, pk):
+    """Redirect to next_url if safe, otherwise back to project chat tab."""
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return redirect(next_url)
+    return redirect(reverse('ver_detalle_proyecto', kwargs={'pk': pk}) + '?tab=chat')
+
+
 def comentar_proyecto(request, pk):
     """Add a comment (text and/or file) to a project and notify members."""
     project = get_object_or_404(Project, pk=pk)
@@ -268,9 +278,10 @@ def comentar_proyecto(request, pk):
 
     text = request.POST.get('text', '').strip()
     uploaded_file = request.FILES.get('file')
+    next_url = request.POST.get('next', '').strip()
 
     if not text and not uploaded_file:
-        return redirect('ver_detalle_proyecto', pk=pk)
+        return _redirect_after_comment(request, next_url, pk)
 
     comment = Comment.objects.create(
         project=project,
@@ -288,7 +299,7 @@ def comentar_proyecto(request, pk):
             'fa-comment'
         )
 
-    return redirect('ver_detalle_proyecto', pk=pk)
+    return _redirect_after_comment(request, next_url, pk)
 
 
 @require_http_methods(["GET", "POST"])
@@ -362,7 +373,7 @@ def gestionar_miembros_proyecto(request, pk):
     members = project.members.select_related('profile', 'profile__area', 'profile__specialty').order_by('first_name')
 
     role = get_user_role(request.user)
-    available_qs = UserProfile.objects.filter(status='active').exclude(role__in=['cliente', 'observer']).exclude(user__projects=project).select_related('user', 'area', 'specialty')
+    available_qs = UserProfile.objects.filter(status='active').exclude(role__in=['cliente']).exclude(user__projects=project).select_related('user', 'area', 'specialty')
     if role == 'jefe-area':
         available_qs = available_qs.filter(area_id=project.area_id)
     available_users = [

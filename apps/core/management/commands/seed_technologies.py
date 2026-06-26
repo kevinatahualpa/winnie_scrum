@@ -1,40 +1,18 @@
 """Poblar el catalogo de tecnologias que la empresa requiere.
 
-Idempotente: si la tecnologia ya existe, no la duplica.
+Catalogo simplificado para consultora de desarrollo de software enfocada en MIPEs.
 
 Uso:
-    python manage.py seed_technologies
+    python manage.py seed_technologies --reset
 """
 from django.core.management.base import BaseCommand
 from apps.core.infrastructure.models.models import Technology
 
 
 TECHNOLOGIES = [
-    # Lenguajes
-    ('Python', 'language', '#3776ab'),
-    ('JavaScript', 'language', '#f7df1e'),
-    ('TypeScript', 'language', '#3178c6'),
-    ('PHP', 'language', '#777bb4'),
-
-    # Frameworks
     ('Django', 'framework', '#092e20'),
-    ('Node.js', 'framework', '#3c873a'),
-    ('Laravel', 'framework', '#ff2d20'),
     ('React', 'framework', '#61dafb'),
-
-    # Bases de datos
     ('PostgreSQL', 'database', '#336791'),
-    ('MySQL', 'database', '#00758f'),
-    ('MongoDB', 'database', '#47a248'),
-
-    # Herramientas
-    ('Docker', 'tool', '#2496ed'),
-    ('Git', 'tool', '#f05032'),
-    ('Jira', 'tool', '#0052cc'),
-
-    # Plataformas
-    ('AWS', 'platform', '#ff9900'),
-    ('Google Cloud', 'platform', '#4285f4'),
 ]
 
 

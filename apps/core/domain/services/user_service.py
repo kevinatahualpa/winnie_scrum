@@ -146,7 +146,7 @@ class UserService:
         if new_role == 'cliente' and not kwargs.get('client_id') and not profile.client_id:
             return None, 'El rol cliente requiere una empresa asociada'
 
-        if new_role in ('observer', 'super-admin', 'admin'):
+        if new_role in ('super-admin', 'admin'):
             kwargs['area_id'] = None
             kwargs['specialty_id'] = None
 

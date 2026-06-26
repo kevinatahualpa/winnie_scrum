@@ -232,36 +232,27 @@ def registro_paso3(request):
 
         tech_ids = request.POST.getlist('technology')
         levels = request.POST.getlist('level')
-        years_list = request.POST.getlist('years_using')
+        level_hidden = request.POST.getlist('level_hidden')
+
+        # Prefer level_hidden (sent on submit) over level (inline selects)
+        effective_levels = level_hidden if level_hidden else levels
 
         tech_data = []
         for i, tid in enumerate(tech_ids):
             try:
-                level = int(levels[i]) if i < len(levels) else 2
-                years_using = int(years_list[i]) if i < len(years_list) else 0
+                level = int(effective_levels[i]) if i < len(effective_levels) else 2
             except (ValueError, IndexError):
-                level, years_using = 2, 0
+                level = 2
             tech_data.append({
                 'technology_id': int(tid),
                 'level': max(1, min(4, level)),
-                'years_using': max(0, years_using),
+                'years_using': 0,
             })
 
-        tech_ids_set = {t['technology_id'] for t in tech_data}
-        techs = Technology.objects.filter(id__in=tech_ids_set).select_related()
-        from collections import Counter
-        cat_counts: Counter = Counter(t.category for t in techs)
-        for cat, count in cat_counts.items():
-            if count > 3:
-                cat_label = dict(Technology._meta.get_field('category').choices).get(cat, cat)
-                messages.error(
-                    request,
-                    f'Solo puedes seleccionar hasta 3 tecnologías en "{cat_label}". '
-                    f'Seleccionaste {count}.'
-                )
-                return _render_step3(request, technologies, wiz)
+        other_technologies = (request.POST.get('other_technologies') or '').strip()
 
         wiz['technologies'] = tech_data
+        wiz['other_technologies'] = other_technologies
         _set_wizard(request, wiz)
 
         if action == 'back':
@@ -301,6 +292,7 @@ def registro_paso3(request):
                         'primary_specialty_id': wiz.get('primary_specialty_id') or None,
                         'secondary_specialty_ids': wiz.get('secondary_specialty_ids', []),
                         'technologies': tech_data,
+                        'other_technologies': wiz.get('other_technologies', ''),
                         'cv_name': cv.name if cv else None,
                     },
                     ip_address=ip,
@@ -350,10 +342,15 @@ Equipo Winnie
 
 
 def _render_step3(request, technologies, wiz):
+    selected = wiz.get('technologies', [])
+    selected_ids = {t['technology_id'] for t in selected}
     return render(request, 'core/wizard/step3_skills.html', {
         'progress': _step_progress(3),
         'technologies': technologies,
-        'selected_techs': wiz.get('technologies', []),
+        'selected_tech_ids': selected_ids,
+        'form_data': {
+            'other_technologies': wiz.get('other_technologies', ''),
+        },
     })
 
 

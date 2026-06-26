@@ -13,26 +13,35 @@
                 <h4 class="mb-0"><i class="fas fa-columns me-2" style="color:var(--accent);"></i>Tablero</h4>
                 <div class="d-flex align-items-center gap-2 flex-wrap" role="toolbar" aria-label="Filtros del tablero">
                     {% if role in 'super-admin,admin' %}
-                    <select class="form-select form-select-sm filter-select" id="areaFilter" aria-label="Filtrar por area" style="width:auto;min-width:140px">
-                        <option value="">Todas las areas</option>
-                        {% for area in areas %}
-                        <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }} - {{ area.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="areaFilter" aria-label="Filtrar por area">
+                            <option value="">Todas las areas</option>
+                            {% for area in areas %}
+                            <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }} - {{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     {% endif %}
-                    <select class="form-select form-select-sm filter-select" id="projectFilter" aria-label="Filtrar por proyecto" style="width:auto;min-width:160px" {% if not filters.area %}disabled{% endif %}>
-                        <option value="">Todos los proyectos</option>
-                        {% for project in projects %}
-                        <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="projectFilter" aria-label="Filtrar por proyecto" {% if not filters.area %}disabled{% endif %}>
+                            <option value="">Todos los proyectos</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     {% if role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
-                    <select class="form-select form-select-sm filter-select" id="assigneeFilter" aria-label="Filtrar por asignado" style="width:auto;min-width:150px" disabled>
-                        <option value="">Todos los asignados</option>
-                        {% for u, projects_csv in assignee_opts %}
-                        <option value="{{ u.id }}" data-projects="{{ projects_csv }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
-                        {% endfor %}
-                    </select>
+                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
+                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
+                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="assigneeFilter" aria-label="Filtrar por asignado" disabled>
+                            <option value="">Todos los asignados</option>
+                            {% for u, projects_csv in assignee_opts %}
+                            <option value="{{ u.id }}" data-projects="{{ projects_csv }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     {% endif %}
                     {% if filters.area or filters.project or filters.assignee %}
                     <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-danger" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>

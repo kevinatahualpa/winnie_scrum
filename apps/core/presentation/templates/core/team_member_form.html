@@ -128,8 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'jefe-area': 'Gestiona proyectos y miembros de su area',
         'jefe-proyecto': 'Gestiona proyectos asignados y su equipo',
         'miembro': 'Trabaja en tareas asignadas',
-        'cliente': 'Acceso solo de lectura a sus proyectos (portal cliente)',
-        'observer': 'Acceso solo lectura a todo el sistema (auditor)'
+        'cliente': 'Acceso solo de lectura a sus proyectos (portal cliente)'
     };
 
     function applyRoleVisibility() {
@@ -141,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (role === 'cliente') {
             clientBlock.style.display = '';
             orgBlock.style.display = 'none';
-        } else if (role === 'observer' || role === 'super-admin' || role === 'admin') {
+        } else if (role === 'super-admin' || role === 'admin') {
             clientBlock.style.display = 'none';
             orgBlock.style.display = 'none';
         } else {

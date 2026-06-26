@@ -17,8 +17,6 @@ def ver_portal_cliente(request):
     role = get_user_role(user)
 
     if role != 'cliente':
-        if role == 'observer':
-            return redirect('ver_dashboard')
         return redirect('ver_dashboard')
 
     profile = getattr(user, 'profile', None)

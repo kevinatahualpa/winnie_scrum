@@ -59,14 +59,17 @@
             </div>
             {% endif %}
 
-            <!-- COL 3: links (iconos verticales, mas pequenos) -->
-            {% if candidate.portfolio_url or candidate.linkedin_url or candidate.github_url %}
+            <!-- COL 3: links (iconos verticales, mas pequenos) + boton IA -->
             <div class="pb-col pb-links">
                 {% if candidate.portfolio_url %}<a href="{{ candidate.portfolio_url }}" target="_blank" title="Portfolio"><i class="fas fa-globe"></i></a>{% endif %}
                 {% if candidate.linkedin_url %}<a href="{{ candidate.linkedin_url }}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>{% endif %}
                 {% if candidate.github_url %}<a href="{{ candidate.github_url }}" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>{% endif %}
             </div>
-            {% endif %}
+            <div class="pb-col pb-ai-btn">
+                <button type="button" id="aiReviewBtn" class="btn-ai-pill" title="Analizar candidato con IA">
+                    <i class="fas fa-robot"></i> IA
+                </button>
+            </div>
         </div>
         {% else %}
         <div class="pb-empty"><i class="fas fa-exclamation-triangle me-1"></i>Sin perfil de candidato (registro antiguo)</div>
@@ -79,15 +82,26 @@
         <!-- COLUMNA IZQUIERDA: checklist + decision sticky -->
         <aside class="drawer-checklist">
 
-            <!-- SUB-ZONA 3A: contenido scrolleable (checklist + nota) -->
+            <!-- SUB-ZONA 3A: contenido scrolleable (IA + checklist + nota) -->
             <div class="drawer-left-scroll">
 
-                <!-- CHECKLIST -->
-                <div class="cl-section cl-section-checklist">
-                    <h6 class="cl-title">
+                <!-- PANEL IA (colapsable, oculto al inicio) -->
+                <div class="cl-section cl-collapse-panel" id="aiPanel" style="display:none;">
+                    <div class="cl-title collapsible" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <span><i class="fas fa-robot me-2"></i>Análisis IA</span>
+                        <i class="toggle-icon fas fa-chevron-down"></i>
+                    </div>
+                    <div class="collapse-body" id="aiResult"></div>
+                </div>
+
+                <!-- CHECKLIST (colapsable) -->
+                <div class="cl-section cl-collapse-panel">
+                    <div class="cl-title collapsible" onclick="this.parentElement.classList.toggle('collapsed')">
                         <span><i class="fas fa-tasks me-2"></i>Checklist de validación</span>
                         <span class="score-pill" id="scorePill">0/4</span>
-                    </h6>
+                        <i class="toggle-icon fas fa-chevron-down" style="margin-left:auto;"></i>
+                    </div>
+                    <div class="collapse-body">
 
                     <form id="checklistForm">
                         {% for key, label, icon, help in checklist_items %}
@@ -107,17 +121,19 @@
                     </form>
                 </div>
 
-                <!-- NOTA -->
-                <div class="cl-section cl-section-note">
-                    <label class="form-label small fw-semibold mb-1">
-                        <i class="fas fa-comment-dots me-1"></i>Nota del revisor (opcional)
-                    </label>
-                    <textarea name="note" id="reviewNote" class="form-control form-control-sm" rows="2"
-                              placeholder="Observaciones, comentarios...">{{ candidate.review_notes|default:"" }}</textarea>
-                    <button type="button" id="saveChecklistBtn" class="btn btn-sm btn-outline-primary w-100 mt-2">
-                        <i class="fas fa-save me-1"></i> Guardar checklist
-                    </button>
-                    <div id="checklistMsg" class="small mt-2 text-center"></div>
+                <!-- NOTA (colapsable) -->
+                <div class="cl-section cl-collapse-panel">
+                    <div class="cl-title collapsible" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <span><i class="fas fa-comment-dots me-2"></i>Nota del revisor (opcional)</span>
+                        <i class="toggle-icon fas fa-chevron-down" style="margin-left:auto;"></i>
+                    </div>
+                    <div class="collapse-body">
+                        <textarea name="note" id="reviewNote" class="form-control form-control-sm" rows="2"
+                                  placeholder="Observaciones, comentarios...">{{ candidate.review_notes|default:"" }}</textarea>
+                        <button type="button" id="saveChecklistBtn" class="btn btn-sm btn-outline-primary w-100 mt-2">
+                            <i class="fas fa-save me-1"></i> Guardar checklist
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -136,7 +152,6 @@
                         <option value="miembro" selected>Miembro</option>
                         <option value="jefe-proyecto">Jefe Proyecto</option>
                         <option value="jefe-area">Jefe Area</option>
-                        <option value="observer">Observador</option>
                     </select>
                     <select id="finalArea" class="form-select form-select-sm" title="Area a asignar">
                         <option value="">Sin area</option>
@@ -185,8 +200,10 @@
                 {% endif %}
             </div>
         </main>
-    </div>
-</div>
+                </div>
+
+                <div id="checklistMsg" class="small mt-3 text-center"></div>
+            </div>
 
 <style>
 #drawerContent { animation: slideIn 0.18s ease; }
@@ -344,26 +361,36 @@
 #approveBtn:disabled, #rejectBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ============================================
-   Secciones de la columna izquierda
+   Secciones colapsables de la columna izquierda
    ============================================ */
-.cl-section {
-    padding: 0.9rem 1.1rem;
+.cl-collapse-panel {
     border-bottom: 1px solid var(--border);
-}
-.cl-section-checklist {
-    background: var(--surface);
-    border-bottom: 2px solid var(--border);
-}
-.cl-section-note {
     background: var(--bg);
-    border-bottom: none;
 }
-
-.cl-title {
-    font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+.cl-collapse-panel .cl-title {
+    font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 0.04em;
-    margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between;
-    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    cursor: pointer; user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: background 0.12s;
+}
+.cl-collapse-panel .cl-title:hover {
+    background: var(--surface);
+}
+.cl-collapse-panel .toggle-icon {
+    font-size: 0.65rem; color: var(--text-secondary);
+    transition: transform 0.15s;
+}
+.cl-collapse-panel.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+.cl-collapse-panel.collapsed .collapse-body {
+    display: none;
+}
+.cl-collapse-panel .collapse-body {
+    padding: 0.7rem 1.1rem;
 }
 
 /* Items del checklist */
@@ -391,6 +418,16 @@
 .cl-text { flex: 1; min-width: 0; }
 .cl-label { font-size: 0.8rem; font-weight: 500; display: block; }
 .cl-help { font-size: 0.68rem; color: var(--text-secondary); display: block; margin-top: 0.15rem; line-height: 1.35; }
+
+/* Indicadores de sugerencias IA en el checklist */
+.cl-item.ai-suggest-check { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.04); }
+.cl-item.ai-suggest-check::after {
+    content: '🤖'; position: absolute; top: 0.3rem; right: 0.5rem; font-size: 0.6rem; opacity: 0.6;
+}
+.cl-item.ai-suggest-warn { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.04); }
+.cl-item.ai-suggest-warn::after {
+    content: '🤖⚠️'; position: absolute; top: 0.3rem; right: 0.5rem; font-size: 0.6rem; opacity: 0.6;
+}
 
 .score-pill {
     background: var(--border); color: var(--text-secondary);
@@ -445,4 +482,64 @@
 
 .drawer-profile-bar::-webkit-scrollbar { height: 4px; }
 .drawer-profile-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ============================================
+   Boton IA en el profile bar (pill)
+   ============================================ */
+.pb-ai-btn { margin-left: auto; }
+.btn-ai-pill {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.22rem 0.5rem; font-size: 0.66rem;
+    font-weight: 500; border: 1px solid rgba(99,102,241,0.3);
+    color: #6366f1; background: rgba(99,102,241,0.06);
+    border-radius: 4px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+}
+.btn-ai-pill:hover {
+    background: rgba(99,102,241,0.14);
+    border-color: rgba(99,102,241,0.5);
+}
+.btn-ai-pill:disabled { opacity: 0.5; cursor: wait; }
+
+/* ============================================
+   Resultados IA dentro del collapse-body
+   ============================================ */
+#aiResult h6 {
+    font-size: 0.75rem; font-weight: 600;
+    color: #6366f1; margin: 0 0 0.3rem 0;
+}
+#aiResult .ai-section {
+    margin-bottom: 0.3rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem; line-height: 1.4;
+}
+#aiResult .ai-section:last-of-type { border-bottom: none; margin-bottom: 0; }
+#aiResult .ai-label {
+    font-weight: 600; font-size: 0.64rem;
+    text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--text-secondary); margin-bottom: 0.1rem;
+}
+#aiResult .strength-list {
+    list-style: none; padding: 0; margin: 0;
+}
+#aiResult .strength-list li {
+    padding: 0.08rem 0; font-size: 0.7rem;
+}
+#aiResult .strength-list li::before {
+    content: '✅ '; font-size: 0.6rem;
+}
+.ai-actions {
+    display: flex; gap: 0.35rem; margin-top: 0.5rem;
+}
+.btn-ai-action {
+    padding: 0.18rem 0.45rem; font-size: 0.65rem;
+    border-radius: 4px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-secondary);
+    cursor: pointer; transition: all 0.12s;
+}
+.btn-ai-action:hover {
+    background: var(--accent); color: #fff;
+    border-color: var(--accent);
+}
 </style>

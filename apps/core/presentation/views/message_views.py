@@ -70,7 +70,7 @@ def _get_threads(user):
             'last_text': p.name,
             'last_preview': last.text[:60],
             'is_mine': last.author == user,
-            'url_name': 'ver_detalle_proyecto',
+            'url_name': 'ver_conversacion_proyecto',
             'url_id': p.id,
         })
 
@@ -108,6 +108,34 @@ def ver_conversacion(request, user_id):
         'threads': _get_threads(current),
         'partner': partner,
         'messages_list': msgs,
+        'users': users,
+        'projects': projects,
+    })
+
+
+@require_GET
+@login_required
+def ver_conversacion_proyecto(request, project_id):
+    """Chat de proyecto: muestra comentarios del proyecto en el panel derecho."""
+    current = request.user
+    proyecto = get_object_or_404(
+        Project.objects.filter(status='active'), pk=project_id
+    )
+
+    comments = Comment.objects.filter(project=proyecto).select_related('author').order_by('created_at')
+
+    users = User.objects.filter(
+        is_active=True, profile__status='active'
+    ).exclude(id=current.id).select_related('profile').order_by('first_name')
+
+    projects = filter_queryset_by_role(
+        Project.objects.filter(status='active'), current, model_type='project'
+    ).order_by('name')
+
+    return render(request, 'core/messages_inbox.html', {
+        'threads': _get_threads(current),
+        'project_chat': proyecto,
+        'messages_list': comments,
         'users': users,
         'projects': projects,
     })
