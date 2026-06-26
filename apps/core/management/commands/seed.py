@@ -1,83 +1,102 @@
-from django.core.management.base import BaseCommand
+"""Seed de base de datos con datos demo realistas para Winnie.
+
+Estructura:
+    - 2 areas
+    - 8 usuarios (super-admin, admin, jefe-area, 2 jefes-proyecto, 3 miembros, 1 cliente)
+    - 4 clientes
+    - 4 proyectos con sprints, tareas y miembros asignados
+    - Comentarios de proyecto
+    - El cliente solo ve su proyecto asignado
+
+Uso:
+    python manage.py flush
+    python manage.py seed_technologies --reset
+    python manage.py seed
+"""
+
+import datetime
+
 from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
 from apps.core.infrastructure.models.models import (
     Area, Specialty, UserProfile, Client, Project,
-    Sprint, Task, Tag, Comment, Document, ServiceRequest,
-    TimeEntry, Notification, AuditLog
+    Sprint, Task, Tag, Comment,
 )
 
 
 class Command(BaseCommand):
-    help = 'Seed database with initial data'
+    help = 'Seed database with demo data'
 
     def handle(self, *args, **options):
         self.stdout.write('Seeding database...')
+        today = datetime.date.today()
 
+        # ═══════════════════════════════════════════
+        # 1. AREAS (2)
+        # ═══════════════════════════════════════════
         areas_data = [
-            {'code': 'D1', 'name': 'Consultoria y Capacitacion', 'description': 'Servicios de consultoria TI, mesas de ayuda, capacitacion y learning center.', 'color': '#00bcd4', 'icon': 'fa-laptop-code'},
-            {'code': 'D2', 'name': 'Eventos y Conferencias', 'description': 'Organizacion de eventos tecnologicos, marketing digital y community management.', 'color': '#6554c0', 'icon': 'fa-calendar-star'},
-            {'code': 'D3', 'name': 'Servicios Digitales y Desarrollo', 'description': 'Desarrollo web, e-commerce, cloud computing y desarrollo de software.', 'color': '#2e7d32', 'icon': 'fa-code'},
-            {'code': 'D4', 'name': 'Comercializacion Informatica', 'description': 'Venta de equipos, licencias, componentes y telecomunicaciones.', 'color': '#f57f17', 'icon': 'fa-shopping-cart'},
+            {'code': 'DEV', 'name': 'Desarrollo y Consultoria', 'description': 'Proyectos de desarrollo de software, consultoria TI y soporte tecnico.', 'color': '#2e7d32'},
+            {'code': 'INN', 'name': 'Innovacion y Producto', 'description': 'Desarrollo de nuevos productos digitales, apps moviles y transformacion digital.', 'color': '#0277bd'},
         ]
 
         areas = {}
         for data in areas_data:
             area, _ = Area.objects.get_or_create(code=data['code'], defaults=data)
             areas[data['code']] = area
-            self.stdout.write(f'  Area: {area}')
+            self.stdout.write(f'  Area: {area.code} - {area.name}')
 
+        # ═══════════════════════════════════════════
+        # 2. ESPECIALIDADES (solo las usadas)
+        # ═══════════════════════════════════════════
         specialties_data = [
-            {'name': 'Backend Developer', 'category': 'development', 'description': 'Desarrollo de APIs, bases de datos y logica de servidor', 'color': '#2e7d32'},
-            {'name': 'Frontend Developer', 'category': 'development', 'description': 'Desarrollo de interfaces web, React, Vue, Angular', 'color': '#0277bd'},
-            {'name': 'FullStack Developer', 'category': 'development', 'description': 'Desarrollo completo frontend y backend', 'color': '#6554c0'},
-            {'name': 'DevOps Engineer', 'category': 'devops', 'description': 'CI/CD, infraestructura cloud, Docker, Kubernetes', 'color': '#f57f17'},
-            {'name': 'UI/UX Designer', 'category': 'design', 'description': 'Diseno de interfaces y experiencia de usuario', 'color': '#e91e63'},
-            {'name': 'QA Engineer', 'category': 'qa', 'description': 'Testing manual y automatizado, calidad de software', 'color': '#c62828'},
-            {'name': 'Mobile Developer', 'category': 'development', 'description': 'Desarrollo de apps mobiles iOS y Android', 'color': '#00bcd4'},
-            {'name': 'Data Analyst', 'category': 'data', 'description': 'Analisis de datos, Power BI, dashboards', 'color': '#ff9800'},
-            {'name': 'Scrum Master', 'category': 'management', 'description': 'Facilitacion de metodologias agiles', 'color': '#6554c0'},
+            {'name': 'Backend Developer', 'category': 'development', 'description': 'APIs, bases de datos, logica de servidor', 'color': '#2e7d32'},
+            {'name': 'Frontend Developer', 'category': 'development', 'description': 'Interfaces web, React, UX/UI', 'color': '#0277bd'},
+            {'name': 'FullStack Developer', 'category': 'development', 'description': 'Frontend y backend', 'color': '#6554c0'},
+            {'name': 'QA Engineer', 'category': 'qa', 'description': 'Testing manual y automatizado', 'color': '#c62828'},
+            {'name': 'Scrum Master', 'category': 'management', 'description': 'Facilitacion agil', 'color': '#f57f17'},
             {'name': 'Product Owner', 'category': 'management', 'description': 'Gestion de producto y backlog', 'color': '#039be5'},
-            {'name': 'Marketing Digital', 'category': 'marketing', 'description': 'SEO, SEM, campanas digitales, analytics', 'color': '#f57f17'},
-            {'name': 'Community Manager', 'category': 'marketing', 'description': 'Gestion de redes sociales y comunidad', 'color': '#e91e63'},
-            {'name': 'Soporte Tecnico', 'category': 'support', 'description': 'Soporte nivel 1, 2 y 3, mesa de ayuda', 'color': '#2e7d32'},
-            {'name': 'Arquitecto de Software', 'category': 'development', 'description': 'Diseno de arquitectura de sistemas', 'color': '#6554c0'},
-            {'name': 'Database Administrator', 'category': 'data', 'description': 'Administracion de bases de datos', 'color': '#0277bd'},
         ]
 
         specialties = {}
         for data in specialties_data:
             spec, _ = Specialty.objects.get_or_create(name=data['name'], defaults=data)
+            if not spec.is_active:
+                spec.is_active = True; spec.save()
             specialties[data['name']] = spec
+            self.stdout.write(f'  Specialty: {spec.name}')
 
+        # Desactivar especialidades que ya no usamos
+        Specialty.objects.exclude(name__in=[d['name'] for d in specialties_data]).update(is_active=False)
+
+        # ═══════════════════════════════════════════
+        # 3. CLIENTES (4)
+        # ═══════════════════════════════════════════
         clients_data = [
             {'name': 'Corporacion Minera SAC', 'contact': 'Carlos Mendoza', 'email': 'cmendoza@corpminera.com', 'phone': '+51 987 654 321', 'industry': 'Mineria'},
-            {'name': 'RetailPlus S.A.C.', 'contact': 'Ana Torres', 'email': 'atorres@retailplus.com', 'phone': '+51 976 543 210', 'industry': 'Retail'},
             {'name': 'FashionPeru S.R.L.', 'contact': 'Maria Lopez', 'email': 'mlopez@fashionperu.com', 'phone': '+51 965 432 109', 'industry': 'Moda'},
-            {'name': 'Inmobiliaria Los Andes SAC', 'contact': 'Roberto Diaz', 'email': 'rdiaz@losandes.com', 'phone': '+51 954 321 098', 'industry': 'Inmobiliaria'},
             {'name': 'MediSalud SAC', 'contact': 'Dra. Gabriela Ponce', 'email': 'gponce@medisalud.pe', 'phone': '+51 943 210 987', 'industry': 'Salud'},
             {'name': 'Municipalidad Metropolitana de Lima', 'contact': 'Ing. Jorge Huaman', 'email': 'jhuaman@munlima.gob.pe', 'phone': '+51 932 109 876', 'industry': 'Gobierno'},
-            {'name': 'Distribuidora Union S.A.', 'contact': 'Rodrigo Vargas', 'email': 'rvargas@distunion.com', 'phone': '+51 921 098 765', 'industry': 'Distribucion'},
-            {'name': 'Turismo Andes S.R.L.', 'contact': 'Camila Quispe', 'email': 'cquispe@turismoandes.pe', 'phone': '+51 910 987 654', 'industry': 'Turismo'},
         ]
 
         clients = {}
         for data in clients_data:
             client, _ = Client.objects.get_or_create(name=data['name'], defaults=data)
             clients[data['name']] = client
+            self.stdout.write(f'  Client: {client.name}')
 
+        # ═══════════════════════════════════════════
+        # 4. USUARIOS (8)
+        # ═══════════════════════════════════════════
         users_data = [
-            {'username': 'super@gmail.com', 'email': 'super@gmail.com', 'first_name': 'Carlos', 'last_name': 'SuperAdmin', 'password': '123456', 'role': 'super-admin', 'color': '#c62828', 'area': 'D1', 'specialty': 'Arquitecto de Software', 'phone': '+51 994 520 017'},
-            {'username': 'admin@gmail.com', 'email': 'admin@gmail.com', 'first_name': 'Ana', 'last_name': 'Administradora', 'password': '123456', 'role': 'admin', 'color': '#f57f17', 'area': 'D1', 'specialty': 'Product Owner', 'phone': '+51 994 520 018'},
-            {'username': 'jefe.areas@hackthony.com', 'email': 'jefe.areas@hackthony.com', 'first_name': 'Roberto', 'last_name': 'Jefe Area', 'password': 'area123', 'role': 'jefe-area', 'color': '#6554c0', 'area': 'D1', 'specialty': 'Scrum Master', 'phone': '+51 994 520 019'},
-            {'username': 'jp.consultoria@hackthony.com', 'email': 'jp.consultoria@hackthony.com', 'first_name': 'Laura', 'last_name': 'JP Consultoria', 'password': 'jp123', 'role': 'jefe-proyecto', 'color': '#00bcd4', 'area': 'D1', 'specialty': 'FullStack Developer', 'phone': '+51 994 520 020'},
-            {'username': 'jp.eventos@hackthony.com', 'email': 'jp.eventos@hackthony.com', 'first_name': 'Maria', 'last_name': 'JP Eventos', 'password': 'jp123', 'role': 'jefe-proyecto', 'color': '#0277bd', 'area': 'D2', 'specialty': 'Marketing Digital', 'phone': '+51 994 520 021'},
-            {'username': 'miembro1@hackthony.com', 'email': 'miembro1@hackthony.com', 'first_name': 'Pedro', 'last_name': 'Backend', 'password': 'member123', 'role': 'miembro', 'color': '#2e7d32', 'area': 'D3', 'specialty': 'Backend Developer', 'phone': '+51 994 520 022'},
-            {'username': 'miembro2@hackthony.com', 'email': 'miembro2@hackthony.com', 'first_name': 'Sofia', 'last_name': 'Frontend', 'password': 'member123', 'role': 'miembro', 'color': '#4caf50', 'area': 'D3', 'specialty': 'Frontend Developer', 'phone': '+51 994 520 023'},
-            {'username': 'diego@hackthony.com', 'email': 'diego@hackthony.com', 'first_name': 'Diego', 'last_name': 'Marketing', 'password': 'member123', 'role': 'miembro', 'color': '#ff9800', 'area': 'D2', 'specialty': 'Community Manager', 'phone': '+51 994 520 024'},
-            {'username': 'javier@hackthony.com', 'email': 'javier@hackthony.com', 'first_name': 'Javier', 'last_name': 'FullStack', 'password': 'member123', 'role': 'miembro', 'color': '#e91e63', 'area': 'D3', 'specialty': 'FullStack Developer', 'phone': '+51 994 520 025'},
-            {'username': 'valeria@hackthony.com', 'email': 'valeria@hackthony.com', 'first_name': 'Valeria', 'last_name': 'QA', 'password': 'member123', 'role': 'miembro', 'color': '#9c27b0', 'area': 'D1', 'specialty': 'QA Engineer', 'phone': '+51 994 520 026'},
-            {'username': 'cliente@hackthony.com', 'email': 'cliente@hackthony.com', 'first_name': 'Carlos', 'last_name': 'Mendoza', 'password': 'cliente123', 'role': 'cliente', 'color': '#26a69a', 'area': None, 'specialty': None, 'phone': '+51 994 520 027', 'client': 'Corporacion Minera SAC'},
-            {'username': 'auditor@hackthony.com', 'email': 'auditor@hackthony.com', 'first_name': 'Patricia', 'last_name': 'Auditora', 'password': 'audit123', 'role': 'miembro', 'color': '#6d8b7d', 'area': None, 'specialty': None, 'phone': '+51 994 520 028'},
+            {'username': 'super@gmail.com', 'email': 'super@gmail.com', 'first_name': 'Carlos', 'last_name': 'SuperAdmin', 'password': '123456', 'role': 'super-admin', 'color': '#c62828', 'area': None, 'specialty': None, 'phone': '+51 994 520 017', 'client': None},
+            {'username': 'admin@gmail.com', 'email': 'admin@gmail.com', 'first_name': 'Ana', 'last_name': 'Administradora', 'password': '123456', 'role': 'admin', 'color': '#f57f17', 'area': None, 'specialty': None, 'phone': '+51 994 520 018', 'client': None},
+            {'username': 'jefe.areas@hackthony.com', 'email': 'jefe.areas@hackthony.com', 'first_name': 'Roberto', 'last_name': 'Jefe Area', 'password': 'area123', 'role': 'jefe-area', 'color': '#6554c0', 'area': 'DEV', 'specialty': 'Scrum Master', 'phone': '+51 994 520 019', 'client': None},
+            {'username': 'jp.miguel@hackthony.com', 'email': 'jp.miguel@hackthony.com', 'first_name': 'Miguel', 'last_name': 'Torres', 'password': 'jp123', 'role': 'jefe-proyecto', 'color': '#00bcd4', 'area': 'DEV', 'specialty': 'FullStack Developer', 'phone': '+51 994 520 020', 'client': None},
+            {'username': 'jp.laura@hackthony.com', 'email': 'jp.laura@hackthony.com', 'first_name': 'Laura', 'last_name': 'Quispe', 'password': 'jp123', 'role': 'jefe-proyecto', 'color': '#e91e63', 'area': 'INN', 'specialty': 'Product Owner', 'phone': '+51 994 520 021', 'client': None},
+            {'username': 'pedro@hackthony.com', 'email': 'pedro@hackthony.com', 'first_name': 'Pedro', 'last_name': 'Backend', 'password': 'member123', 'role': 'miembro', 'color': '#2e7d32', 'area': 'DEV', 'specialty': 'Backend Developer', 'phone': '+51 994 520 022', 'client': None},
+            {'username': 'sofia@hackthony.com', 'email': 'sofia@hackthony.com', 'first_name': 'Sofia', 'last_name': 'Frontend', 'password': 'member123', 'role': 'miembro', 'color': '#4caf50', 'area': 'INN', 'specialty': 'Frontend Developer', 'phone': '+51 994 520 023', 'client': None},
+            {'username': 'valeria@hackthony.com', 'email': 'valeria@hackthony.com', 'first_name': 'Valeria', 'last_name': 'QA', 'password': 'member123', 'role': 'miembro', 'color': '#9c27b0', 'area': 'DEV', 'specialty': 'QA Engineer', 'phone': '+51 994 520 024', 'client': None},
+            {'username': 'cliente@hackthony.com', 'email': 'cliente@hackthony.com', 'first_name': 'Gabriela', 'last_name': 'Ponce', 'password': 'cliente123', 'role': 'cliente', 'color': '#26a69a', 'area': None, 'specialty': None, 'phone': '+51 994 520 027', 'client': 'MediSalud SAC'},
         ]
 
         user_objects = {}
@@ -94,8 +113,8 @@ class Command(BaseCommand):
                 user.set_password(data['password'])
                 user.save()
 
-            area = areas.get(data['area'])
-            specialty = specialties.get(data['specialty'])
+            area = areas.get(data['area']) if data.get('area') else None
+            specialty = specialties.get(data['specialty']) if data.get('specialty') else None
             client_obj = clients.get(data['client']) if data.get('client') else None
 
             UserProfile.objects.update_or_create(
@@ -113,13 +132,62 @@ class Command(BaseCommand):
             user_objects[data['username']] = user
             self.stdout.write(f'  User: {user.get_full_name()} ({data["role"]})')
 
+        # ═══════════════════════════════════════════
+        # 5. PROYECTOS (4)
+        # ═══════════════════════════════════════════
         projects_data = [
-            {'name': 'Consultoria TI - CorpMinera', 'area': 'D1', 'description': 'Consultoria estrategica y diseno de arquitectura de red para 3 sedes.', 'status': 'active', 'lead': 'jp.consultoria@hackthony.com', 'client': 'Corporacion Minera SAC', 'budget': 85000, 'start_date': '2025-01-15', 'end_date': '2025-06-30', 'color': '#00bcd4'},
-            {'name': 'Implementacion Cloud - RetailPlus', 'area': 'D1', 'description': 'Migracion completa a nube hibrida AWS + Azure para operaciones de retail.', 'status': 'active', 'lead': 'jp.consultoria@hackthony.com', 'client': 'RetailPlus S.A.C.', 'budget': 42000, 'start_date': '2025-02-01', 'end_date': '2025-05-30', 'color': '#4fc3f7'},
-            {'name': 'Tech Summit 2025', 'area': 'D2', 'description': 'Organizacion del evento tecnologico anual con mas de 500 asistentes esperados.', 'status': 'planned', 'lead': 'jp.eventos@hackthony.com', 'client': None, 'budget': 15000, 'start_date': '2025-03-01', 'end_date': '2025-08-30', 'color': '#6554c0'},
-            {'name': 'E-commerce - FashionPeru', 'area': 'D3', 'description': 'Plataforma e-commerce con catalogo, carrito y pasarela de pagos integrada.', 'status': 'active', 'lead': 'jp.eventos@hackthony.com', 'client': 'FashionPeru S.R.L.', 'budget': 35000, 'start_date': '2025-01-20', 'end_date': '2025-04-30', 'color': '#2e7d32'},
-            {'name': 'App Movil - MediSalud', 'area': 'D3', 'description': 'Aplicacion movil iOS y Android para gestion de citas medicas y expediente digital.', 'status': 'active', 'lead': 'jp.eventos@hackthony.com', 'client': 'MediSalud SAC', 'budget': 62000, 'start_date': '2025-03-10', 'end_date': '2025-09-10', 'color': '#26c6da'},
-            {'name': 'Soporte TI - Municipalidad Lima', 'area': 'D1', 'description': 'Mesa de ayuda nivel 1 y 2 para 300 usuarios, mantenimiento de infraestructura.', 'status': 'active', 'lead': 'jp.consultoria@hackthony.com', 'client': 'Municipalidad Metropolitana de Lima', 'budget': 54000, 'start_date': '2025-01-05', 'end_date': '2025-12-31', 'color': '#ab47bc'},
+            {
+                'name': 'Consultoria TI - CorpMinera',
+                'area': 'DEV',
+                'description': 'Consultoria estrategica y diseno de arquitectura de red para 3 sedes.',
+                'status': 'active',
+                'lead': 'jp.miguel@hackthony.com',
+                'client': 'Corporacion Minera SAC',
+                'budget': 85000,
+                'start_date': today - datetime.timedelta(days=90),
+                'end_date': today + datetime.timedelta(days=60),
+                'color': '#00bcd4',
+                'members': ['pedro@hackthony.com', 'valeria@hackthony.com'],
+            },
+            {
+                'name': 'E-commerce - FashionPeru',
+                'area': 'DEV',
+                'description': 'Plataforma e-commerce con catalogo, carrito y pasarela de pagos integrada.',
+                'status': 'active',
+                'lead': 'jp.miguel@hackthony.com',
+                'client': 'FashionPeru S.R.L.',
+                'budget': 35000,
+                'start_date': today - datetime.timedelta(days=45),
+                'end_date': today + datetime.timedelta(days=30),
+                'color': '#2e7d32',
+                'members': ['pedro@hackthony.com'],
+            },
+            {
+                'name': 'App Movil - MediSalud',
+                'area': 'INN',
+                'description': 'Aplicacion movil para gestion de citas medicas y expediente digital. Cliente accede al portal.',
+                'status': 'active',
+                'lead': 'jp.laura@hackthony.com',
+                'client': 'MediSalud SAC',
+                'budget': 62000,
+                'start_date': today - datetime.timedelta(days=60),
+                'end_date': today + datetime.timedelta(days=90),
+                'color': '#26c6da',
+                'members': ['sofia@hackthony.com', 'pedro@hackthony.com'],
+            },
+            {
+                'name': 'Portal Web - Municipalidad Lima',
+                'area': 'DEV',
+                'description': 'Portal de transparencia y servicios en linea para ciudadanos.',
+                'status': 'planned',
+                'lead': 'jp.miguel@hackthony.com',
+                'client': 'Municipalidad Metropolitana de Lima',
+                'budget': 54000,
+                'start_date': today + datetime.timedelta(days=15),
+                'end_date': today + datetime.timedelta(days=120),
+                'color': '#ab47bc',
+                'members': ['valeria@hackthony.com'],
+            },
         ]
 
         projects = {}
@@ -140,30 +208,82 @@ class Command(BaseCommand):
                     'color': data['color'],
                 }
             )
+            # Asignar miembros
+            for member_username in data.get('members', []):
+                member = user_objects.get(member_username)
+                if member:
+                    project.members.add(member)
+                    self.stdout.write(f'    + member {member.get_full_name()} -> {project.name}')
             projects[data['name']] = project
-            self.stdout.write(f'  Project: {project.name}')
+            self.stdout.write(f'  Project: {project.name} ({project.status})')
 
+        # ═══════════════════════════════════════════
+        # 6. SPRINTS (2-3 por proyecto activo)
+        # ═══════════════════════════════════════════
+        sprints_data = [
+            # Consultoria TI - CorpMinera
+            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 1 - Diagnostico', 'start_date': today - datetime.timedelta(days=80), 'end_date': today - datetime.timedelta(days=66), 'goal': 'Inventariar activos TI y diagnosticar estado actual', 'status': 'completed'},
+            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 2 - Diseno', 'start_date': today - datetime.timedelta(days=60), 'end_date': today - datetime.timedelta(days=46), 'goal': 'Disenar arquitectura de red propuesta', 'status': 'completed'},
+            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 3 - Entrega', 'start_date': today - datetime.timedelta(days=40), 'end_date': today + datetime.timedelta(days=2), 'goal': 'Entregar informe final y plan de implementacion', 'status': 'active'},
+            # E-commerce - FashionPeru
+            {'project': 'E-commerce - FashionPeru', 'name': 'Sprint 1 - MVP', 'start_date': today - datetime.timedelta(days=40), 'end_date': today - datetime.timedelta(days=26), 'goal': 'Catalogo de productos con filtros', 'status': 'completed'},
+            {'project': 'E-commerce - FashionPeru', 'name': 'Sprint 2 - Pagos', 'start_date': today - datetime.timedelta(days=20), 'end_date': today + datetime.timedelta(days=8), 'goal': 'Integrar pasarela de pagos MercadoPago', 'status': 'active'},
+            # App Movil - MediSalud
+            {'project': 'App Movil - MediSalud', 'name': 'Sprint 1 - Discovery', 'start_date': today - datetime.timedelta(days=55), 'end_date': today - datetime.timedelta(days=41), 'goal': 'Wireframes y diseno UX de flujos principales', 'status': 'completed'},
+            {'project': 'App Movil - MediSalud', 'name': 'Sprint 2 - Citas MVP', 'start_date': today - datetime.timedelta(days=35), 'end_date': today - datetime.timedelta(days=21), 'goal': 'Flujo de agendamiento de citas funcional', 'status': 'completed'},
+            {'project': 'App Movil - MediSalud', 'name': 'Sprint 3 - Expediente Digital', 'start_date': today - datetime.timedelta(days=14), 'end_date': today + datetime.timedelta(days=14), 'goal': 'Expediente medico digital con historial de consultas', 'status': 'active'},
+        ]
+
+        sprints = {}
+        for data in sprints_data:
+            project = projects[data['project']]
+            sprint, _ = Sprint.objects.get_or_create(
+                name=data['name'],
+                project=project,
+                defaults={
+                    'start_date': data['start_date'],
+                    'end_date': data['end_date'],
+                    'goal': data['goal'],
+                    'status': data['status'],
+                }
+            )
+            sprints[(data['project'], data['name'])] = sprint
+            self.stdout.write(f'  Sprint: {sprint} ({sprint.status})')
+
+        # ═══════════════════════════════════════════
+        # 7. TAREAS (asignadas a sprints y miembros)
+        # ═══════════════════════════════════════════
         tasks_data = [
-            {'project': 'Consultoria TI - CorpMinera', 'title': 'Reunion kickoff con cliente', 'type': 'task', 'priority': 'high', 'points': 3, 'assignee': 'jp.consultoria@hackthony.com', 'status': 'done', 'description': 'Primera reunion para definir alcance, objetivos y entregables.', 'tags': 'reunion,kickoff'},
-            {'project': 'Consultoria TI - CorpMinera', 'title': 'Inventario de activos TI en 3 sedes', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'miembro1@hackthony.com', 'status': 'done', 'description': 'Levantar inventario completo de hardware, software y conectividad.', 'tags': 'consultoria,networking'},
-            {'project': 'Consultoria TI - CorpMinera', 'title': 'Disenar arquitectura de red propuesta', 'type': 'story', 'priority': 'high', 'points': 13, 'assignee': 'valeria@hackthony.com', 'status': 'done', 'description': 'Elaborar diagrama de arquitectura de red con redundancia.', 'tags': 'arquitectura,diseno'},
-            {'project': 'Implementacion Cloud - RetailPlus', 'title': 'Evaluar proveedores cloud', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'jp.consultoria@hackthony.com', 'status': 'done', 'description': 'Analisis comparativo de AWS, Azure y GCP.', 'tags': 'cloud,evaluacion'},
-            {'project': 'Implementacion Cloud - RetailPlus', 'title': 'Migrar base de datos a RDS', 'type': 'task', 'priority': 'high', 'points': 13, 'assignee': 'javier@hackthony.com', 'status': 'in-progress', 'description': 'Migrar PostgreSQL on-premise a Amazon RDS.', 'tags': 'migracion,aws'},
-            {'project': 'E-commerce - FashionPeru', 'title': 'Catalogo de productos con filtros', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'miembro2@hackthony.com', 'status': 'done', 'description': 'Pagina de listado con filtros por categoria, talla, color y precio.', 'tags': 'frontend,ecommerce'},
-            {'project': 'E-commerce - FashionPeru', 'title': 'Integrar MercadoPago Checkout Pro', 'type': 'task', 'priority': 'high', 'points': 8, 'assignee': 'javier@hackthony.com', 'status': 'in-progress', 'description': 'Implementar flujo de pago con MercadoPago.', 'tags': 'backend,pagos'},
-            {'project': 'App Movil - MediSalud', 'title': 'Wireframes de flujos principales', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'diego@hackthony.com', 'status': 'in-progress', 'description': 'Disenar wireframes en Figma.', 'tags': 'ux,figma'},
-            {'project': 'Soporte TI - Municipalidad Lima', 'title': 'Inventario y diagnostico de activos TI', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'valeria@hackthony.com', 'status': 'done', 'description': 'Catastro de 847 equipos en 12 oficinas.', 'tags': 'inventario,soporte'},
-            {'project': 'Tech Summit 2025', 'title': 'Reservar centro de convenciones', 'type': 'task', 'priority': 'high', 'points': 3, 'assignee': 'jp.eventos@hackthony.com', 'status': 'backlog', 'description': 'Confirmar disponibilidad y firmar contrato.', 'tags': 'logistica,evento'},
-            {'project': 'Tech Summit 2025', 'title': 'Landing page y sistema de inscripciones', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'diego@hackthony.com', 'status': 'backlog', 'description': 'Pagina web del evento con formulario de inscripcion.', 'tags': 'web,marketing'},
-            {'project': 'Consultoria TI - CorpMinera', 'title': 'Bug en reporte de inventario PDF', 'type': 'bug', 'priority': 'medium', 'points': 3, 'assignee': 'valeria@hackthony.com', 'status': 'todo', 'description': 'El modulo de reportes no genera correctamente el PDF.', 'tags': 'bug,reportes'},
+            # --- Consultoria TI - CorpMinera ---
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 1 - Diagnostico', 'title': 'Reunion kickoff con cliente', 'type': 'task', 'priority': 'high', 'points': 3, 'assignee': 'jp.miguel@hackthony.com', 'status': 'done', 'description': 'Primera reunion para definir alcance, objetivos y entregables.', 'tags': 'kickoff'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 1 - Diagnostico', 'title': 'Inventario de activos TI en 3 sedes', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Levantar inventario completo de hardware, software y conectividad.', 'tags': 'inventario'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 2 - Diseno', 'title': 'Disenar arquitectura de red propuesta', 'type': 'story', 'priority': 'high', 'points': 13, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Elaborar diagrama de arquitectura de red con redundancia.', 'tags': 'arquitectura'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 3 - Entrega', 'title': 'Redactar informe final de consultoria', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'in-progress', 'description': 'Documento ejecutivo con diagnostico, propuesta y plan de accion.', 'tags': 'documentacion'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 3 - Entrega', 'title': 'Validar reporte de inventario (QA)', 'type': 'task', 'priority': 'medium', 'points': 2, 'assignee': 'valeria@hackthony.com', 'status': 'todo', 'description': 'Revisar que el PDF de inventario se genere correctamente.', 'tags': 'qa'},
+            # --- E-commerce - FashionPeru ---
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 1 - MVP', 'title': 'Catalogo de productos con filtros', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Pagina de listado con filtros por categoria, talla, color y precio.', 'tags': 'frontend'},
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 1 - MVP', 'title': 'API de productos (CRUD)', 'type': 'story', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'done', 'description': 'Endpoints REST para gestion de catalogo.', 'tags': 'backend'},
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 2 - Pagos', 'title': 'Integrar MercadoPago Checkout Pro', 'type': 'task', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'in-progress', 'description': 'Implementar flujo de pago con MercadoPago.', 'tags': 'backend,pagos'},
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 2 - Pagos', 'title': 'Pantalla de confirmacion de pedido', 'type': 'task', 'priority': 'medium', 'points': 3, 'assignee': 'jp.miguel@hackthony.com', 'status': 'todo', 'description': 'Disenar e implementar pantalla post-pago.', 'tags': 'frontend'},
+            # --- App Movil - MediSalud ---
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 1 - Discovery', 'title': 'Wireframes de flujos principales', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'sofia@hackthony.com', 'status': 'done', 'description': 'Disenar wireframes en Figma de las 5 pantallas principales.', 'tags': 'ux,figma'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 2 - Citas MVP', 'title': 'Pantalla de agendamiento de citas', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'sofia@hackthony.com', 'status': 'done', 'description': 'UI para seleccionar fecha, especialidad y medico.', 'tags': 'frontend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 2 - Citas MVP', 'title': 'API de disponibilidad de medicos', 'type': 'task', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Endpoint que devuelve horarios disponibles segun especialidad.', 'tags': 'backend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'Vista de historial medico', 'type': 'story', 'priority': 'high', 'points': 5, 'assignee': 'sofia@hackthony.com', 'status': 'in-progress', 'description': 'Interfaz para ver consultas pasadas, recetas y examenes.', 'tags': 'frontend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'API de expediente medico', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Endpoints para CRUD de historial clinico.', 'tags': 'backend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'Pruebas funcionales de flujo de citas', 'type': 'task', 'priority': 'medium', 'points': 3, 'assignee': 'valeria@hackthony.com', 'status': 'todo', 'description': 'Ejecutar casos de prueba del flujo completo de agendamiento.', 'tags': 'qa'},
+            # --- Portal Web - Municipalidad Lima (sin sprint, en backlog) ---
+            {'project': 'Portal Web - Municipalidad Lima', 'sprint': None, 'title': 'Definir requerimientos con municipio', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'backlog', 'description': 'Reunion inicial para levantar requerimientos del portal.', 'tags': 'kickoff'},
+            {'project': 'Portal Web - Municipalidad Lima', 'sprint': None, 'title': 'Disenar wireframes del portal', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'valeria@hackthony.com', 'status': 'backlog', 'description': 'Wireframes de las 3 secciones principales del portal.', 'tags': 'ux'},
         ]
 
         tags_cache = {}
-
         for data in tasks_data:
             project = projects[data['project']]
             assignee = user_objects.get(data['assignee'])
-            task, _ = Task.objects.get_or_create(
+            sprint = sprints.get((data['project'], data['sprint'])) if data['sprint'] else None
+
+            task, created = Task.objects.get_or_create(
                 title=data['title'],
                 project=project,
                 defaults={
@@ -173,32 +293,48 @@ class Command(BaseCommand):
                     'assignee': assignee,
                     'status': data['status'],
                     'description': data['description'],
+                    'sprint': sprint,
                 }
             )
+            if not created and sprint and not task.sprint:
+                task.sprint = sprint; task.save()
+
             for tag_name in data['tags'].split(','):
                 tag_name = tag_name.strip()
                 if tag_name not in tags_cache:
                     tags_cache[tag_name], _ = Tag.objects.get_or_create(
-                        name=tag_name,
-                        defaults={'color': '#64748b'}
+                        name=tag_name, defaults={'color': '#64748b'},
                     )
                 task.tags.add(tags_cache[tag_name])
+            self.stdout.write(f'  Task: {task.title[:50]} [{task.status}]')
 
-        service_requests_data = [
-            {'client': 'Engie 24', 'service': 'consultoria', 'description': 'Consultoria para optimizar infraestructura de red.', 'status': 'new'},
-            {'client': 'Ingelectros Peru', 'service': 'seguridad', 'description': 'Implementacion de seguridad informatica perimetral.', 'status': 'in-progress'},
-            {'client': 'Clinica San Marcos', 'service': 'soporte', 'description': 'Contrato de soporte tecnico para 80 equipos.', 'status': 'new'},
+        # ═══════════════════════════════════════════
+        # 8. COMENTARIOS DE PROYECTO (chat grupal)
+        # ═══════════════════════════════════════════
+        comments_data = [
+            {'project': 'Consultoria TI - CorpMinera', 'author': 'jp.miguel@hackthony.com', 'text': 'Bienvenidos al proyecto! Arrancamos con el inventario de activos en las 3 sedes.', 'days_ago': 78},
+            {'project': 'Consultoria TI - CorpMinera', 'author': 'pedro@hackthony.com', 'text': 'Listo Miguel, ya tengo el 60% relevado. La sede norte tiene mucho equipo legacy.', 'days_ago': 74},
+            {'project': 'Consultoria TI - CorpMinera', 'author': 'jp.miguel@hackthony.com', 'text': 'Anotado. Priorizamos reemplazo de switches en sede norte para el informe.', 'days_ago': 72},
+            {'project': 'App Movil - MediSalud', 'author': 'jp.laura@hackthony.com', 'text': 'Chicos, los wireframes quedaron muy bien. El cliente aprobo el diseno.', 'days_ago': 50},
+            {'project': 'App Movil - MediSalud', 'author': 'sofia@hackthony.com', 'text': 'Genial! Empiezo con el desarrollo de la pantalla de agendamiento.', 'days_ago': 35},
+            {'project': 'E-commerce - FashionPeru', 'author': 'jp.miguel@hackthony.com', 'text': 'El MVP del catalogo esta listo. Ahora vamos por la integracion de pagos.', 'days_ago': 22},
         ]
 
-        for data in service_requests_data:
-            client, _ = Client.objects.get_or_create(
-                name=data['client'],
-                defaults={'contact': data['client'], 'email': '', 'phone': '', 'industry': 'Servicios'}
-            )
-            ServiceRequest.objects.get_or_create(
-                client=client,
-                service=data['service'],
-                defaults={'description': data['description'], 'status': data['status']}
+        for data in comments_data:
+            project = projects[data['project']]
+            author = user_objects[data['author']]
+            Comment.objects.create(
+                project=project,
+                author=author,
+                text=data['text'],
+                created_at=today - datetime.timedelta(days=data['days_ago']),
             )
 
-        self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))
+        self.stdout.write(self.style.SUCCESS('\nDatabase seeded successfully!'))
+        self.stdout.write(f'  Areas: {len(areas)}')
+        self.stdout.write(f'  Users: {len(user_objects)}')
+        self.stdout.write(f'  Clients: {len(clients)}')
+        self.stdout.write(f'  Projects: {len(projects)}')
+        self.stdout.write(f'  Sprints: {len(sprints)}')
+        self.stdout.write(f'  Tasks: {len(tasks_data)}')
+        self.stdout.write(f'  Comments: {len(comments_data)}')
