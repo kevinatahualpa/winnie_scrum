@@ -30,10 +30,6 @@
                                     <option value="other" {% if specialty.category == 'other' %}selected{% endif %}>Otro</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Color</label>
-                                <input type="color" name="color" class="form-control form-control-color" value="{% if specialty %}{{ specialty.color }}{% else %}#00bcd4{% endif %}">
-                            </div>
                             <div class="col-12">
                                 <label class="form-label">Descripcion</label>
                                 <textarea name="description" class="form-control" rows="2">{% if specialty %}{{ specialty.description }}{% endif %}</textarea>

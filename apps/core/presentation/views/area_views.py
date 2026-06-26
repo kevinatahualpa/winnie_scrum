@@ -47,7 +47,7 @@ def crear_area(request):
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'AREA_CREATE', 'area', area.id, f'Area creada: {area.name}')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'object': {'id': area.id, 'name': area.name, 'code': area.code, 'color': area.color, 'icon': area.icon, 'description': area.description, 'status': area.status, 'project_count': 0}})
+                return JsonResponse({'success': True, 'object': {'id': area.id, 'name': area.name, 'code': area.code, 'color': area.color, 'description': area.description, 'status': area.status, 'project_count': 0}})
             messages.success(request, f'Area "{area.name}" creada')
             return redirect('ver_areas')
         elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -76,7 +76,7 @@ def editar_area(request, pk):
             from apps.core.domain.services.notification_service import create_audit_log
             create_audit_log(request.user, 'AREA_EDIT', 'area', area.id, f'Area editada: {area.name}')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'object': {'id': area.id, 'name': area.name, 'code': area.code, 'color': area.color, 'icon': area.icon, 'description': area.description, 'status': area.status, 'project_count': getattr(area, 'project_count', 0)}})
+                return JsonResponse({'success': True, 'object': {'id': area.id, 'name': area.name, 'code': area.code, 'color': area.color, 'description': area.description, 'status': area.status, 'project_count': getattr(area, 'project_count', 0)}})
             messages.success(request, f'Area "{area.name}" actualizada')
             return redirect('ver_areas')
         elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':

@@ -35,7 +35,7 @@
                             {% for area in areas %}
                             <tr>
                                 <td>
-                                    <div class="entity-icon" style="color:{{ area.color }}"><i class="fas {{ area.icon }}"></i></div>
+                                    <div class="entity-icon" style="background:{{ area.color }};color:#fff;font-weight:600;">{{ area.name|first|upper }}</div>
                                 </td>
                                 <td>
                                     <div class="fw-medium" style="font-size:0.8rem;">{{ area.name }}</div>
@@ -44,12 +44,14 @@
                                 <td><small class="text-muted">{{ area.description|truncatechars:80|default:"-" }}</small></td>
                                 <td><span class="badge" style="background:var(--bg);color:var(--text-secondary);font-size:0.65rem;">{{ area.project_count }} proyectos</span></td>
                                 {% if user|has_role:"super-admin,admin" %}
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('area', {id:'{{ area.id }}',name:'{{ area.name|escapejs }}',code:'{{ area.code }}',color:'{{ area.color }}',icon:'{{ area.icon }}',description:'{{ area.description|escapejs }}',status:'{{ area.status }}'})" title="Editar"><i class="fas fa-edit"></i></button>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                    <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('area', {id:'{{ area.id }}',name:'{{ area.name|escapejs }}',code:'{{ area.code }}',color:'{{ area.color }}',description:'{{ area.description|escapejs }}',status:'{{ area.status }}'})" title="Editar"><i class="fas fa-edit"></i></button>
                                     <form method="post" action="{% url 'eliminar_area' area.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ area.name }}?')">
                                         {% csrf_token %}
                                         <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
                                     </form>
+                                    </div>
                                 </td>
                                 {% endif %}
                             </tr>
@@ -81,8 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
             {name: 'code', label: 'Codigo', type: 'text', required: true},
             {name: 'name', label: 'Nombre', type: 'text', required: true},
             {name: 'description', label: 'Descripcion', type: 'textarea'},
-            {name: 'color', label: 'Color', type: 'color', default: '#00bcd4'},
-            {name: 'icon', label: 'Icono (FontAwesome)', type: 'text', default: 'fa-building'},
             {name: 'status', label: 'Estado', type: 'select', options: [{value:'active',label:'Activa'},{value:'inactive',label:'Inactiva'}], default: 'active'},
         ],
         createUrl: '{% url "crear_area" %}',

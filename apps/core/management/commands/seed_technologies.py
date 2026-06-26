@@ -11,30 +11,30 @@ from apps.core.infrastructure.models.models import Technology
 
 TECHNOLOGIES = [
     # Lenguajes
-    ('Python', 'language', 'fa-brands fa-python', '#3776ab'),
-    ('JavaScript', 'language', 'fa-brands fa-js', '#f7df1e'),
-    ('TypeScript', 'language', 'fa-code', '#3178c6'),
-    ('PHP', 'language', 'fa-brands fa-php', '#777bb4'),
+    ('Python', 'language', '#3776ab'),
+    ('JavaScript', 'language', '#f7df1e'),
+    ('TypeScript', 'language', '#3178c6'),
+    ('PHP', 'language', '#777bb4'),
 
     # Frameworks
-    ('Django', 'framework', 'fa-code', '#092e20'),
-    ('Node.js', 'framework', 'fa-brands fa-node-js', '#3c873a'),
-    ('Laravel', 'framework', 'fa-code', '#ff2d20'),
-    ('React', 'framework', 'fa-brands fa-react', '#61dafb'),
+    ('Django', 'framework', '#092e20'),
+    ('Node.js', 'framework', '#3c873a'),
+    ('Laravel', 'framework', '#ff2d20'),
+    ('React', 'framework', '#61dafb'),
 
     # Bases de datos
-    ('PostgreSQL', 'database', 'fa-database', '#336791'),
-    ('MySQL', 'database', 'fa-database', '#00758f'),
-    ('MongoDB', 'database', 'fa-database', '#47a248'),
+    ('PostgreSQL', 'database', '#336791'),
+    ('MySQL', 'database', '#00758f'),
+    ('MongoDB', 'database', '#47a248'),
 
     # Herramientas
-    ('Docker', 'tool', 'fa-brands fa-docker', '#2496ed'),
-    ('Git', 'tool', 'fa-brands fa-git-alt', '#f05032'),
-    ('Jira', 'tool', 'fa-tasks', '#0052cc'),
+    ('Docker', 'tool', '#2496ed'),
+    ('Git', 'tool', '#f05032'),
+    ('Jira', 'tool', '#0052cc'),
 
     # Plataformas
-    ('AWS', 'platform', 'fa-brands fa-aws', '#ff9900'),
-    ('Google Cloud', 'platform', 'fa-cloud', '#4285f4'),
+    ('AWS', 'platform', '#ff9900'),
+    ('Google Cloud', 'platform', '#4285f4'),
 ]
 
 
@@ -50,10 +50,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         created = 0
         updated = 0
-        for name, category, icon, color in TECHNOLOGIES:
+        for name, category, color in TECHNOLOGIES:
             obj, was_created = Technology.objects.get_or_create(
                 name=name,
-                defaults={'category': category, 'icon': icon, 'color': color},
+                defaults={'category': category, 'color': color},
             )
             if was_created:
                 created += 1
@@ -62,8 +62,6 @@ class Command(BaseCommand):
                 changed = False
                 if obj.category != category:
                     obj.category = category; changed = True
-                if obj.icon != icon:
-                    obj.icon = icon; changed = True
                 if obj.color != color:
                     obj.color = color; changed = True
                 if not obj.is_active:

@@ -25,14 +25,6 @@
                                 <textarea name="description" class="form-control" rows="2">{% if area %}{{ area.description }}{% endif %}</textarea>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Color</label>
-                                <input type="color" name="color" class="form-control form-control-color" value="{% if area %}{{ area.color }}{% else %}#00bcd4{% endif %}">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Icono (FontAwesome)</label>
-                                <input type="text" name="icon" class="form-control" value="{% if area %}{{ area.icon }}{% else %}fa-building{% endif %}">
-                            </div>
-                            <div class="col-md-4">
                                 <label class="form-label">Estado</label>
                                 <select name="status" class="form-select">
                                     <option value="active" {% if area.status == 'active' %}selected{% endif %}>Activa</option>

@@ -11,13 +11,11 @@ class AreaForm(forms.ModelForm):
     """Form for creating and editing organizational areas."""
     class Meta:
         model = Area
-        fields = ['code', 'name', 'description', 'color', 'icon', 'status']
+        fields = ['code', 'name', 'description', 'status']
         widgets = {
             'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: DEV, QA, OPS'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del area'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'color': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color'}),
-            'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'fa-building'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
 
@@ -26,12 +24,11 @@ class SpecialtyForm(forms.ModelForm):
     """Form for creating and editing professional specialties."""
     class Meta:
         model = Specialty
-        fields = ['name', 'category', 'description', 'color']
+        fields = ['name', 'category', 'description']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la especialidad'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'color': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color'}),
         }
 
 
@@ -218,12 +215,10 @@ class TechnologyForm(forms.ModelForm):
     """Form for creating and editing technologies."""
     class Meta:
         model = Technology
-        fields = ['name', 'category', 'icon', 'color']
+        fields = ['name', 'category']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la tecnologia'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
-            'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'fa-brands fa-python'}),
-            'color': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color'}),
         }
 
 

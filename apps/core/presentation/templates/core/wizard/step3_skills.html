@@ -56,7 +56,7 @@
                     {% for tech in group.list %}
                     <label class="tech-card" data-name="{{ tech.name|lower }}" data-id="{{ tech.id }}">
                         <input type="checkbox" name="technology" value="{{ tech.id }}" data-tech-id="{{ tech.id }}">
-                        <div class="tech-icon" style="background:{{ tech.color }}"><i class="fas {{ tech.icon }}"></i></div>
+                        <div class="tech-icon" style="background:{{ tech.color }}">{{ tech.name|first|upper }}</div>
                         <div class="tech-info">
                             <div class="tech-name">{{ tech.name }}</div>
                         </div>

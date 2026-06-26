@@ -50,7 +50,6 @@
             <div class="pb-col pb-techs">
                 {% for ct in candidate.candidatetechnology_set.all %}
                 <span class="tech-chip" style="--c:{{ ct.technology.color }};" title="{{ ct.technology.name }} · {{ ct.get_level_display }}{% if ct.years_using %} · {{ ct.years_using }} años{% endif %}">
-                    <i class="fas {{ ct.technology.icon }}"></i>
                     {{ ct.technology.name }}
                 </span>
                 {% endfor %}

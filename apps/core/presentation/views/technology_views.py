@@ -44,7 +44,7 @@ def crear_tecnologia(request):
             create_audit_log(request.user, 'TECHNOLOGY_CREATE', 'technology', technology.id,
                              f'Tecnologia creada: {technology.name}')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'object': {'id': technology.id, 'name': technology.name, 'category': technology.category, 'category_display': technology.get_category_display(), 'color': technology.color, 'icon': technology.icon}})
+                return JsonResponse({'success': True, 'object': {'id': technology.id, 'name': technology.name, 'category': technology.category, 'category_display': technology.get_category_display(), 'color': technology.color}})
             messages.success(request, f'Tecnologia "{technology.name}" creada')
             return redirect('ver_tecnologias')
         elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -74,7 +74,7 @@ def editar_tecnologia(request, pk):
             create_audit_log(request.user, 'TECHNOLOGY_EDIT', 'technology', technology.id,
                              f'Tecnologia editada: {technology.name}')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'object': {'id': technology.id, 'name': technology.name, 'category': technology.category, 'category_display': technology.get_category_display(), 'color': technology.color, 'icon': technology.icon}})
+                return JsonResponse({'success': True, 'object': {'id': technology.id, 'name': technology.name, 'category': technology.category, 'category_display': technology.get_category_display(), 'color': technology.color}})
             messages.success(request, f'Tecnologia "{technology.name}" actualizada')
             return redirect('ver_tecnologias')
         elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':

@@ -24,7 +24,6 @@
                                 <th style="width:36px"></th>
                                 <th>Nombre</th>
                                 <th>Categoria</th>
-                                <th>Color</th>
                                 <th>Descripcion</th>
                                 {% if user|has_role:"super-admin,admin" %}
                                 <th style="width:80px" class="text-end">Acciones</th>
@@ -35,21 +34,22 @@
                             {% for spec in specialties %}
                             <tr>
                                 <td>
-                                    <div class="entity-icon" style="color:{{ spec.color }}"><i class="fas fa-cog"></i></div>
+                                    <div class="entity-icon" style="background:{{ spec.color }};color:#fff;font-weight:600;">{{ spec.name|first|upper }}</div>
                                 </td>
                                 <td>
                                     <div class="fw-medium" style="font-size:0.8rem;">{{ spec.name }}</div>
                                 </td>
                                 <td><small>{{ spec.get_category_display }}</small></td>
-                                <td><span class="badge" style="background:{{ spec.color }}20;color:{{ spec.color }};font-size:0.65rem;">{{ spec.color }}</span></td>
                                 <td><small class="text-muted">{{ spec.description|truncatechars:80|default:"-" }}</small></td>
                                 {% if user|has_role:"super-admin,admin" %}
-                                <td class="text-end">
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-end">
                                     <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('specialty', {id:'{{ spec.id }}',name:'{{ spec.name|escapejs }}',category:'{{ spec.category }}',color:'{{ spec.color }}',description:'{{ spec.description|escapejs }}'})" title="Editar"><i class="fas fa-edit"></i></button>
                                     <form method="post" action="{% url 'eliminar_especialidad' spec.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ spec.name }}?')">
                                         {% csrf_token %}
                                         <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
                                     </form>
+                                    </div>
                                 </td>
                                 {% endif %}
                             </tr>
@@ -90,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 {value: 'qa', label: 'Testing/QA'},
                 {value: 'other', label: 'Otro'},
             ]},
-            {name: 'color', label: 'Color', type: 'color', default: '#00bcd4'},
             {name: 'description', label: 'Descripcion', type: 'textarea'},
         ],
         createUrl: '{% url "crear_especialidad" %}',

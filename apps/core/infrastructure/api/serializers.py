@@ -8,7 +8,7 @@ from apps.core.infrastructure.models.models import (
 class AreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Area
-        fields = ['id', 'code', 'name', 'description', 'color', 'icon', 'status', 'created_at']
+        fields = ['id', 'code', 'name', 'description', 'color', 'status', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -27,7 +27,7 @@ class SpecialtySerializer(serializers.ModelSerializer):
         model = Specialty
         fields = [
             'id', 'name', 'category', 'parent', 'description',
-            'color', 'icon', 'full_path', 'is_root',
+            'color', 'full_path', 'is_root',
         ]
         read_only_fields = ['id', 'full_path', 'is_root']
 
@@ -35,7 +35,7 @@ class SpecialtySerializer(serializers.ModelSerializer):
 class TechnologySerializer(serializers.ModelSerializer):
     class Meta:
         model = Technology
-        fields = ['id', 'name', 'category', 'icon', 'color', 'is_active', 'created_at']
+        fields = ['id', 'name', 'category', 'color', 'is_active', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 

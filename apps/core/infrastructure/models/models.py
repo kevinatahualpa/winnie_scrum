@@ -36,7 +36,6 @@ class Area(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     color = models.CharField(max_length=7, default='#00bcd4')
-    icon = models.CharField(max_length=50, default='fa-building')
     status = models.CharField(max_length=20, choices=[('active', 'Activa'), ('inactive', 'Inactiva')], default='active')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -71,7 +70,6 @@ class Specialty(models.Model):
     )
     description = models.TextField(blank=True)
     color = models.CharField(max_length=7, default='#00bcd4')
-    icon = models.CharField(max_length=50, default='fa-code', blank=True)
     is_active = models.BooleanField(default=True, help_text='False = archivada (soft delete)')
 
     objects = models.Manager()
@@ -113,7 +111,6 @@ class Technology(models.Model):
         ('database', 'Base de datos'), ('tool', 'Herramienta'),
         ('platform', 'Plataforma'), ('other', 'Otro'),
     ], default='other')
-    icon = models.CharField(max_length=50, default='fa-cog', blank=True)
     color = models.CharField(max_length=7, default='#64748b')
     is_active = models.BooleanField(default=True, help_text='La empresa sigue requiriéndola')
     created_at = models.DateTimeField(auto_now_add=True)

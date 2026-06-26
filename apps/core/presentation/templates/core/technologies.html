@@ -31,8 +31,6 @@
                                 <th style="width:36px"></th>
                                 <th>Nombre</th>
                                 <th>Categoria</th>
-                                <th>Color</th>
-                                <th>Icono</th>
                                 {% if user|has_role:"super-admin,admin" %}
                                 <th style="width:80px" class="text-end">Acciones</th>
                                 {% endif %}
@@ -42,21 +40,21 @@
                             {% for tech in technologies %}
                             <tr class="{% if not tech.is_active %}text-muted{% endif %}">
                                 <td>
-                                    <div class="entity-icon" style="color:{{ tech.color }}"><i class="fas {{ tech.icon }}"></i></div>
+                                    <div class="entity-icon" style="background:{{ tech.color }};color:#fff;font-weight:600;">{{ tech.name|first|upper }}</div>
                                 </td>
                                 <td>
                                     <div class="fw-medium" style="font-size:0.8rem;">{{ tech.name }}</div>
                                 </td>
                                 <td><small>{{ tech.get_category_display }}</small></td>
-                                <td><span class="badge" style="background:{{ tech.color }}20;color:{{ tech.color }};font-size:0.65rem;">{{ tech.color }}</span></td>
-                                <td><code style="font-size:0.65rem;">{{ tech.icon }}</code></td>
                                 {% if user|has_role:"super-admin,admin" %}
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('technology', {id:'{{ tech.id }}',name:'{{ tech.name|escapejs }}',category:'{{ tech.category }}',color:'{{ tech.color }}',icon:'{{ tech.icon }}'})" title="Editar"><i class="fas fa-edit"></i></button>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                    <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('technology', {id:'{{ tech.id }}',name:'{{ tech.name|escapejs }}',category:'{{ tech.category }}',color:'{{ tech.color }}'})" title="Editar"><i class="fas fa-edit"></i></button>
                                     <form method="post" action="{% url 'eliminar_tecnologia' tech.id %}" class="d-inline" onsubmit="return confirm('Archivar {{ tech.name }}?')">
                                         {% csrf_token %}
                                         <button class="btn btn-sm btn-ghost text-danger" title="Archivar"><i class="fas fa-trash"></i></button>
                                     </form>
+                                    </div>
                                 </td>
                                 {% endif %}
                             </tr>
@@ -94,8 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 {value: 'platform', label: 'Plataforma'},
                 {value: 'other', label: 'Otro'},
             ]},
-            {name: 'color', label: 'Color', type: 'color', default: '#64748b'},
-            {name: 'icon', label: 'Icono (FontAwesome)', type: 'text', default: 'fa-cog', placeholder: 'fa-brands fa-python'},
         ],
         createUrl: '{% url "crear_tecnologia" %}',
         editUrl: '/ver_tecnologias/',

@@ -16,7 +16,6 @@ class AreaModelTest(TestCase):
             name='Tecnologia de Informacion',
             description='Area de TI',
             color='#00bcd4',
-            icon='fa-laptop',
         )
 
     def test_area_creation(self):
@@ -27,7 +26,7 @@ class AreaModelTest(TestCase):
     def test_area_default_values(self):
         self.assertEqual(self.area.status, 'active')
         self.assertEqual(self.area.color, '#00bcd4')
-        self.assertEqual(self.area.icon, 'fa-laptop')
+        self.assertEqual(self.area.status, 'active')
 
     def test_area_ordering(self):
         area2 = Area.objects.create(code='AA01', name='Administracion')
