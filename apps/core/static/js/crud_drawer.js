@@ -181,7 +181,10 @@ function openCrudDrawer(entity, data) {
                 if (data.success) {
                     closeCrudDrawer();
                     showToast(config.label + (isEdit ? ' actualizad' : ' cread') + (fem.indexOf(config.label) !== -1 ? 'a' : 'o'), 'success');
-                    setTimeout(function() { location.reload(); }, 500);
+                    setTimeout(function() {
+                        if (data.redirect) { window.location.href = data.redirect; }
+                        else { location.reload(); }
+                    }, 500);
                 } else {
                     showToast(data.errors ? flattenErrors(data.errors) : (data.error || 'Error'), 'error');
                 }

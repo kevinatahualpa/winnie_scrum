@@ -10,7 +10,7 @@
         <div class="page-content">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
-                    <h4 class="mb-0"><i class="fas fa-folder me-2"></i>Proyectos</h4>
+                    <h4 class="mb-0"><i class="fas fa-folder me-2" style="color:var(--accent);"></i>Proyectos</h4>
                     <select class="form-select form-select-sm" style="width:160px;" onchange="window.location.href='?area='+this.value">
                         <option value="">Todas las areas</option>
                         {% for area in areas %}
@@ -37,7 +37,7 @@
                                 <th>Cliente</th>
                                 <th>Estado</th>
                                 <th style="width:120px">Progreso</th>
-                                <th style="width:80px" class="text-end">Acciones</th>
+                                <th style="width:110px" class="text-end">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,8 +62,9 @@
                                     <div class="d-flex gap-1 justify-content-end">
                                         <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="btn btn-sm btn-ghost" title="Ver"><i class="fas fa-eye"></i></a>
                                         {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                                        <button class="btn btn-sm btn-ghost" title="Editar"
-                                         onclick="openCrudDrawer('project', {id:'{{ project.pk }}',name:'{{ project.name|escapejs }}',area:'{{ project.area_id|default:'' }}',description:'{{ project.description|escapejs|default:'' }}',status:'{{ project.status }}',lead:'{{ project.lead_id|default:'' }}',client:'{{ project.client_id|default:'' }}',budget:'{{ project.budget|default:0 }}',start_date:'{{ project.start_date|date:'Y-m-d'|default:'' }}',end_date:'{{ project.end_date|date:'Y-m-d'|default:'' }}',color:'{{ project.color|default:'#00bcd4' }}',members:'{% for m in project.members.all %}{{ m.id }}{% if not forloop.last %},{% endif %}{% endfor %}'})"><i class="fas fa-edit"></i></button>
+                                         <button class="btn btn-sm btn-ghost" title="Editar"
+                                         onclick="openCrudDrawer('project', {id:'{{ project.pk }}',name:'{{ project.name|escapejs }}',area:'{{ project.area_id|default:'' }}',description:'{{ project.description|escapejs|default:'' }}',status:'{{ project.status }}',lead:'{{ project.lead_id|default:'' }}',client:'{{ project.client_id|default:'' }}',budget:'{{ project.budget|default:0 }}',start_date:'{{ project.start_date|date:'Y-m-d'|default:'' }}',end_date:'{{ project.end_date|date:'Y-m-d'|default:'' }}',color:'{{ project.color|default:'#00bcd4' }}'})"><i class="fas fa-edit"></i></button>
+                                        <a href="{% url 'gestionar_miembros_proyecto' project.pk %}" class="btn btn-sm btn-ghost" title="Gestionar Miembros"><i class="fas fa-users"></i></a>
                                         {% endif %}
                                         {% if user|has_role:"super-admin,admin,jefe-area" %}
                                         <form method="post" action="{% url 'eliminar_proyecto' project.pk %}" class="d-inline" onsubmit="return confirm('Eliminar {{ project.name }}?')">
@@ -132,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
             {name:'start_date', label:'Fecha Inicio', type:'date'},
             {name:'end_date', label:'Fecha Fin', type:'date'},
             {name:'color', label:'Color', type:'color', default:'#00bcd4'},
-            {name:'members', label:'Miembros del Equipo', type:'checkbox_group', optionsData:'projectUserOptions'},
         ],
         createUrl: '{% url "crear_proyecto" %}',
         editUrl: '/ver_proyectos/',

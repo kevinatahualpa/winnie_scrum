@@ -497,35 +497,88 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = qs ? `/ver_tablero/?${qs}` : '/ver_tablero/';
     }
 
+    var _projectOptions = null;
+    var _assigneeOptions = null;
+
+    function initCascadeState() {
+        var areaSelect = document.getElementById('areaFilter');
+        var projectSelect = document.getElementById('projectFilter');
+        var assigneeSelect = document.getElementById('assigneeFilter');
+        if (!areaSelect || !projectSelect || !assigneeSelect) return;
+
+        _projectOptions = Array.from(projectSelect.querySelectorAll('option'));
+        _assigneeOptions = Array.from(assigneeSelect.querySelectorAll('option'));
+
+        // Initial disabled state: enable downstream selects if they have a value from filters
+        projectSelect.disabled = !areaSelect.value;
+        assigneeSelect.disabled = !projectSelect.value;
+    }
+
     function updateProjectOptions() {
-        const areaSelect = document.getElementById('areaFilter');
-        const projectSelect = document.getElementById('projectFilter');
+        var areaSelect = document.getElementById('areaFilter');
+        var projectSelect = document.getElementById('projectFilter');
         if (!areaSelect || !projectSelect) return;
 
-        const selectedArea = areaSelect.value;
-        const allOptions = Array.from(projectSelect.querySelectorAll('option'));
-        const currentProject = projectSelect.value;
+        var selectedArea = areaSelect.value;
+        var currentProject = projectSelect.value;
 
         projectSelect.innerHTML = '';
 
-        const filtered = allOptions.filter(opt => {
+        var options = _projectOptions || Array.from(projectSelect.querySelectorAll('option'));
+        var filtered = options.filter(function(opt) {
             if (opt.value === '') return true;
             if (!selectedArea) return true;
             return opt.dataset.area === selectedArea;
         });
 
-        filtered.forEach(opt => projectSelect.appendChild(opt));
+        filtered.forEach(function(opt) { projectSelect.appendChild(opt); });
 
-        if (currentProject && projectSelect.querySelector(`option[value="${currentProject}"]`)) {
+        if (currentProject && projectSelect.querySelector('option[value="' + currentProject + '"]')) {
             projectSelect.value = currentProject;
         }
+
+        projectSelect.disabled = !selectedArea && !projectSelect.querySelector('option[value]:not([value=""])');
     }
+
+    function updateAssigneeOptions() {
+        var projectSelect = document.getElementById('projectFilter');
+        var assigneeSelect = document.getElementById('assigneeFilter');
+        if (!projectSelect || !assigneeSelect) return;
+
+        var selectedProject = projectSelect.value;
+        var currentAssignee = assigneeSelect.value;
+
+        assigneeSelect.innerHTML = '';
+
+        var options = _assigneeOptions || Array.from(assigneeSelect.querySelectorAll('option'));
+        var filtered = options.filter(function(opt) {
+            if (opt.value === '') return true;
+            if (!selectedProject) return true;
+            var projects = (opt.dataset.projects || '').split(',').filter(Boolean);
+            return projects.indexOf(selectedProject) !== -1;
+        });
+
+        filtered.forEach(function(opt) { assigneeSelect.appendChild(opt); });
+
+        if (currentAssignee && assigneeSelect.querySelector('option[value="' + currentAssignee + '"]')) {
+            assigneeSelect.value = currentAssignee;
+        }
+
+        assigneeSelect.disabled = !selectedProject;
+    }
+
+    document.addEventListener('DOMContentLoaded', initCascadeState);
 
     document.getElementById('areaFilter')?.addEventListener('change', function() {
         updateProjectOptions();
+        var assigneeSelect = document.getElementById('assigneeFilter');
+        if (assigneeSelect) assigneeSelect.disabled = true;
         applyFilters();
     });
-    document.getElementById('projectFilter')?.addEventListener('change', applyFilters);
+    document.getElementById('projectFilter')?.addEventListener('change', function() {
+        updateAssigneeOptions();
+        applyFilters();
+    });
     document.getElementById('assigneeFilter')?.addEventListener('change', applyFilters);
 
     document.querySelectorAll('.task-card').forEach(function(card) {

@@ -48,6 +48,8 @@ def ver_tablero(request):
 
     areas = Area.objects.filter(status='active')
     projects = filter_queryset_by_role(Project.objects.all(), user, role, model_type='project').distinct()
+    if area_id:
+        projects = projects.filter(area_id=area_id)
 
     if role == 'jefe-area' and profile and profile.area:
         area_id = str(profile.area.id)
@@ -57,19 +59,29 @@ def ver_tablero(request):
     if project_id:
         assignees = User.objects.filter(
             Q(projects__id=project_id) | Q(led_projects__id=project_id)
-        ).distinct().select_related('profile')
+        ).distinct().select_related('profile').prefetch_related('projects', 'led_projects')
     elif area_id:
         assignees = User.objects.filter(
             Q(projects__area_id=area_id) | Q(led_projects__area_id=area_id)
-        ).distinct().select_related('profile')
+        ).distinct().select_related('profile').prefetch_related('projects', 'led_projects')
     else:
         assignees = User.objects.filter(
             Q(projects__id__in=project_ids) | Q(led_projects__id__in=project_ids)
-        ).distinct().select_related('profile')
+        ).distinct().select_related('profile').prefetch_related('projects', 'led_projects')
+
+    # Build data-projects for client-side cascade
+    assignee_opts = []
+    for u in assignees:
+        pids = set()
+        for p in u.projects.all():
+            pids.add(str(p.id))
+        for p in u.led_projects.all():
+            pids.add(str(p.id))
+        assignee_opts.append((u, ','.join(sorted(pids))))
 
     filters = {'area': area_id, 'project': project_id, 'assignee': assignee_id}
 
     return render(request, 'core/board.html', {
         'board_columns': board_columns, 'projects': projects, 'areas': areas,
-        'assignees': assignees, 'filters': filters, 'role': role,
+        'assignee_opts': assignee_opts, 'filters': filters, 'role': role,
     })

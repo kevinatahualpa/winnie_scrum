@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
@@ -145,7 +146,11 @@ def crear_proyecto(request):
                 return redirect('ver_proyectos')
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'object': {'id': project.id, 'name': project.name, 'status': project.status}})
+                return JsonResponse({
+                    'success': True,
+                    'object': {'id': project.id, 'name': project.name, 'status': project.status},
+                    'redirect': reverse('gestionar_miembros_proyecto', kwargs={'pk': project.id}),
+                })
             messages.success(request, f'Proyecto "{project.name}" creado')
             return redirect('ver_proyectos')
         elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':

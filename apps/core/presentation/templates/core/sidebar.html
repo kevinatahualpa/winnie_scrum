@@ -29,7 +29,7 @@
             {% endif %}
             <a href="{% url 'ver_documentos' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_documentos' %}active{% endif %}" aria-label="Documentos"><i class="fas fa-file-alt" aria-hidden="true"></i> Documentos</a>
             {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto,miembro" %}
-            <a href="{% url 'ver_equipo' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_equipo' %}active{% endif %}" aria-label="Usuarios"><i class="fas fa-users" aria-hidden="true"></i> Equipo</a>
+            <a href="{% url 'ver_equipo' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_equipo' %}active{% endif %}" aria-label="Usuarios"><i class="fas fa-user-circle" aria-hidden="true"></i> Usuarios</a>
             {% endif %}
             <a href="{% url 'ver_mensajes' %}" class="nav-link {% if 'mensaje' in request.resolver_match.url_name %}active{% endif %}" aria-label="Mensajes">
                 <i class="fas fa-comment-dots" aria-hidden="true"></i> Mensajes

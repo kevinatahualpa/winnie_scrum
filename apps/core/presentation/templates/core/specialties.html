@@ -9,7 +9,7 @@
         {% include 'core/topbar.html' %}
         <div class="page-content">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0"><i class="fas fa-cogs me-2"></i>Especialidades</h4>
+                <h4 class="mb-0"><i class="fas fa-cogs me-2" style="color:var(--accent);"></i>Especialidades</h4>
                 {% if user|has_role:"super-admin,admin" %}
                 <button class="btn btn-success btn-sm" onclick="openCrudDrawer('specialty')"><i class="fas fa-plus me-1"></i>Nueva Especialidad</button>
                 {% endif %}

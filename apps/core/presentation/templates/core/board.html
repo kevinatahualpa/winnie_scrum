@@ -9,7 +9,8 @@
     <div class="main-area">
         {% include 'core/topbar.html' %}
         <div class="page-content" id="main-content" role="main">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center mb-3 flex-wrap gap-2">
+                <h4 class="mb-0"><i class="fas fa-columns me-2" style="color:var(--accent);"></i>Tablero</h4>
                 <div class="d-flex align-items-center gap-2 flex-wrap" role="toolbar" aria-label="Filtros del tablero">
                     {% if role in 'super-admin,admin' %}
                     <select class="form-select form-select-sm filter-select" id="areaFilter" aria-label="Filtrar por area" style="width:auto;min-width:140px">
@@ -19,17 +20,17 @@
                         {% endfor %}
                     </select>
                     {% endif %}
-                    <select class="form-select form-select-sm filter-select" id="projectFilter" aria-label="Filtrar por proyecto" style="width:auto;min-width:160px">
+                    <select class="form-select form-select-sm filter-select" id="projectFilter" aria-label="Filtrar por proyecto" style="width:auto;min-width:160px" {% if not filters.area %}disabled{% endif %}>
                         <option value="">Todos los proyectos</option>
                         {% for project in projects %}
                         <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
                         {% endfor %}
                     </select>
                     {% if role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
-                    <select class="form-select form-select-sm filter-select" id="assigneeFilter" aria-label="Filtrar por asignado" style="width:auto;min-width:150px">
+                    <select class="form-select form-select-sm filter-select" id="assigneeFilter" aria-label="Filtrar por asignado" style="width:auto;min-width:150px" disabled>
                         <option value="">Todos los asignados</option>
-                        {% for u in assignees %}
-                        <option value="{{ u.id }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                        {% for u, projects_csv in assignee_opts %}
+                        <option value="{{ u.id }}" data-projects="{{ projects_csv }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
                         {% endfor %}
                     </select>
                     {% endif %}
@@ -37,9 +38,11 @@
                     <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-danger" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
                     {% endif %}
                 </div>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 ms-auto">
                 {% if filters.project %}
                 <a href="{% url 'ver_detalle_proyecto' filters.project %}" class="btn btn-sm btn-outline-info" title="Ir al proyecto"><i class="fas fa-external-link-alt me-1"></i>Ver Proyecto</a>
+                {% else %}
+                <button class="btn btn-sm btn-outline-info" disabled title="Selecciona un proyecto para ir"><i class="fas fa-external-link-alt me-1"></i>Ver Proyecto</button>
                 {% endif %}
                 {% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
                 <button class="btn btn-success btn-sm" id="quickTaskBtn" aria-label="Crear nueva tarea"><i class="fas fa-plus me-1" aria-hidden="true"></i>Nueva Tarea</button>
@@ -47,9 +50,9 @@
             </div>
             </div>
 
-            <div class="row g-3" id="board" role="list" aria-label="Columnas del tablero">
+            <div class="row g-3 flex-nowrap overflow-auto pb-2" id="board" role="list" aria-label="Columnas del tablero">
                 {% for status_key, status_label, tasks_list in board_columns %}
-                <div class="col-md-3" role="listitem">
+                <div class="col-md-3 flex-shrink-0" role="listitem" style="min-width:260px;">
                     <div class="card shadow-sm border-0 h-100 column-card" data-status="{{ status_key }}">
                         <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                             <h6 class="fw-semibold mb-0 small">{{ status_label }}</h6>
