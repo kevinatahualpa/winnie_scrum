@@ -45,7 +45,7 @@
                                 <td><span class="badge" style="background:var(--bg);color:var(--text-secondary);font-size:0.65rem;">{{ area.project_count }} proyectos</span></td>
                                 {% if user|has_role:"super-admin,admin" %}
                                 <td class="text-end">
-                                    <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('area', {id:'{{ area.id }}',name:'{{ area.name|escapejs }}',code:'{{ area.code }}',color:'{{ area.color }}',icon:'{{ area.icon }}',description:'{{ area.description|escapejs }}'})" title="Editar"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-ghost" onclick="openCrudDrawer('area', {id:'{{ area.id }}',name:'{{ area.name|escapejs }}',code:'{{ area.code }}',color:'{{ area.color }}',icon:'{{ area.icon }}',description:'{{ area.description|escapejs }}',status:'{{ area.status }}'})" title="Editar"><i class="fas fa-edit"></i></button>
                                     <form method="post" action="{% url 'eliminar_area' area.id %}" class="d-inline" onsubmit="return confirm('Eliminar {{ area.name }}?')">
                                         {% csrf_token %}
                                         <button class="btn btn-sm btn-ghost text-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {name: 'description', label: 'Descripcion', type: 'textarea'},
             {name: 'color', label: 'Color', type: 'color', default: '#00bcd4'},
             {name: 'icon', label: 'Icono (FontAwesome)', type: 'text', default: 'fa-building'},
+            {name: 'status', label: 'Estado', type: 'select', options: [{value:'active',label:'Activa'},{value:'inactive',label:'Inactiva'}], default: 'active'},
         ],
         createUrl: '{% url "crear_area" %}',
         editUrl: '/ver_areas/',

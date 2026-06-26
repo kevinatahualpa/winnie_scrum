@@ -99,25 +99,31 @@
 .cal-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
     align-items: center;
 }
 .cal-legend-item {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.68rem;
-    color: var(--text-secondary);
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text);
+    font-weight: 500;
+}
+.cal-legend-item + .cal-legend-item {
+    margin-left: 1.2rem;
+    padding-left: 1.2rem;
+    border-left: 1px solid var(--border);
 }
 .cal-legend-dot {
-    width: 8px;
-    height: 8px;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
     border-radius: 2px;
     flex-shrink: 0;
 }
 .cal-legend-icon {
-    font-size: 0.6rem;
-    opacity: 0.6;
+    font-size: 0.72rem;
+    opacity: 0.7;
 }
 
 /* Drawer */

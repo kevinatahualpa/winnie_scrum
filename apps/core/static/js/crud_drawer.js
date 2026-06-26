@@ -110,11 +110,11 @@ function openCrudDrawer(entity, data) {
         html += '    </div>';
     });
 
+    html += '    <div class="d-flex justify-content-end gap-2 p-3 border-top">';
+    html += '      <button type="button" class="btn btn-sm btn-ghost" onclick="closeCrudDrawer()">Cancelar</button>';
+    html += '      <button type="submit" class="btn btn-sm btn-success" id="crudDrawerSubmit"><i class="fas fa-save me-1"></i> Guardar</button>';
+    html += '    </div>';
     html += '  </form>';
-    html += '</div>';
-    html += '<div class="d-flex justify-content-end gap-2 p-3 border-top">';
-    html += '  <button type="button" class="btn btn-sm btn-ghost" onclick="closeCrudDrawer()">Cancelar</button>';
-    html += '  <button type="submit" form="crudDrawerForm" class="btn btn-sm btn-success" id="crudDrawerSubmit"><i class="fas fa-save me-1"></i> Guardar</button>';
     html += '</div>';
 
     // Fix gender for 'Nuevo/Nueva'
@@ -140,8 +140,11 @@ function openCrudDrawer(entity, data) {
     }, 200);
 
     var form = document.getElementById('crudDrawerForm');
-    if (form) {
-        form.onsubmit = function(e) {
+    if (!form) {
+        console.error('crudDrawer: form#crudDrawerForm not found in DOM');
+        return;
+    }
+    form.onsubmit = function(e) {
             e.preventDefault();
             var btn = document.getElementById('crudDrawerSubmit');
             btn.disabled = true;
@@ -176,26 +179,37 @@ function openCrudDrawer(entity, data) {
                 },
                 body: formData
             })
-            .then(function(r) { return r.json(); })
+            .then(function(r) {
+                if (!r.ok) {
+                    return r.text().then(function(t) {
+                        throw new Error('HTTP ' + r.status + ': ' + (t || '').substring(0, 200));
+                    });
+                }
+                return r.json();
+            })
             .then(function(data) {
                 if (data.success) {
                     closeCrudDrawer();
-                    showToast(config.label + (isEdit ? ' actualizad' : ' cread') + (fem.indexOf(config.label) !== -1 ? 'a' : 'o'), 'success');
+                    var msg = config.label + (isEdit ? ' actualizad' : ' cread') + (fem.indexOf(config.label) !== -1 ? 'a' : 'o');
+                    if (typeof showToast === 'function') showToast(msg, 'success');
                     setTimeout(function() {
                         if (data.redirect) { window.location.href = data.redirect; }
                         else { location.reload(); }
                     }, 500);
                 } else {
-                    showToast(data.errors ? flattenErrors(data.errors) : (data.error || 'Error'), 'error');
+                    var errMsg = data.errors ? flattenErrors(data.errors) : (data.error || 'Error desconocido');
+                    if (typeof showToast === 'function') showToast(errMsg, 'error');
                 }
             })
-            .catch(function() { showToast('Error de conexion', 'error'); })
+            .catch(function(err) {
+                var msg = err.message || 'Error de conexion';
+                if (typeof showToast === 'function') showToast(msg, 'error');
+            })
             .finally(function() {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save me-1"></i> Guardar';
             });
         };
-    }
 }
 
 function closeCrudDrawer() {

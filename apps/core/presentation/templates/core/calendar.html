@@ -51,28 +51,7 @@
                 <div class="cal-drawer-body" id="calDrawerBody"></div>
             </div>
 
-            <!-- Eventos del Mes -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0">Eventos del Mes</h6>
-                </div>
-                <div class="card-body p-0">
-                    {% for event in events|dictsort:"date" %}
-                    <div class="event-row">
-                        <div class="event-color" style="background:{{ event.color }}"></div>
-                        <i class="fas {{ event.icon }} event-type-icon" title="{{ event.label }}"></i>
-                        <div class="event-info">
-                            <div class="event-title">{{ event.title }}</div>
-                            {% if event.project %}<div class="event-project">{{ event.project }}</div>{% endif %}
-                        </div>
-                        <span class="event-label-tag">{{ event.label }}</span>
-                        <div class="event-date">{{ event.date }}</div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center text-secondary py-4"><small>Sin eventos este mes</small></div>
-                    {% endfor %}
-                </div>
-            </div>
+
         </div>
     </div>
 </div>
