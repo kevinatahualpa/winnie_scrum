@@ -11,8 +11,19 @@
                 <h4 class="mb-0"><i class="fas fa-calendar-alt me-2" style="color:var(--accent);"></i>{{ month_name }} {{ year }}</h4>
                 <div class="d-flex gap-2">
                     <a href="?year={% if month == 1 %}{{ year|add:"-1" }}{% else %}{{ year }}{% endif %}&month={% if month == 1 %}12{% else %}{{ month|add:"-1" }}{% endif %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
-                    <a href="?year={{ year }}&month={{ month|add:"1" }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+                    <a href="?year={% if month == 12 %}{{ year|add:"1" }}{% else %}{{ year }}{% endif %}&month={% if month == 12 %}1{% else %}{{ month|add:"1" }}{% endif %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+                    <a href="?" class="btn btn-outline-secondary btn-sm" title="Ir a hoy">Hoy</a>
                 </div>
+            </div>
+
+            <!-- Leyenda -->
+            <div class="cal-legend mb-3">
+                {% for t in event_types %}
+                <span class="cal-legend-item">
+                    <span class="cal-legend-dot" style="background:{{ t.color }}"></span>
+                    <i class="fas {{ t.icon }} cal-legend-icon"></i> {{ t.label }}
+                </span>
+                {% endfor %}
             </div>
 
             <div class="card">
@@ -30,6 +41,17 @@
                 </div>
             </div>
 
+            <!-- Drawer de eventos del día -->
+            <div class="cal-drawer-overlay" id="calDrawerOverlay" onclick="closeCalDrawer()"></div>
+            <div class="cal-drawer" id="calDrawer">
+                <div class="drawer-header">
+                    <h6 class="mb-0" id="calDrawerTitle"></h6>
+                    <button type="button" class="btn-close-drawer" onclick="closeCalDrawer()" aria-label="Cerrar">&times;</button>
+                </div>
+                <div class="cal-drawer-body" id="calDrawerBody"></div>
+            </div>
+
+            <!-- Eventos del Mes -->
             <div class="card mt-3">
                 <div class="card-header">
                     <h6 class="mb-0">Eventos del Mes</h6>
@@ -38,10 +60,12 @@
                     {% for event in events|dictsort:"date" %}
                     <div class="event-row">
                         <div class="event-color" style="background:{{ event.color }}"></div>
+                        <i class="fas {{ event.icon }} event-type-icon" title="{{ event.label }}"></i>
                         <div class="event-info">
                             <div class="event-title">{{ event.title }}</div>
-                            <div class="event-project">{{ event.project }}</div>
+                            {% if event.project %}<div class="event-project">{{ event.project }}</div>{% endif %}
                         </div>
+                        <span class="event-label-tag">{{ event.label }}</span>
                         <div class="event-date">{{ event.date }}</div>
                     </div>
                     {% empty %}
@@ -56,6 +80,7 @@
 {% block extra_css %}
 <link href="{% static 'css/calendar.css' %}" rel="stylesheet">
 {% endblock %}
+{% endblock %}
 
 {% block extra_js %}
 {{ events|json_script:"calendar-events-data" }}
@@ -65,5 +90,4 @@ window.calendarYear = {{ year }};
 window.calendarMonth = {{ month }};
 </script>
 <script src="{% static 'js/calendar.js' %}"></script>
-{% endblock %}
 {% endblock %}
