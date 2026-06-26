@@ -33,5 +33,5 @@ SECURE_CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net",
 SECURE_CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
 SECURE_CSP_IMG_SRC = ("'self'", "data:", "blob:", "https://pub-069cf22e3b994ff890598d2754897279.r2.dev")
 SECURE_CSP_CONNECT_SRC = ("'self'",)
-SECURE_CSP_FRAME_SRC = ("'none'",)
+SECURE_CSP_FRAME_SRC = ("'self'",)
 SECURE_CSP_OBJECT_SRC = ("'none'",)
