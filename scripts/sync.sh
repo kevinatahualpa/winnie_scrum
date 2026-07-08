@@ -13,7 +13,7 @@ DB_NAME="${DB_NAME:-winnie_db}"
 DB_USER="${DB_USER:-winnie_user}"
 DB_PASSWORD="${DB_PASSWORD:-winnie69112}"
 DB_HOST="${DB_HOST:-localhost}"
-DUMP="backups/winnie_backup.sql"
+DUMP="backups/winnie_backup.dump"
 ENC_ITER=200000
 
 usage() {
@@ -25,10 +25,10 @@ usage() {
 
 case "$1" in
   push)
-    echo ">> Volcando base de datos $DB_NAME ..."
+    echo ">> Volcando base de datos $DB_NAME (formato comprimido) ..."
     mkdir -p backups
     PGPASSWORD="$DB_PASSWORD" pg_dump -U "$DB_USER" -h "$DB_HOST" -d "$DB_NAME" \
-      --no-owner --no-privileges -f "$DUMP"
+      --no-owner --no-privileges -Fc -f "$DUMP"
 
     echo ">> Cifrando .env y dump (te pedira tu contrasena) ..."
     rm -f .env.enc "${DUMP}.enc"
@@ -58,7 +58,8 @@ case "$1" in
     sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
 
     echo ">> Cargando datos ..."
-    PGPASSWORD="$DB_PASSWORD" psql -U "$DB_USER" -h "$DB_HOST" -d "$DB_NAME" -f "$DUMP"
+    PGPASSWORD="$DB_PASSWORD" pg_restore -U "$DB_USER" -h "$DB_HOST" -d "$DB_NAME" \
+      --no-owner --no-privileges -j 4 "$DUMP"
     echo ">> Listo. Proyecto y datos actualizados."
     ;;
 

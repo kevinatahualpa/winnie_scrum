@@ -1,0 +1,80 @@
+========================================================
+  WINNIE - COMO TRASLADAR EL PROYECTO ENTRE PCs
+========================================================
+
+IDEA GENERAL:
+  - El CODIGO viaja por git normal.
+  - Lo SECRETO (.env con tus API keys + la base de datos)
+    viaja CIFRADO en archivos .enc dentro del repo.
+  - La contrasena de cifrado la elegiste tu. NO esta guardada
+    en ningun lado. Debe ser la MISMA en todas las PCs.
+    Si la olvidas, los .enc no se pueden abrir.
+
+--------------------------------------------------------
+  ENVIAR CAMBIOS  (en la PC donde trabajaste)
+--------------------------------------------------------
+  wpush
+     (alias de: ./scripts/sync.sh push)
+
+  Esto hace automaticamente:
+    1. Vuelca (dump comprimido -Fc) la base de datos
+    2. Cifra .env y el dump  -> te pide tu contrasena
+    3. git add + commit + push
+
+--------------------------------------------------------
+  RECIBIR CAMBIOS  (en la otra PC)
+--------------------------------------------------------
+  wpull
+     (alias de: ./scripts/sync.sh pull)
+
+  Esto hace automaticamente:
+    1. git pull
+    2. Descifra .env y el dump  -> te pide tu contrasena
+    3. Recrea la base de datos LIMPIA y carga los datos
+       con pg_restore (usa sudo para postgres)
+
+--------------------------------------------------------
+  PRIMERA VEZ EN UNA PC NUEVA (setup inicial)
+--------------------------------------------------------
+  1) Clonar:
+       git clone git@github.com:kevinatahualpa/winnie_scrum.git
+       cd winnie_scrum
+
+  2) Entorno virtual + dependencias:
+       python3 -m venv venv
+       source venv/bin/activate
+       pip install -r requirements.txt
+
+  3) Traer secretos y base de datos:
+       ./scripts/sync.sh pull      (te pide tu contrasena)
+
+  4) Arrancar el servidor:
+       python manage.py runserver
+       -> http://127.0.0.1:8000/
+
+  NOTA: los alias wpush/wpull ya estan en ~/.zshrc de esta PC.
+        En una PC nueva, agregalos con:
+          alias wpush='cd <ruta-proyecto> && ./scripts/sync.sh push'
+          alias wpull='cd <ruta-proyecto> && ./scripts/sync.sh pull'
+
+--------------------------------------------------------
+  DATOS UTILES
+--------------------------------------------------------
+  Repo:        git@github.com:kevinatahualpa/winnie_scrum.git
+  Base datos:  winnie_db
+  Usuario BD:  winnie_user
+  Password BD: winnie69112   (esta dentro del .env)
+
+  Login de desarrollo:
+    super@gmail.com / 123456   (Super Admin)
+    admin@gmail.com / 123456   (Admin)
+
+--------------------------------------------------------
+  NOTAS
+--------------------------------------------------------
+  - Requisitos en cada PC: python3, postgresql, openssl, git.
+  - "pull" BORRA y recrea la base winnie_db (queda igual al
+    origen). No lo uses si tienes datos locales sin guardar.
+  - Nunca subas .env ni el .sql sin cifrar: ya estan ignorados
+    por git. Solo los .enc se suben.
+========================================================
