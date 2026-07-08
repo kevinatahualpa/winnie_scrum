@@ -165,7 +165,7 @@
                     <button type="button" id="rejectBtn" class="btn btn-outline-danger">
                         <i class="fas fa-times me-1"></i> Rechazar
                     </button>
-                    <button type="button" id="approveBtn" class="btn btn-success">
+                    <button type="button" id="approveBtn" class="btn btn-primary">
                         <i class="fas fa-check me-1"></i> Aprobar
                     </button>
                 </div>
@@ -216,23 +216,23 @@
     display: flex; align-items: center; gap: 0.75rem;
     padding: 0.7rem 1.1rem;
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--surface-1);
     flex-shrink: 0;
     z-index: 10;
 }
 .btn-close-drawer {
-    background: none; border: none; color: var(--text-secondary);
+    background: none; border: none; color: var(--text-muted);
     width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
     transition: all 0.12s; flex-shrink: 0;
 }
-.btn-close-drawer:hover { background: var(--border); color: var(--text); }
+.btn-close-drawer:hover { background: var(--border); color: var(--text-primary); }
 
 /* ============================================
    ZONA 2: PERFIL DECLARADO - BARRA HORIZONTAL FIJA
    ============================================ */
 .drawer-profile-bar {
     flex-shrink: 0;
-    background: var(--surface);
+    background: var(--surface-1);
     border-bottom: 2px solid var(--border);
     padding: 0.65rem 1.1rem;
     z-index: 9;
@@ -271,7 +271,7 @@
     text-transform: uppercase; letter-spacing: 0.03em;
 }
 .pb-value {
-    font-size: 0.78rem; font-weight: 500; color: var(--text);
+    font-size: 0.78rem; font-weight: 500; color: var(--text-primary);
     white-space: nowrap;
 }
 
@@ -286,7 +286,7 @@
 .pb-links a {
     display: flex; align-items: center; justify-content: center;
     width: 28px; height: 28px;
-    color: var(--text-secondary); background: var(--bg);
+    color: var(--text-secondary); background: var(--surface-0);
     border: 1px solid var(--border); border-radius: 6px;
     text-decoration: none; font-size: 0.8rem;
     transition: all 0.12s;
@@ -313,7 +313,7 @@
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--surface-0);
     min-height: 0;
 }
 .drawer-left-scroll {
@@ -324,7 +324,7 @@
 .drawer-left-footer {
     flex: 0 0 auto;
     border-top: 2px solid var(--border);
-    background: var(--surface);
+    background: var(--surface-1);
     padding: 0.7rem 1rem 0.85rem;
     box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
 }
@@ -365,7 +365,7 @@
    ============================================ */
 .cl-collapse-panel {
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--surface-0);
 }
 .cl-collapse-panel .cl-title {
     font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);
@@ -377,7 +377,7 @@
     transition: background 0.12s;
 }
 .cl-collapse-panel .cl-title:hover {
-    background: var(--surface);
+    background: var(--surface-1);
 }
 .cl-collapse-panel .toggle-icon {
     font-size: 0.65rem; color: var(--text-secondary);
@@ -398,7 +398,7 @@
     display: flex; align-items: flex-start; gap: 0.6rem;
     padding: 0.55rem 0.65rem; margin-bottom: 0.4rem;
     border: 1px solid var(--border); border-radius: 6px;
-    background: var(--bg); cursor: pointer; transition: all 0.12s;
+    background: var(--surface-0); cursor: pointer; transition: all 0.12s;
     position: relative;
 }
 .cl-item:hover { border-color: var(--accent); }
@@ -434,7 +434,7 @@
     padding: 0.15rem 0.55rem; border-radius: 10px; font-size: 0.7rem; font-weight: 600;
 }
 .score-pill.ready { background: var(--success); color: #fff; }
-.score-pill.warn { background: #f57f17; color: #fff; }
+.score-pill.warn { background: var(--warning); color: #fff; }
 
 /* ============================================
    COLUMNA DERECHA: PDF viewer
@@ -443,24 +443,24 @@
 .pdf-toolbar {
     display: flex; align-items: center; justify-content: space-between;
     padding: 0.5rem 1rem; border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--surface-0);
     flex-shrink: 0;
 }
 .pdf-title { font-size: 0.85rem; font-weight: 500; }
 .pdf-actions { display: flex; align-items: center; gap: 0.3rem; }
 .pdf-zoom { font-size: 0.75rem; color: var(--text-secondary); min-width: 40px; text-align: center; }
 .pdf-viewport {
-    flex: 1; min-height: 0; position: relative; background: #1e293b;
+    flex: 1; min-height: 0; position: relative; background: var(--surface-2);
     overflow: auto;
 }
-#pdfFrame { width: 100%; height: 100%; border: none; background: #fff; }
+#pdfFrame { width: 100%; height: 100%; border: none; background: var(--surface-1); }
 .pdf-empty {
     height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--text-secondary);
 }
 .pdf-viewport.fullscreen {
     position: fixed; inset: 0; z-index: 10000;
-    background: #1e293b;
+    background: var(--surface-2);
 }
 .pdf-viewport.fullscreen #pdfFrame { height: 100vh; }
 
@@ -491,7 +491,7 @@
     display: inline-flex; align-items: center; gap: 0.25rem;
     padding: 0.22rem 0.5rem; font-size: 0.66rem;
     font-weight: 500; border: 1px solid rgba(99,102,241,0.3);
-    color: #6366f1; background: rgba(99,102,241,0.06);
+    color: var(--accent); background: var(--accent-soft);
     border-radius: 4px; cursor: pointer;
     transition: all 0.15s; white-space: nowrap;
 }
@@ -506,7 +506,7 @@
    ============================================ */
 #aiResult h6 {
     font-size: 0.75rem; font-weight: 600;
-    color: #6366f1; margin: 0 0 0.3rem 0;
+    color: var(--accent); margin: 0 0 0.3rem 0;
 }
 #aiResult .ai-section {
     margin-bottom: 0.3rem;
@@ -535,7 +535,7 @@
 .btn-ai-action {
     padding: 0.18rem 0.45rem; font-size: 0.65rem;
     border-radius: 4px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--text-secondary);
+    background: var(--surface-1); color: var(--text-secondary);
     cursor: pointer; transition: all 0.12s;
 }
 .btn-ai-action:hover {

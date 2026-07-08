@@ -3,15 +3,15 @@
 {% load role_tags %}
 {% block title %}Areas - Winnie{% endblock %}
 {% block body %}
-<div class="app-layout">
+<div class="app-layout density-low">
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
         <div class="page-content">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0"><i class="fas fa-sitemap me-2" style="color:var(--accent);"></i>Areas</h4>
+                <h4 class="mb-0"><i class="fas fa-sitemap me-2 text-primary"></i>Areas</h4>
                 {% if user|has_role:"super-admin,admin" %}
-                <button class="btn btn-success btn-sm" onclick="openCrudDrawer('area')"><i class="fas fa-plus me-1"></i>Nueva Area</button>
+                <button class="btn btn-primary btn-sm" onclick="openCrudDrawer('area')"><i class="fas fa-plus me-1"></i>Nueva Area</button>
                 {% endif %}
             </div>
 
@@ -35,14 +35,14 @@
                             {% for area in areas %}
                             <tr>
                                 <td>
-                                    <div class="entity-icon" style="background:{{ area.color }};color:#fff;font-weight:600;">{{ area.name|first|upper }}</div>
+                                    <div class="entity-icon text-white fw-semibold" style="background:{{ area.color }}">{{ area.name|first|upper }}</div>
                                 </td>
                                 <td>
                                     <div class="fw-medium" style="font-size:0.8rem;">{{ area.name }}</div>
                                 </td>
                                 <td><code style="font-size:0.75rem;">{{ area.code }}</code></td>
                                 <td><small class="text-muted">{{ area.description|truncatechars:80|default:"-" }}</small></td>
-                                <td><span class="badge" style="background:var(--bg);color:var(--text-secondary);font-size:0.65rem;">{{ area.project_count }} proyectos</span></td>
+                                <td><span class="badge" style="background:var(--surface-0);color:var(--text-secondary);font-size:0.65rem;">{{ area.project_count }} proyectos</span></td>
                                 {% if user|has_role:"super-admin,admin" %}
                                 <td>
                                     <div class="d-flex gap-1 justify-content-end">
@@ -62,7 +62,7 @@
             </div>
             {% else %}
             <div class="text-center py-5">
-                <i class="fas fa-sitemap fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                <i class="fas fa-sitemap fa-3x mb-3 d-block text-muted"></i>
                 <h6 class="text-muted">Sin areas</h6>
             </div>
             {% endif %}

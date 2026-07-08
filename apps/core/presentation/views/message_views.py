@@ -98,18 +98,19 @@ def ver_conversacion(request, user_id):
 
     Message.objects.filter(sender=partner, receiver=current, read=False).update(read=True)
 
-    users = User.objects.filter(is_active=True, profile__status='active').exclude(id=current.id).select_related('profile').order_by('first_name')
+    if request.headers.get('HX-Request') == 'true':
+        return render(request, 'core/chat_panel.html', {
+            'partner': partner, 'messages_list': msgs,
+            'chat_type': 'dm', 'chat_id': partner.id,
+        })
 
-    projects = filter_queryset_by_role(
-        Project.objects.filter(status='active'), current, model_type='project'
-    ).order_by('name')
+    users = User.objects.filter(is_active=True, profile__status='active').exclude(id=current.id).select_related('profile').order_by('first_name')
+    projects = filter_queryset_by_role(Project.objects.filter(status='active'), current, model_type='project').order_by('name')
 
     return render(request, 'core/messages_inbox.html', {
         'threads': _get_threads(current),
-        'partner': partner,
-        'messages_list': msgs,
-        'users': users,
-        'projects': projects,
+        'partner': partner, 'messages_list': msgs,
+        'users': users, 'projects': projects,
     })
 
 
@@ -123,6 +124,16 @@ def ver_conversacion_proyecto(request, project_id):
     )
 
     comments = Comment.objects.filter(project=proyecto).select_related('author').order_by('created_at')
+
+    if request.headers.get('HX-Request') == 'true':
+        return render(request, 'core/chat_panel.html', {
+            'messages_list': [
+                {'sender': c.author, 'subject': '', 'body': c.text, 'created_at': c.created_at}
+                for c in comments
+            ],
+            'chat_type': 'project', 'chat_id': proyecto.id,
+            'project_chat': proyecto,
+        })
 
     users = User.objects.filter(
         is_active=True, profile__status='active'
@@ -202,6 +213,10 @@ def enviar_mensaje(request):
     )
 
     messages.success(request, f'Mensaje enviado a {receiver.get_full_name() or receiver.username}')
+
+    if request.headers.get('HX-Request') == 'true':
+        return ver_conversacion_fragment(request, receiver.id)
+
     if next_url and url_has_allowed_host_and_scheme(
         next_url,
         allowed_hosts={request.get_host()},
@@ -209,3 +224,47 @@ def enviar_mensaje(request):
     ):
         return redirect(next_url)
     return redirect('ver_conversacion', user_id=receiver.id)
+
+
+def ver_conversacion_fragment(request, user_id):
+    """HTMX fragment — returns only the DM chat messages HTML."""
+    partner = get_object_or_404(User, pk=user_id)
+    user = request.user
+
+    messages_list = Message.objects.filter(
+        Q(sender=user, receiver=partner) | Q(sender=partner, receiver=user)
+    ).select_related('sender', 'receiver').order_by('created_at')
+
+    Message.objects.filter(sender=partner, receiver=user, read=False).update(read=True)
+
+    return render(request, 'core/chat_messages_partial.html', {
+        'messages_list': messages_list,
+    })
+
+
+def ver_conversacion_proyecto_fragment(request, project_id):
+    """HTMX fragment — returns only the project chat comments HTML."""
+    project = get_object_or_404(Project, pk=project_id)
+    user = request.user
+    role = get_user_role(user)
+
+    available = filter_queryset_by_role(
+        Project.objects.filter(pk=project_id), user, role, model_type='project'
+    )
+    if not available.exists():
+        return render(request, 'core/chat_messages_partial.html', {'messages_list': []})
+
+    comments = Comment.objects.filter(project=project).select_related('author').order_by('created_at')
+
+    messages_data = []
+    for c in comments:
+        messages_data.append({
+            'sender': c.author,
+            'subject': '',
+            'body': c.text,
+            'created_at': c.created_at,
+        })
+
+    return render(request, 'core/chat_messages_partial.html', {
+        'messages_list': messages_data,
+    })

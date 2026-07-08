@@ -7,7 +7,7 @@ from .views import (
     ver_reportes, ver_auditoria, ver_perfil, actualizar_estado_tarea, crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea,
     ver_backlog, ver_sprints, ver_documentos, ver_tiempo, ver_calendario,
     ver_pendientes, ver_configuracion, crear_sprint, iniciar_sprint,
-    completar_sprint, registrar_tiempo, subir_documento,
+    completar_sprint, seleccionar_tareas_sprint, editar_sprint, registrar_tiempo, subir_documento,
     crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto,
     registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_usuarios_desactivados,
     crear_area, editar_area, eliminar_area,
@@ -22,10 +22,11 @@ from .views import (
     subir_documento_proyecto, eliminar_documento_proyecto,
     verificar_salud, verificar_disponibilidad,
     ver_mensajes, ver_conversacion, ver_conversacion_proyecto, enviar_mensaje, buscar_usuarios,
+    ver_conversacion_fragment, ver_conversacion_proyecto_fragment,
     ver_portal_cliente, ver_detalle_proyecto_cliente, crear_solicitud_cliente,
     gestionar_miembros_proyecto,
     ver_archivados, restaurar,
-    reordenar_backlog,
+    reordenar_backlog, task_json, sprints_por_proyecto,
 )
 from .views.wizard_views import (
     registro_paso1, registro_paso2, registro_paso3, registro_cancelar,
@@ -39,6 +40,8 @@ from .views.client_views import (
     ver_clientes, crear_cliente, editar_cliente, eliminar_cliente,
     client_detail, client_create_user, client_reset_password,
 )
+from .views.ai_chat_view import winnie_ai_chat
+from .views.board_views import ver_tablero_fragment
 
 urlpatterns = [
     path('iniciar_sesion/', iniciar_sesion, name='iniciar_sesion'),
@@ -61,6 +64,7 @@ urlpatterns = [
     path('ver_proyectos/<int:pk>/document/<int:doc_pk>/delete/', eliminar_documento_proyecto, name='eliminar_documento_proyecto'),
     path('ver_proyectos/<int:pk>/miembros/', gestionar_miembros_proyecto, name='gestionar_miembros_proyecto'),
     path('ver_tablero/', ver_tablero, name='ver_tablero'),
+    path('ver_tablero/fragment/', ver_tablero_fragment, name='ver_tablero_fragment'),
     path('ver_backlog/', ver_backlog, name='ver_backlog'),
     path('ver_sprints/', ver_sprints, name='ver_sprints'),
     path('ver_usuarios/', ver_usuarios, name='ver_usuarios'),
@@ -121,8 +125,12 @@ urlpatterns = [
     path('task/<int:pk>/field/', actualizar_campo_tarea, name='actualizar_campo_tarea'),
     path('task/<int:pk>/status/', actualizar_estado_tarea, name='actualizar_estado_tarea'),
     path('task/<int:task_pk>/comment/', comentar_tarea, name='comentar_tarea'),
+    path('task/<int:pk>/json/', task_json, name='task_json'),
+    path('api/sprints/<int:project_id>/', sprints_por_proyecto, name='sprints_por_proyecto'),
     path('sprint/create/', crear_sprint, name='crear_sprint'),
+    path('sprint/<int:pk>/select/', seleccionar_tareas_sprint, name='seleccionar_tareas_sprint'),
     path('sprint/<int:pk>/start/', iniciar_sprint, name='iniciar_sprint'),
+    path('sprint/<int:pk>/edit/', editar_sprint, name='editar_sprint'),
     path('sprint/<int:pk>/complete/', completar_sprint, name='completar_sprint'),
     path('time-entry/create/', registrar_tiempo, name='registrar_tiempo'),
     path('document/upload/', subir_documento, name='subir_documento'),
@@ -136,8 +144,11 @@ urlpatterns = [
     path('mensajes/<int:user_id>/', ver_conversacion, name='ver_conversacion'),
     path('mensajes/proyecto/<int:project_id>/', ver_conversacion_proyecto, name='ver_conversacion_proyecto'),
     path('mensajes/enviar/', enviar_mensaje, name='enviar_mensaje'),
+    path('mensajes/<int:user_id>/load/', ver_conversacion_fragment, name='ver_conversacion_fragment'),
+    path('mensajes/proyecto/<int:project_id>/load/', ver_conversacion_proyecto_fragment, name='ver_conversacion_proyecto_fragment'),
     path('api/buscar-usuarios/', buscar_usuarios, name='buscar_usuarios'),
     path('portal/', ver_portal_cliente, name='ver_portal_cliente'),
     path('portal/proyecto/<int:pk>/', ver_detalle_proyecto_cliente, name='ver_detalle_proyecto_cliente'),
     path('portal/solicitud/nueva/', crear_solicitud_cliente, name='crear_solicitud_cliente'),
+    path('api/ai/chat/', winnie_ai_chat, name='winnie_ai_chat'),
 ]

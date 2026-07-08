@@ -2,15 +2,15 @@ from .auth_views import iniciar_sesion, cerrar_sesion, registrarse
 from .archived_views import ver_archivados, restaurar
 from .dashboard_views import ver_dashboard
 from .project_views import ver_proyectos, ver_detalle_proyecto, crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto
-from .task_views import crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea, actualizar_estado_tarea, comentar_tarea
-from .sprint_views import ver_sprints, crear_sprint, iniciar_sprint, completar_sprint
+from .task_views import crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea, actualizar_estado_tarea, comentar_tarea, task_json, sprints_por_proyecto
+from .sprint_views import ver_sprints, crear_sprint, iniciar_sprint, completar_sprint, seleccionar_tareas_sprint, editar_sprint
 from .team_views import ver_usuarios, registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_usuarios_desactivados
 from .area_views import ver_areas, crear_area, editar_area, eliminar_area
 from .specialty_views import ver_especialidades, crear_especialidad, editar_especialidad, eliminar_especialidad
 from .technology_views import ver_tecnologias, crear_tecnologia, editar_tecnologia, eliminar_tecnologia
 from .client_views import ver_clientes, crear_cliente, editar_cliente, eliminar_cliente
 from .service_views import ver_servicios, crear_servicio, editar_servicio, eliminar_servicio
-from .board_views import ver_tablero
+from .board_views import ver_tablero, ver_tablero_fragment
 from .backlog_views import ver_backlog, reordenar_backlog
 from .document_views import ver_documentos, subir_documento, eliminar_documento, subir_documento_proyecto, eliminar_documento_proyecto
 from .time_tracking_views import ver_tiempo, registrar_tiempo
@@ -24,7 +24,7 @@ from .substitution_views import ver_suplencias, crear_suplencia, desactivar_supl
 from .registration_views import ver_pendientes, aprobar_registro, rechazar_registro
 from .settings_views import ver_configuracion
 from .health_views import verificar_salud, verificar_disponibilidad
-from .message_views import ver_mensajes, ver_conversacion, ver_conversacion_proyecto, enviar_mensaje, buscar_usuarios
+from .message_views import ver_mensajes, ver_conversacion, ver_conversacion_proyecto, enviar_mensaje, buscar_usuarios, ver_conversacion_fragment, ver_conversacion_proyecto_fragment
 from .client_portal_views import ver_portal_cliente, ver_detalle_proyecto_cliente, crear_solicitud_cliente
 from .project_views import gestionar_miembros_proyecto
 
@@ -33,8 +33,8 @@ __all__ = [
     'ver_archivados', 'restaurar',
     'ver_dashboard',
     'ver_proyectos', 'ver_detalle_proyecto', 'crear_proyecto', 'editar_proyecto', 'eliminar_proyecto', 'comentar_proyecto',
-    'crear_tarea', 'crear_tarea_rapida', 'actualizar_campo_tarea', 'editar_tarea', 'eliminar_tarea', 'actualizar_estado_tarea', 'comentar_tarea',
-    'ver_sprints', 'crear_sprint', 'iniciar_sprint', 'completar_sprint',
+    'crear_tarea', 'crear_tarea_rapida', 'actualizar_campo_tarea', 'editar_tarea', 'eliminar_tarea', 'actualizar_estado_tarea', 'comentar_tarea', 'task_json', 'sprints_por_proyecto',
+    'ver_sprints', 'crear_sprint', 'iniciar_sprint', 'completar_sprint', 'seleccionar_tareas_sprint', 'editar_sprint',
     'ver_usuarios', 'registrar_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'ver_usuarios_desactivados',
     'ver_areas', 'crear_area', 'editar_area', 'eliminar_area',
     'ver_especialidades', 'crear_especialidad', 'editar_especialidad', 'eliminar_especialidad',
@@ -56,5 +56,6 @@ __all__ = [
     'ver_configuracion',
     'verificar_salud', 'verificar_disponibilidad',
     'ver_mensajes', 'ver_conversacion', 'ver_conversacion_proyecto', 'enviar_mensaje', 'buscar_usuarios',
+    'ver_conversacion_fragment', 'ver_conversacion_proyecto_fragment',
     'ver_portal_cliente', 'ver_detalle_proyecto_cliente', 'crear_solicitud_cliente',
 ]

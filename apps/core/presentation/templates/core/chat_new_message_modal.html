@@ -1,0 +1,36 @@
+<div class="modal fade" id="newMessageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold small">Nuevo Mensaje</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <select id="filterProject" class="form-select form-select-sm mb-2" style="font-size: 0.7rem;">
+                    <option value="">Todos los proyectos</option>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" id="userSearch" class="form-control form-control-sm mb-2" placeholder="Buscar usuario..." style="font-size: 0.7rem;">
+                <div id="userResults" class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                    {% for u in users %}
+                    <a href="{% url 'ver_conversacion' u.id %}" class="list-group-item list-group-item-action border-0 d-flex align-items-center gap-2 py-2 px-0">
+                        {% if u.profile.avatar %}
+                        <img src="{{ u.profile.avatar.url }}" alt="" class="rounded-circle flex-shrink-0" style="width: 32px; height: 32px; object-fit: cover;">
+                        {% else %}
+                        <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 32px; height: 32px; background: {{ u.profile.color|default:'#00bcd4' }}; font-size: 11px;">
+                            {{ u.profile.initials|default:u.username|slice:":2"|upper }}
+                        </div>
+                        {% endif %}
+                        <div class="min-width-0">
+                            <div class="small text-truncate">{{ u.get_full_name|default:u.username }}</div>
+                            <small class="text-muted" style="font-size: 0.6rem;">{{ u.profile.get_role_display }}</small>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

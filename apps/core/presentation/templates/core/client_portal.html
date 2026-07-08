@@ -2,7 +2,7 @@
 {% block title %}Portal Cliente{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 density-low">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">
@@ -30,7 +30,7 @@
 
     <div class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <div class="text-muted small mb-1">Proyectos activos</div>
                     <div class="h3 mb-0">{{ projects|length }}</div>
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <div class="text-muted small mb-1">Solicitudes recientes</div>
                     <div class="h3 mb-0">{{ services|length }}</div>
@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <div class="text-muted small mb-1">Estado</div>
                     <div class="h5 mb-0">
@@ -57,8 +57,8 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white">
+    <div class="card border-0 mb-4">
+        <div class="card-header">
             <h5 class="mb-0"><i class="fas fa-folder-open me-2"></i>Mis proyectos</h5>
         </div>
         <div class="card-body p-0">
@@ -98,7 +98,7 @@
                             </td>
                             <td>{{ p.start_date|date:"d/m/Y"|default:'-' }}</td>
                             <td>
-                                <a href="{% url 'ver_detalle_proyecto_cliente' p.id %}" class="btn btn-sm btn-outline-primary">
+                                <a href="{% url 'ver_detalle_proyecto_cliente' p.id %}" class="btn btn-sm btn-secondary">
                                     <i class="fas fa-eye me-1"></i>Ver detalle
                                 </a>
                             </td>
@@ -116,8 +116,8 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white">
+    <div class="card border-0">
+        <div class="card-header">
             <h5 class="mb-0"><i class="fas fa-headset me-2"></i>Solicitudes recientes</h5>
         </div>
         <div class="card-body p-0">

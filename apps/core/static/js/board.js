@@ -128,12 +128,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     showToast(`Tarea movida a "${getStatusName(newStatus)}"`);
                 } else {
                     showToast('Error al actualizar la tarea', 'error');
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => { htmx.trigger('#board', 'boardRefresh'); }, 300);
                 }
             })
             .catch(() => {
                 showToast('Error de conexion', 'error');
-                setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => { htmx.trigger('#board', 'boardRefresh'); }, 300);
             });
 
             draggedCard = null;
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             showToast('Tarea movida a "' + getStatusName(newStatus) + '"');
                         } else {
                             showToast('Error al actualizar', 'error');
-                            setTimeout(function() { location.reload(); }, 1000);
+                            setTimeout(function() { htmx.trigger('#board', 'boardRefresh'); }, 300);
                         }
                     })
                     .catch(function() {
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     var modal = bootstrap.Modal.getInstance(quickModalEl);
                     if (modal) modal.hide();
                     showToast('Tarea creada: ' + data.task.title);
-                    setTimeout(function() { location.reload(); }, 300);
+                    setTimeout(function() { htmx.trigger('#board', 'boardRefresh'); }, 300);
                 } else {
                     showToast(data.error || 'Error al crear tarea', 'error');
                 }
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .then(function(r) { return r.json(); })
                     .then(function(d) {
-                        if (d.success) location.reload();
+                        if (d.success) { htmx.trigger('#board', 'boardRefresh'); }
                         else showToast(d.error, 'error');
                     });
                 }
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 select.addEventListener('change', save);
                 select.addEventListener('blur', save);
                 select.addEventListener('keydown', function(ev) {
-                    if (ev.key === 'Escape') { ev.preventDefault(); location.reload(); }
+                    if (ev.key === 'Escape') { ev.preventDefault(); htmx.trigger('#board', 'boardRefresh'); }
                 });
             });
         }
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .then(function(r) { return r.json(); })
                     .then(function(d) {
-                        if (d.success) location.reload();
+                        if (d.success) { htmx.trigger('#board', 'boardRefresh'); }
                         else showToast(d.error, 'error');
                     });
                 }
@@ -494,7 +494,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (assignee) params.set('assignee', assignee);
 
         const qs = params.toString();
-        window.location.href = qs ? `/ver_tablero/?${qs}` : '/ver_tablero/';
+        const board = document.getElementById('board');
+        const url = '/ver_tablero/fragment/' + (qs ? '?' + qs : '');
+        htmx.ajax('GET', url, {target: '#board', swap: 'innerHTML'});
     }
 
     var _projectOptions = null;

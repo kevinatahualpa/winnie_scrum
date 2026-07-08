@@ -2,47 +2,53 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator
+from django.urls import reverse
+from django.http import JsonResponse
 
-from apps.core.infrastructure.models.models import Sprint, Project
+from apps.core.infrastructure.models.models import Sprint, Project, Task
 from apps.core.domain.services.permission_service import get_user_role, can_manage_project, filter_queryset_by_role
 from apps.core.domain.services.sprint_service import SprintService
 from apps.core.presentation.forms import SprintForm
+from django.db.models import Count, Q
 
 
 @login_required
 def ver_sprints(request):
-    """Render the paginated list of sprints with active sprint statistics.
+    """Sprint list grouped by project with progress bars.
 
-    Shows sprint progress (total tasks vs done) for the active sprint.
-    Filters sprints by user role (admin sees all, others see scoped sprints).
+    Shows done/total tasks per sprint. Filterable by project.
     """
     user = request.user
     role = get_user_role(user)
+    project_id = request.GET.get('project')
 
-    sprints_qs = Sprint.objects.select_related('project').order_by('-start_date')
+    sprints_qs = Sprint.objects.select_related('project').annotate(
+        tasks_finished=Count('tasks', filter=Q(tasks__status='DONE')),
+        tasks_total=Count('tasks'),
+    ).order_by('project__name', '-start_date')
     sprints_qs = filter_queryset_by_role(sprints_qs, user, role, model_type='sprint')
 
-    active_sprint = sprints_qs.filter(status='active').first()
+    if project_id:
+        sprints_qs = sprints_qs.filter(project_id=project_id)
+
+    active_sprint = sprints_qs.filter(status='ACT').first()
     active_sprint_data = {}
     if active_sprint:
         active_sprint_tasks = active_sprint.tasks.all()
         active_sprint_data = {
             'total': active_sprint_tasks.count(),
-            'done': active_sprint_tasks.filter(status='done').count(),
+            'done': active_sprint_tasks.filter(status='DONE').count(),
         }
 
     projects = filter_queryset_by_role(
         Project.objects.filter(status='active'), user, role, model_type='project'
     )
 
-    paginator = Paginator(sprints_qs, 20)
-    page = request.GET.get('page', 1)
-    sprints_list = paginator.get_page(page)
-
     return render(request, 'core/sprints.html', {
-        'sprints': sprints_list, 'active_sprint': active_sprint,
-        'active_sprint_data': active_sprint_data, 'projects': projects,
+        'sprints': sprints_qs,
+        'active_sprint': active_sprint,
+        'active_sprint_data': active_sprint_data,
+        'projects': projects,
         'sprint_form': SprintForm(),
     })
 
@@ -84,12 +90,146 @@ def crear_sprint(request):
     return redirect('ver_sprints')
 
 
+@login_required
+def editar_sprint(request, pk):
+    """Edit a sprint. Rules by role and sprint status.
+
+    GET: return sprint data as JSON for the drawer.
+    POST: update fields based on role + sprint status.
+      - PLAN: anyone permitted can edit name, dates, goal.
+      - ACT:  only goal editable (unless super-admin, who edits everything).
+      - CMP:  immutable (unless super-admin).
+    """
+    sprint = get_object_or_404(Sprint.objects.select_related('project'), pk=pk)
+    user = request.user
+    role = get_user_role(user)
+
+    if not can_manage_project(user, sprint.project):
+        return JsonResponse({'success': False, 'error': 'No tienes permiso para editar este sprint'}, status=403)
+
+    # GET: return JSON for drawer pre-fill
+    if request.method == 'GET':
+        return JsonResponse({
+            'id': sprint.pk,
+            'name': sprint.name,
+            'project': sprint.project_id,
+            'project_name': sprint.project.name,
+            'start_date': str(sprint.start_date),
+            'end_date': str(sprint.end_date),
+            'goal': sprint.goal,
+            'status': sprint.status,
+        })
+
+    # POST: update
+    is_super = role == 'super-admin'
+    name = request.POST.get('name', '').strip()
+    goal = request.POST.get('goal', '').strip()
+    start_date = request.POST.get('start_date', '')
+    end_date = request.POST.get('end_date', '')
+
+    if sprint.status == 'CMP' and not is_super:
+        return JsonResponse({'success': False, 'error': 'No se puede editar un sprint completado'}, status=400)
+
+    if sprint.status == 'ACT' and not is_super:
+        # Only goal can be edited on active sprints (not super-admin)
+        if name or start_date or end_date:
+            return JsonResponse({'success': False, 'error': 'En un sprint activo solo se puede editar el objetivo'}, status=400)
+        if goal:
+            sprint.goal = goal
+            sprint.save(update_fields=['goal'])
+            return JsonResponse({'success': True, 'message': 'Objetivo actualizado'})
+
+    # PLAN status (or super-admin on any status): full edit
+    if name:
+        sprint.name = name
+    if goal or goal == '':
+        sprint.goal = goal
+    if start_date and end_date:
+        from datetime import date
+        try:
+            s = date.fromisoformat(start_date)
+            e = date.fromisoformat(end_date)
+            if s > e:
+                return JsonResponse({'success': False, 'error': 'Fecha inicio debe ser <= fecha fin'}, status=400)
+            sprint.start_date = s
+            sprint.end_date = e
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Fechas invalidas'}, status=400)
+    elif start_date:
+        from datetime import date
+        try:
+            sprint.start_date = date.fromisoformat(start_date)
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Fecha inicio invalida'}, status=400)
+    elif end_date:
+        from datetime import date
+        try:
+            sprint.end_date = date.fromisoformat(end_date)
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Fecha fin invalida'}, status=400)
+
+    sprint.save()
+    return JsonResponse({'success': True, 'message': f'Sprint "{sprint.name}" actualizado'})
+
+
+@login_required
+def seleccionar_tareas_sprint(request, pk):
+    """GET: show Product Backlog tasks. POST: assign to sprint and activate.
+
+    For AJAX requests (X-Requested-With: XMLHttpRequest), returns a partial
+    HTML fragment for the drawer. Otherwise renders the full page.
+    """
+    sprint = get_object_or_404(Sprint.objects.select_related('project'), pk=pk)
+    role = get_user_role(request.user)
+
+    if not can_manage_project(request.user, sprint.project):
+        messages.error(request, 'No tienes permiso para gestionar este sprint')
+        return redirect('ver_sprints')
+
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method == 'GET':
+        backlog_tasks = Task.objects.filter(
+            project=sprint.project,
+            sprint__isnull=True,
+            status='TODO',
+        ).order_by('position', '-priority', '-created_at')
+
+        template = 'core/sprint_task_drawer.html' if is_ajax else 'core/sprint_task_selection.html'
+        return render(request, template, {
+            'sprint': sprint,
+            'backlog_tasks': backlog_tasks,
+        })
+
+    # POST: bulk assign selected tasks + activate sprint
+    task_ids = request.POST.getlist('task_ids')
+    if task_ids:
+        Task.objects.filter(
+            pk__in=task_ids, project=sprint.project, sprint__isnull=True
+        ).update(sprint=sprint, status='TODO')
+
+    sprint, error = SprintService.iniciar_sprint(request.user, sprint)
+    if error:
+        messages.error(request, error)
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': error}, status=400)
+    else:
+        msg = f'Sprint "{sprint.name}" iniciado'
+        if task_ids:
+            msg += f' con {len(task_ids)} tareas'
+        messages.success(request, msg)
+        if is_ajax:
+            return JsonResponse({'success': True, 'redirect': reverse('ver_sprints')})
+
+    return redirect('ver_sprints')
+
+
 @require_POST
 @login_required
 def iniciar_sprint(request, pk):
-    """Start a planned sprint. Deactivates any currently active sprint in the same project.
+    """Direct sprint activation (backward-compatible POST endpoint).
 
-    Notifies all project team members about the sprint start.
+    For the full flow with task selection, use seleccionar_tareas_sprint (GET+POST).
     """
     sprint = get_object_or_404(Sprint, pk=pk)
     sprint, error = SprintService.iniciar_sprint(request.user, sprint)
@@ -105,13 +245,19 @@ def iniciar_sprint(request, pk):
 @require_POST
 @login_required
 def completar_sprint(request, pk):
-    """Complete a sprint and move incomplete tasks back to backlog."""
+    """Complete a sprint. Incomplete tasks (TODO/PROG/TEST) go back to the
+    Product Backlog (status='TODO', sprint=NULL). Done tasks keep historical
+    sprint_id for reporting."""
     sprint = get_object_or_404(Sprint, pk=pk)
     sprint, error = SprintService.completar_sprint(request.user, sprint)
 
     if error:
         messages.error(request, error)
     else:
-        messages.success(request, f'Sprint "{sprint.name}" completado')
+        messages.success(
+            request,
+            f'Sprint "{sprint.name}" completado. Las tareas pendientes '
+            f'volvieron al Product Backlog.'
+        )
 
     return redirect('ver_sprints')

@@ -2,7 +2,7 @@
 {% block title %}{{ project.name }} - Portal Cliente{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 density-low">
     <a href="{% url 'ver_portal_cliente' %}" class="btn btn-sm btn-link mb-3">
         <i class="fas fa-arrow-left me-1"></i>Volver al portal
     </a>
@@ -22,7 +22,7 @@
 
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <div class="text-muted small">Avance</div>
                     <div class="h4">{{ project.progress }}%</div>
@@ -33,7 +33,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <div class="text-muted small">Area</div>
                     <div class="h6 mb-0">{{ project.area.name|default:'-' }}</div>
@@ -41,7 +41,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <div class="text-muted small">Inicio</div>
                     <div class="h6 mb-0">{{ project.start_date|date:"d/m/Y"|default:'-' }}</div>
@@ -49,7 +49,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <div class="text-muted small">Fin estimado</div>
                     <div class="h6 mb-0">{{ project.end_date|date:"d/m/Y"|default:'-' }}</div>
@@ -78,7 +78,7 @@
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="tab-tasks">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
@@ -94,7 +94,7 @@
                             {% for t in tasks %}
                             <tr>
                                 <td><strong>{{ t.title }}</strong></td>
-                                <td><span class="badge bg-light text-dark">{{ t.get_type_display }}</span></td>
+                                <td><span class="badge bg-secondary text-white">{{ t.get_type_display }}</span></td>
                                 <td>
                                     <span class="badge bg-{% if t.priority == 'high' %}danger{% elif t.priority == 'medium' %}warning{% else %}secondary{% endif %}">
                                         {{ t.get_priority_display }}
@@ -117,7 +117,7 @@
         </div>
 
         <div class="tab-pane fade" id="tab-sprints">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     {% for s in sprints %}
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
@@ -138,7 +138,7 @@
         </div>
 
         <div class="tab-pane fade" id="tab-docs">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     {% for d in documents %}
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
@@ -148,7 +148,7 @@
                             <div class="small text-muted">{{ d.created_at|date:"d/m/Y" }}</div>
                         </div>
                         {% if d.file %}
-                        <a href="{{ d.file.url }}" class="btn btn-sm btn-outline-primary" download>
+                        <a href="{{ d.file.url }}" class="btn btn-sm btn-secondary" download>
                             <i class="fas fa-download"></i>
                         </a>
                         {% endif %}

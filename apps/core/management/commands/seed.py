@@ -132,6 +132,25 @@ class Command(BaseCommand):
             user_objects[data['username']] = user
             self.stdout.write(f'  User: {user.get_full_name()} ({data["role"]})')
 
+        # Assign technologies to team members
+        if not any('skip_tech' in locals() for _ in [1]):
+            from apps.core.infrastructure.models.models import Technology
+            tech_django = Technology.objects.get(name='Django')
+            tech_react = Technology.objects.get(name='React')
+            tech_pg = Technology.objects.get(name='PostgreSQL')
+
+            tech_map = {
+                'pedro@hackthony.com': [tech_django, tech_pg],
+                'sofia@hackthony.com': [tech_react],
+                'valeria@hackthony.com': [tech_django, tech_react],
+                'jp.miguel@hackthony.com': [tech_django, tech_react, tech_pg],
+                'jp.laura@hackthony.com': [tech_react, tech_pg],
+            }
+            for email, techs in tech_map.items():
+                profile = user_objects[email].profile
+                profile.technologies.set(techs)
+                self.stdout.write(f'  Techs: {user_objects[email].get_full_name()} -> {[t.name for t in techs]}')
+
         # ═══════════════════════════════════════════
         # 5. PROYECTOS (4)
         # ═══════════════════════════════════════════
@@ -222,16 +241,16 @@ class Command(BaseCommand):
         # ═══════════════════════════════════════════
         sprints_data = [
             # Consultoria TI - CorpMinera
-            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 1 - Diagnostico', 'start_date': today - datetime.timedelta(days=80), 'end_date': today - datetime.timedelta(days=66), 'goal': 'Inventariar activos TI y diagnosticar estado actual', 'status': 'completed'},
-            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 2 - Diseno', 'start_date': today - datetime.timedelta(days=60), 'end_date': today - datetime.timedelta(days=46), 'goal': 'Disenar arquitectura de red propuesta', 'status': 'completed'},
-            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 3 - Entrega', 'start_date': today - datetime.timedelta(days=40), 'end_date': today + datetime.timedelta(days=2), 'goal': 'Entregar informe final y plan de implementacion', 'status': 'active'},
+            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 1 - Diagnostico', 'start_date': today - datetime.timedelta(days=80), 'end_date': today - datetime.timedelta(days=66), 'goal': 'Inventariar activos TI y diagnosticar estado actual', 'status': 'CMP'},
+            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 2 - Diseno', 'start_date': today - datetime.timedelta(days=60), 'end_date': today - datetime.timedelta(days=46), 'goal': 'Disenar arquitectura de red propuesta', 'status': 'CMP'},
+            {'project': 'Consultoria TI - CorpMinera', 'name': 'Sprint 3 - Entrega', 'start_date': today - datetime.timedelta(days=40), 'end_date': today + datetime.timedelta(days=2), 'goal': 'Entregar informe final y plan de implementacion', 'status': 'ACT'},
             # E-commerce - FashionPeru
-            {'project': 'E-commerce - FashionPeru', 'name': 'Sprint 1 - MVP', 'start_date': today - datetime.timedelta(days=40), 'end_date': today - datetime.timedelta(days=26), 'goal': 'Catalogo de productos con filtros', 'status': 'completed'},
-            {'project': 'E-commerce - FashionPeru', 'name': 'Sprint 2 - Pagos', 'start_date': today - datetime.timedelta(days=20), 'end_date': today + datetime.timedelta(days=8), 'goal': 'Integrar pasarela de pagos MercadoPago', 'status': 'active'},
+            {'project': 'E-commerce - FashionPeru', 'name': 'Sprint 1 - MVP', 'start_date': today - datetime.timedelta(days=40), 'end_date': today - datetime.timedelta(days=26), 'goal': 'Catalogo de productos con filtros', 'status': 'CMP'},
+            {'project': 'E-commerce - FashionPeru', 'name': 'Sprint 2 - Pagos', 'start_date': today - datetime.timedelta(days=20), 'end_date': today + datetime.timedelta(days=8), 'goal': 'Integrar pasarela de pagos MercadoPago', 'status': 'ACT'},
             # App Movil - MediSalud
-            {'project': 'App Movil - MediSalud', 'name': 'Sprint 1 - Discovery', 'start_date': today - datetime.timedelta(days=55), 'end_date': today - datetime.timedelta(days=41), 'goal': 'Wireframes y diseno UX de flujos principales', 'status': 'completed'},
-            {'project': 'App Movil - MediSalud', 'name': 'Sprint 2 - Citas MVP', 'start_date': today - datetime.timedelta(days=35), 'end_date': today - datetime.timedelta(days=21), 'goal': 'Flujo de agendamiento de citas funcional', 'status': 'completed'},
-            {'project': 'App Movil - MediSalud', 'name': 'Sprint 3 - Expediente Digital', 'start_date': today - datetime.timedelta(days=14), 'end_date': today + datetime.timedelta(days=14), 'goal': 'Expediente medico digital con historial de consultas', 'status': 'active'},
+            {'project': 'App Movil - MediSalud', 'name': 'Sprint 1 - Discovery', 'start_date': today - datetime.timedelta(days=55), 'end_date': today - datetime.timedelta(days=41), 'goal': 'Wireframes y diseno UX de flujos principales', 'status': 'CMP'},
+            {'project': 'App Movil - MediSalud', 'name': 'Sprint 2 - Citas MVP', 'start_date': today - datetime.timedelta(days=35), 'end_date': today - datetime.timedelta(days=21), 'goal': 'Flujo de agendamiento de citas funcional', 'status': 'CMP'},
+            {'project': 'App Movil - MediSalud', 'name': 'Sprint 3 - Expediente Digital', 'start_date': today - datetime.timedelta(days=14), 'end_date': today + datetime.timedelta(days=14), 'goal': 'Expediente medico digital con historial de consultas', 'status': 'ACT'},
         ]
 
         sprints = {}
@@ -255,26 +274,26 @@ class Command(BaseCommand):
         # ═══════════════════════════════════════════
         tasks_data = [
             # --- Consultoria TI - CorpMinera ---
-            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 1 - Diagnostico', 'title': 'Reunion kickoff con cliente', 'type': 'task', 'priority': 'high', 'points': 3, 'assignee': 'jp.miguel@hackthony.com', 'status': 'done', 'description': 'Primera reunion para definir alcance, objetivos y entregables.', 'tags': 'kickoff'},
-            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 1 - Diagnostico', 'title': 'Inventario de activos TI en 3 sedes', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Levantar inventario completo de hardware, software y conectividad.', 'tags': 'inventario'},
-            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 2 - Diseno', 'title': 'Disenar arquitectura de red propuesta', 'type': 'story', 'priority': 'high', 'points': 13, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Elaborar diagrama de arquitectura de red con redundancia.', 'tags': 'arquitectura'},
-            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 3 - Entrega', 'title': 'Redactar informe final de consultoria', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'in-progress', 'description': 'Documento ejecutivo con diagnostico, propuesta y plan de accion.', 'tags': 'documentacion'},
-            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 3 - Entrega', 'title': 'Validar reporte de inventario (QA)', 'type': 'task', 'priority': 'medium', 'points': 2, 'assignee': 'valeria@hackthony.com', 'status': 'todo', 'description': 'Revisar que el PDF de inventario se genere correctamente.', 'tags': 'qa'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 1 - Diagnostico', 'title': 'Reunion kickoff con cliente', 'type': 'task', 'priority': 'high', 'points': 3, 'assignee': 'jp.miguel@hackthony.com', 'status': 'DONE', 'description': 'Primera reunion para definir alcance, objetivos y entregables.', 'tags': 'kickoff'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 1 - Diagnostico', 'title': 'Inventario de activos TI en 3 sedes', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'DONE', 'description': 'Levantar inventario completo de hardware, software y conectividad.', 'tags': 'inventario'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 2 - Diseno', 'title': 'Disenar arquitectura de red propuesta', 'type': 'story', 'priority': 'high', 'points': 13, 'assignee': 'pedro@hackthony.com', 'status': 'DONE', 'description': 'Elaborar diagrama de arquitectura de red con redundancia.', 'tags': 'arquitectura'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 3 - Entrega', 'title': 'Redactar informe final de consultoria', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'PROG', 'description': 'Documento ejecutivo con diagnostico, propuesta y plan de accion.', 'tags': 'documentacion'},
+            {'project': 'Consultoria TI - CorpMinera', 'sprint': 'Sprint 3 - Entrega', 'title': 'Validar reporte de inventario (QA)', 'type': 'task', 'priority': 'medium', 'points': 2, 'assignee': 'valeria@hackthony.com', 'status': 'TODO', 'description': 'Revisar que el PDF de inventario se genere correctamente.', 'tags': 'qa'},
             # --- E-commerce - FashionPeru ---
-            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 1 - MVP', 'title': 'Catalogo de productos con filtros', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Pagina de listado con filtros por categoria, talla, color y precio.', 'tags': 'frontend'},
-            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 1 - MVP', 'title': 'API de productos (CRUD)', 'type': 'story', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'done', 'description': 'Endpoints REST para gestion de catalogo.', 'tags': 'backend'},
-            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 2 - Pagos', 'title': 'Integrar MercadoPago Checkout Pro', 'type': 'task', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'in-progress', 'description': 'Implementar flujo de pago con MercadoPago.', 'tags': 'backend,pagos'},
-            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 2 - Pagos', 'title': 'Pantalla de confirmacion de pedido', 'type': 'task', 'priority': 'medium', 'points': 3, 'assignee': 'jp.miguel@hackthony.com', 'status': 'todo', 'description': 'Disenar e implementar pantalla post-pago.', 'tags': 'frontend'},
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 1 - MVP', 'title': 'Catalogo de productos con filtros', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'DONE', 'description': 'Pagina de listado con filtros por categoria, talla, color y precio.', 'tags': 'frontend'},
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 1 - MVP', 'title': 'API de productos (CRUD)', 'type': 'story', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'DONE', 'description': 'Endpoints REST para gestion de catalogo.', 'tags': 'backend'},
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 2 - Pagos', 'title': 'Integrar MercadoPago Checkout Pro', 'type': 'task', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'PROG', 'description': 'Implementar flujo de pago con MercadoPago.', 'tags': 'backend,pagos'},
+            {'project': 'E-commerce - FashionPeru', 'sprint': 'Sprint 2 - Pagos', 'title': 'Pantalla de confirmacion de pedido', 'type': 'task', 'priority': 'medium', 'points': 3, 'assignee': 'jp.miguel@hackthony.com', 'status': 'TODO', 'description': 'Disenar e implementar pantalla post-pago.', 'tags': 'frontend'},
             # --- App Movil - MediSalud ---
-            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 1 - Discovery', 'title': 'Wireframes de flujos principales', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'sofia@hackthony.com', 'status': 'done', 'description': 'Disenar wireframes en Figma de las 5 pantallas principales.', 'tags': 'ux,figma'},
-            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 2 - Citas MVP', 'title': 'Pantalla de agendamiento de citas', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'sofia@hackthony.com', 'status': 'done', 'description': 'UI para seleccionar fecha, especialidad y medico.', 'tags': 'frontend'},
-            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 2 - Citas MVP', 'title': 'API de disponibilidad de medicos', 'type': 'task', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Endpoint que devuelve horarios disponibles segun especialidad.', 'tags': 'backend'},
-            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'Vista de historial medico', 'type': 'story', 'priority': 'high', 'points': 5, 'assignee': 'sofia@hackthony.com', 'status': 'in-progress', 'description': 'Interfaz para ver consultas pasadas, recetas y examenes.', 'tags': 'frontend'},
-            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'API de expediente medico', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'pedro@hackthony.com', 'status': 'done', 'description': 'Endpoints para CRUD de historial clinico.', 'tags': 'backend'},
-            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'Pruebas funcionales de flujo de citas', 'type': 'task', 'priority': 'medium', 'points': 3, 'assignee': 'valeria@hackthony.com', 'status': 'todo', 'description': 'Ejecutar casos de prueba del flujo completo de agendamiento.', 'tags': 'qa'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 1 - Discovery', 'title': 'Wireframes de flujos principales', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'sofia@hackthony.com', 'status': 'DONE', 'description': 'Disenar wireframes en Figma de las 5 pantallas principales.', 'tags': 'ux,figma'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 2 - Citas MVP', 'title': 'Pantalla de agendamiento de citas', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'sofia@hackthony.com', 'status': 'DONE', 'description': 'UI para seleccionar fecha, especialidad y medico.', 'tags': 'frontend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 2 - Citas MVP', 'title': 'API de disponibilidad de medicos', 'type': 'task', 'priority': 'high', 'points': 8, 'assignee': 'pedro@hackthony.com', 'status': 'DONE', 'description': 'Endpoint que devuelve horarios disponibles segun especialidad.', 'tags': 'backend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'Vista de historial medico', 'type': 'story', 'priority': 'high', 'points': 5, 'assignee': 'sofia@hackthony.com', 'status': 'PROG', 'description': 'Interfaz para ver consultas pasadas, recetas y examenes.', 'tags': 'frontend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'API de expediente medico', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'pedro@hackthony.com', 'status': 'DONE', 'description': 'Endpoints para CRUD de historial clinico.', 'tags': 'backend'},
+            {'project': 'App Movil - MediSalud', 'sprint': 'Sprint 3 - Expediente Digital', 'title': 'Pruebas funcionales de flujo de citas', 'type': 'task', 'priority': 'medium', 'points': 3, 'assignee': 'valeria@hackthony.com', 'status': 'TODO', 'description': 'Ejecutar casos de prueba del flujo completo de agendamiento.', 'tags': 'qa'},
             # --- Portal Web - Municipalidad Lima (sin sprint, en backlog) ---
-            {'project': 'Portal Web - Municipalidad Lima', 'sprint': None, 'title': 'Definir requerimientos con municipio', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'backlog', 'description': 'Reunion inicial para levantar requerimientos del portal.', 'tags': 'kickoff'},
-            {'project': 'Portal Web - Municipalidad Lima', 'sprint': None, 'title': 'Disenar wireframes del portal', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'valeria@hackthony.com', 'status': 'backlog', 'description': 'Wireframes de las 3 secciones principales del portal.', 'tags': 'ux'},
+            {'project': 'Portal Web - Municipalidad Lima', 'sprint': None, 'title': 'Definir requerimientos con municipio', 'type': 'task', 'priority': 'high', 'points': 5, 'assignee': 'jp.miguel@hackthony.com', 'status': 'TODO', 'description': 'Reunion inicial para levantar requerimientos del portal.', 'tags': 'kickoff'},
+            {'project': 'Portal Web - Municipalidad Lima', 'sprint': None, 'title': 'Disenar wireframes del portal', 'type': 'story', 'priority': 'high', 'points': 8, 'assignee': 'valeria@hackthony.com', 'status': 'TODO', 'description': 'Wireframes de las 3 secciones principales del portal.', 'tags': 'ux'},
         ]
 
         tags_cache = {}

@@ -281,6 +281,14 @@ def comentar_proyecto(request, pk):
     next_url = request.POST.get('next', '').strip()
 
     if not text and not uploaded_file:
+        if request.headers.get('HX-Request') == 'true':
+            comments = Comment.objects.filter(project=project).select_related('author').order_by('created_at')
+            return render(request, 'core/chat_messages_partial.html', {
+                'messages_list': [
+                    {'sender': c.author, 'subject': '', 'body': c.text, 'created_at': c.created_at}
+                    for c in comments
+                ],
+            })
         return _redirect_after_comment(request, next_url, pk)
 
     comment = Comment.objects.create(
@@ -291,6 +299,15 @@ def comentar_proyecto(request, pk):
     )
 
     create_audit_log(request.user, 'COMMENT', 'project', project.id, f'Mensaje en proyecto: {project.name}')
+
+    if request.headers.get('HX-Request') == 'true':
+        comments = Comment.objects.filter(project=project).select_related('author').order_by('created_at')
+        return render(request, 'core/chat_messages_partial.html', {
+            'messages_list': [
+                {'sender': c.author, 'subject': '', 'body': c.text, 'created_at': c.created_at}
+                for c in comments
+            ],
+        })
 
     if project.lead and project.lead != request.user:
         create_notification(
@@ -370,10 +387,12 @@ def gestionar_miembros_proyecto(request, pk):
 
         return redirect('gestionar_miembros_proyecto', pk=pk)
 
-    members = project.members.select_related('profile', 'profile__area', 'profile__specialty').order_by('first_name')
+    members = project.members.select_related(
+        'profile', 'profile__area', 'profile__specialty'
+    ).prefetch_related('profile__technologies').order_by('first_name')
 
     role = get_user_role(request.user)
-    available_qs = UserProfile.objects.filter(status='active').exclude(role__in=['cliente']).exclude(user__projects=project).select_related('user', 'area', 'specialty')
+    available_qs = UserProfile.objects.filter(status='active').exclude(role__in=['cliente']).exclude(user__projects=project).select_related('user', 'area', 'specialty').prefetch_related('technologies')
     if role == 'jefe-area':
         available_qs = available_qs.filter(area_id=project.area_id)
     available_users = [
@@ -383,8 +402,10 @@ def gestionar_miembros_proyecto(request, pk):
             'email': p.user.email,
             'role': p.get_role_display(),
             'area': p.area.name if p.area else '-',
+            'specialty': p.specialty.name if p.specialty else '',
             'initials': p.initials,
             'color': p.color,
+            'technologies': [{'name': t.name, 'color': t.color} for t in p.technologies.all()],
         }
         for p in available_qs.order_by('user__first_name')
     ]

@@ -49,10 +49,10 @@ def ver_dashboard(request):
 
         task_stats = tasks.aggregate(
             total=Count('id'),
-            todo=Count('id', filter=Q(status__in=['backlog', 'todo'])),
-            in_progress=Count('id', filter=Q(status='in-progress')),
-            done=Count('id', filter=Q(status='done')),
-            bugs=Count('id', filter=Q(type='bug', status__in=['backlog', 'todo', 'in-progress'])),
+            todo=Count('id', filter=Q(status='TODO')),
+            in_progress=Count('id', filter=Q(status='PROG')),
+            done=Count('id', filter=Q(status='DONE')),
+            bugs=Count('id', filter=Q(type='bug', status__in=['TODO', 'PROG'])),
         )
 
         pending_count = UserProfile.objects.filter(status='pending').count()
@@ -70,7 +70,7 @@ def ver_dashboard(request):
         )
         total_areas = Area.objects.filter(status='active').count()
         total_users = User.objects.filter(is_active=True).count()
-        active_sprints = sprints.filter(status='active').count()
+        active_sprints = sprints.filter(status='ACT').count()
 
         context.update({
             'total_projects': project_stats['total'],
@@ -106,10 +106,10 @@ def ver_dashboard(request):
         area_tasks = Task.objects.filter(project_id__in=filter_project_ids) if filter_project_ids else Task.objects.none()
         task_stats = area_tasks.aggregate(
             total=Count('id'),
-            todo=Count('id', filter=Q(status__in=['backlog', 'todo'])),
-            in_progress=Count('id', filter=Q(status='in-progress')),
-            done=Count('id', filter=Q(status='done')),
-            bugs=Count('id', filter=Q(type='bug', status__in=['backlog', 'todo', 'in-progress'])),
+            todo=Count('id', filter=Q(status='TODO')),
+            in_progress=Count('id', filter=Q(status='PROG')),
+            done=Count('id', filter=Q(status='DONE')),
+            bugs=Count('id', filter=Q(type='bug', status__in=['TODO', 'PROG'])),
         )
 
         area_members = UserProfile.objects.filter(
@@ -164,10 +164,10 @@ def ver_dashboard(request):
         project_tasks = Task.objects.filter(project_id__in=project_ids) if project_ids else Task.objects.none()
         task_stats = project_tasks.aggregate(
             total=Count('id'),
-            todo=Count('id', filter=Q(status__in=['backlog', 'todo'])),
-            in_progress=Count('id', filter=Q(status='in-progress')),
-            done=Count('id', filter=Q(status='done')),
-            bugs=Count('id', filter=Q(type='bug', status__in=['backlog', 'todo', 'in-progress'])),
+            todo=Count('id', filter=Q(status='TODO')),
+            in_progress=Count('id', filter=Q(status='PROG')),
+            done=Count('id', filter=Q(status='DONE')),
+            bugs=Count('id', filter=Q(type='bug', status__in=['TODO', 'PROG'])),
         )
 
         # Team members: extract IDs in a single query (no nested loops)
@@ -190,14 +190,14 @@ def ver_dashboard(request):
                     'user__assigned_tasks',
                     filter=Q(
                         user__assigned_tasks__project_id__in=project_ids,
-                        user__assigned_tasks__status='in-progress',
+                        user__assigned_tasks__status='PROG',
                     ),
                 ),
                 task_done=Count(
                     'user__assigned_tasks',
                     filter=Q(
                         user__assigned_tasks__project_id__in=project_ids,
-                        user__assigned_tasks__status='done',
+                        user__assigned_tasks__status='DONE',
                     ),
                 ),
             )
@@ -217,7 +217,7 @@ def ver_dashboard(request):
             .annotate(
                 task_count=Count('tasks', distinct=True),
                 completed_task_count=Count(
-                    'tasks', filter=Q(tasks__status='done'), distinct=True
+                    'tasks', filter=Q(tasks__status='DONE'), distinct=True
                 ),
             )
             .select_related('area', 'lead', 'client')
@@ -254,10 +254,10 @@ def ver_dashboard(request):
         my_tasks = Task.objects.filter(assignee=user)
         my_task_stats = my_tasks.aggregate(
             total=Count('id'),
-            todo=Count('id', filter=Q(status__in=['backlog', 'todo'])),
-            in_progress=Count('id', filter=Q(status='in-progress')),
-            done=Count('id', filter=Q(status='done')),
-            bugs=Count('id', filter=Q(type='bug', status__in=['backlog', 'todo', 'in-progress'])),
+            todo=Count('id', filter=Q(status='TODO')),
+            in_progress=Count('id', filter=Q(status='PROG')),
+            done=Count('id', filter=Q(status='DONE')),
+            bugs=Count('id', filter=Q(type='bug', status__in=['TODO', 'PROG'])),
         )
 
         time_this_week = TimeEntry.objects.filter(

@@ -233,6 +233,7 @@ class UserProfile(models.Model):
     ], default='pending', db_index=True)
     color = models.CharField(max_length=7, default='#00bcd4')
     avatar = models.ImageField(upload_to='avatars/%Y/%m/', null=True, blank=True)
+    technologies = models.ManyToManyField(Technology, blank=True, related_name='users')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -386,26 +387,49 @@ class Project(models.Model):
         total = self.tasks.count()
         if total == 0:
             return 0
-        done = self.tasks.filter(status='done').count()
+        done = self.tasks.filter(status='DONE').count()
         return round((done / total) * 100)
 
 
 class Sprint(models.Model):
-    """Sprint model representing a time-boxed iteration in a project."""
+    """Sprint model representing a time-boxed iteration in a project.
+
+    Business rule: only one sprint with status 'ACT' can exist per project
+    at any given time. Enforced via clean() and service layer.
+    """
+    STATUS_CHOICES = [
+        ('PLAN', 'Planificacion'),
+        ('ACT', 'Activo'),
+        ('CMP', 'Completado'),
+    ]
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='sprints')
     name = models.CharField(max_length=200)
     start_date = models.DateField()
     end_date = models.DateField()
     goal = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=[
-        ('planned', 'Planificado'), ('active', 'Activo'), ('completed', 'Completado'),
-    ], default='planned', db_index=True)
+    status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='PLAN', db_index=True)
 
     class Meta:
         ordering = ['-start_date']
 
     def __str__(self):
         return f'{self.name} ({self.project.name})'
+
+    def clean(self):
+        if self.status == 'ACT':
+            conflict = Sprint.objects.filter(
+                project=self.project, status='ACT'
+            ).exclude(pk=self.pk).exists()
+            if conflict:
+                raise ValidationError({
+                    'status': 'Ya existe un sprint activo (ACT) en este proyecto. '
+                              'Solo puede haber un sprint activo a la vez.'
+                })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class Tag(models.Model):
@@ -438,10 +462,13 @@ class TaskManager(models.Manager):
         return self.filter(project=project)
 
     def active(self):
-        return self.filter(status__in=['todo', 'in-progress'])
+        return self.filter(status__in=['TODO', 'PROG', 'TEST'])
 
     def overdue(self):
-        return self.filter(status__in=['todo', 'in-progress'], sprint__end_date__lt=timezone.now().date())
+        return self.filter(status__in=['TODO', 'PROG', 'TEST'], sprint__end_date__lt=timezone.now().date())
+
+    def backlog(self):
+        return self.filter(sprint__isnull=True)
 
     def with_progress(self):
         return self.annotate(
@@ -451,7 +478,13 @@ class TaskManager(models.Manager):
 
 
 class Task(models.Model):
-    """Task model representing a unit of work in a project (story, task, bug, epic)."""
+    """Task model representing a unit of work in a project (story, task, bug, epic).
+
+    Product Backlog: tasks with sprint=None (global inventory per project).
+    Sprint Backlog: tasks with sprint_id set (operational scope of a sprint).
+    Kanban Board: dynamic view filtered by sprint.status='ACT' — shows only
+    the active sprint's tasks organized in TODO/PROG/TEST/DONE columns.
+    """
     TYPE_CHOICES = [
         ('story', 'Historia'), ('task', 'Tarea'), ('bug', 'Bug'), ('epic', 'Epic'),
     ]
@@ -459,8 +492,10 @@ class Task(models.Model):
         ('high', 'Alta'), ('medium', 'Media'), ('low', 'Baja'),
     ]
     STATUS_CHOICES = [
-        ('backlog', 'Backlog'), ('todo', 'Por Hacer'),
-        ('in-progress', 'En Progreso'), ('done', 'Completado'),
+        ('TODO', 'Por Hacer'),
+        ('PROG', 'En Progreso'),
+        ('TEST', 'En Testing'),
+        ('DONE', 'Completado'),
     ]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
@@ -471,7 +506,8 @@ class Task(models.Model):
     points = models.PositiveIntegerField(default=1)
     assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tasks')
     required_specialty = models.ForeignKey(Specialty, on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='backlog', db_index=True)
+    status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='TODO', db_index=True)
+    position = models.IntegerField(default=0, db_index=True)
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name='tasks')
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -481,10 +517,14 @@ class Task(models.Model):
     tasks = TaskManager()
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['position', '-created_at']
 
     def __str__(self):
         return self.title
+
+    @property
+    def is_in_backlog(self):
+        return self.sprint_id is None
 
 
 class Comment(models.Model):

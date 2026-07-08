@@ -3,11 +3,10 @@
 {% block title %}Winnie - Registro (3/3){% endblock %}
 {% block body_class %}auth-page{% endblock %}
 {% block body %}
-<link href="{% static 'css/auth.css' %}" rel="stylesheet">
 
 <style>
 .tech-grid { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem; }
-.tech-card { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:8px; background:var(--surface); cursor:pointer; transition:border-color 0.15s; user-select:none; }
+.tech-card { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:8px; background:var(--surface-1); cursor:pointer; transition:border-color 0.15s; user-select:none; }
 .tech-card:hover { border-color:var(--accent); }
 .tech-card.selected { border-color:var(--accent); background:rgba(234,88,12,0.04); }
 .tech-card input[type=checkbox] { width:16px; height:16px; accent-color:var(--accent); flex-shrink:0; }
@@ -15,8 +14,8 @@
 .tech-card .tech-name { flex:1; font-weight:500; font-size:0.82rem; }
 .tech-card .tech-level { display:none; }
 .tech-card.selected .tech-level { display:flex; align-items:center; gap:0.3rem; }
-.tech-card .tech-level select { padding:0.25rem 0.4rem; border:1px solid var(--border); border-radius:4px; font-size:0.72rem; background:var(--surface); color:var(--text); }
-.other-tech-label { margin-bottom:0.3rem; font-size:0.78rem; font-weight:500; color:var(--text); }
+.tech-card .tech-level select { padding:0.25rem 0.4rem; border:1px solid var(--border); border-radius:4px; font-size:0.72rem; background:var(--surface-1); color:var(--text-primary); }
+.other-tech-label { margin-bottom:0.3rem; font-size:0.78rem; font-weight:500; color:var(--text-primary); }
 .cv-field { margin-top:1.25rem; }
 </style>
 

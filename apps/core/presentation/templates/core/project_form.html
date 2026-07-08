@@ -7,7 +7,7 @@
     <div class="main-area">
         {% include 'core/topbar.html' %}
         <div class="page-content">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <form method="post" action="{% if project %}{% url 'editar_proyecto' project.id %}{% else %}{% url 'crear_proyecto' %}{% endif %}">
                         {% csrf_token %}
@@ -87,7 +87,7 @@
                         </div>
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <a href="{% url 'ver_proyectos' %}" class="btn btn-ghost">Cancelar</a>
-                            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar</button>
                         </div>
                     </form>
                 </div>

@@ -7,7 +7,7 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-low">
             {% if not profile %}
             <div class="alert alert-info border-0 mb-3" role="alert">
                 <i class="fas fa-info-circle me-2"></i>
@@ -30,7 +30,7 @@
                 proyecto y usa <em>Gestionar Miembros</em>.
             </div>
             {% endif %}
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0">
                 <div class="card-body">
                     <form method="post" action="{% if profile %}{% url 'editar_usuario' profile.id %}{% else %}{% url 'registrar_usuario' %}{% endif %}">
                         {% csrf_token %}
@@ -106,7 +106,7 @@
 
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <a href="{% url 'ver_usuarios' %}" class="btn btn-ghost">Cancelar</a>
-                            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Guardar</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar</button>
                         </div>
                     </form>
                 </div>

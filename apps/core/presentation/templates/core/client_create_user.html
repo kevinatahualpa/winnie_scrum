@@ -6,7 +6,7 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-low">
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb small mb-0">
                     <li class="breadcrumb-item"><a href="{% url 'ver_clientes' %}">Clientes</a></li>
@@ -15,7 +15,7 @@
                 </ol>
             </nav>
 
-            <div class="card border-0 shadow-sm" style="max-width:640px;">
+            <div class="card border-0" style="max-width:640px;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center gap-3 mb-4">
                         <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -67,7 +67,7 @@
                                 <div class="input-group">
                                     <input type="text" name="password" id="passwordField"
                                            class="form-control" placeholder="(se genera automaticamente)">
-                                    <button type="button" class="btn btn-outline-secondary"
+                                    <button type="button" class="btn btn-secondary"
                                             onclick="document.getElementById('passwordField').value=generatePassword()">
                                         <i class="fas fa-dice me-1"></i> Generar
                                     </button>

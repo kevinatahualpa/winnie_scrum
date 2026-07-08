@@ -1,0 +1,58 @@
+{% load role_tags %}
+<div class="board-toolbar" role="toolbar" aria-label="Herramientas del tablero"
+     hx-get="{% url 'ver_tablero_fragment' %}"
+     hx-target="#board"
+     hx-swap="innerHTML"
+     hx-include="this"
+     hx-indicator="#boardLoader"
+     hx-trigger="change from:.board-filter-select, click from:.board-filter-clear">
+    <div class="d-flex align-items-center gap-3">
+        <h4 class="board-toolbar-title mb-0"><i class="fas fa-columns board-toolbar-icon" aria-hidden="true"></i>Tablero</h4>
+        <div class="board-filters">
+            {% if role in 'super-admin,admin' %}
+            <div class="board-filter-wrap">
+                <i class="fas fa-building board-filter-icon" aria-hidden="true"></i>
+                <select class="form-select form-select-sm board-filter-select" id="areaFilter" name="area" aria-label="Filtrar por area">
+                    <option value="">Todas las areas</option>
+                    {% for area in areas %}
+                    <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="board-filter-wrap">
+                <i class="fas fa-folder board-filter-icon" aria-hidden="true"></i>
+                <select class="form-select form-select-sm board-filter-select" id="projectFilter" name="project" aria-label="Filtrar por proyecto" {% if not filters.area %}disabled{% endif %}>
+                    <option value="">Todos los proyectos</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
+            <div class="board-filter-wrap">
+                <i class="fas fa-user board-filter-icon" aria-hidden="true"></i>
+                <select class="form-select form-select-sm board-filter-select" id="assigneeFilter" name="assignee" aria-label="Filtrar por asignado" disabled>
+                    <option value="">Todos los asignados</option>
+                    {% for u, projects_csv in assignee_opts %}
+                    <option value="{{ u.id }}" data-projects="{{ projects_csv }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            {% if filters.area or filters.project or filters.assignee %}
+            <a href="{% url 'ver_tablero' %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        {% if filters.project %}
+        <a href="{% url 'ver_detalle_proyecto' filters.project %}" class="btn btn-sm board-btn board-btn-outline" title="Ir al proyecto"><i class="fas fa-external-link-alt me-1" aria-hidden="true"></i>Ver Proyecto</a>
+        {% else %}
+        <button class="btn btn-sm board-btn board-btn-outline" disabled title="Selecciona un proyecto"><i class="fas fa-external-link-alt me-1" aria-hidden="true"></i>Ver Proyecto</button>
+        {% endif %}
+        {% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
+        <button class="btn btn-sm board-btn board-btn-primary" id="quickTaskBtn" aria-label="Crear nueva tarea"><i class="fas fa-plus me-1" aria-hidden="true"></i>Nueva Tarea</button>
+        {% endif %}
+    </div>
+</div>

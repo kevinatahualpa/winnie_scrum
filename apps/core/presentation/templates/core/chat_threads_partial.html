@@ -1,0 +1,54 @@
+{% if threads %}
+{% for thread in threads %}
+<a href="{% url thread.url_name thread.url_id %}" class="list-group-item list-group-item-action border-0 d-flex align-items-center gap-2 py-2 px-3 {% if partner and partner.id == thread.partner.id %}active-chat{% endif %} thread-link"
+   style="border-left: 3px solid {% if partner and partner.id == thread.partner.id %}var(--accent){% else %}transparent{% endif %};"
+   hx-get="{% url thread.url_name thread.url_id %}"
+   hx-target="#chatPanel"
+   hx-swap="innerHTML">
+    <div class="position-relative flex-shrink-0">
+        {% if thread.type == 'project' %}
+        <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: {{ thread.project.color }}; font-size: 14px;">
+            <i class="fas fa-folder" style="font-size: 0.8rem;"></i>
+        </div>
+        {% else %}
+        {% if thread.partner.profile.avatar %}
+        <img src="{{ thread.partner.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+        {% else %}
+        <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: {{ thread.partner.profile.color|default:'#00bcd4' }}; font-size: 14px;">
+            {{ thread.partner.profile.initials|default:thread.partner.username|slice:":2"|upper }}
+        </div>
+        {% endif %}
+        {% endif %}
+        {% if thread.unread %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle p-1 online-dot"></span>
+        {% endif %}
+    </div>
+    <div class="flex-grow-1 min-width-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <strong class="small text-truncate {% if thread.unread %}fw-bold{% endif %}" style="max-width: 180px;">
+                {% if thread.type == 'project' %}
+                <i class="fas fa-hashtag me-1" style="font-size: 0.5rem; opacity: 0.5;"></i>{{ thread.project.name }}
+                {% else %}
+                {{ thread.partner.get_full_name|default:thread.partner.username }}
+                {% endif %}
+            </strong>
+            <small class="text-muted" style="font-size: 0.6rem;">{{ thread.last_time|date:"H:i" }}</small>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted text-truncate d-block" style="max-width: 200px;">
+                {% if thread.is_mine %}<i class="fas fa-check-double me-1 read-indicator"></i>{% endif %}
+                {{ thread.last_preview }}
+            </span>
+            {% if thread.unread %}
+            <span class="badge rounded-pill flex-shrink-0 ms-1 unread-badge">{{ thread.unread }}</span>
+            {% endif %}
+        </div>
+    </div>
+</a>
+{% endfor %}
+{% else %}
+<div class="text-center py-5 text-muted small">
+    <i class="fas fa-comment-slash d-block mb-2" style="font-size: 2rem; opacity: 0.2;"></i>
+    Sin conversaciones
+</div>
+{% endif %}

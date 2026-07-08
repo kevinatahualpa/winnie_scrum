@@ -6,90 +6,106 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-high">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="mb-0"><i class="fas fa-running me-2" style="color:var(--accent);"></i>Sprints</h4>
-                {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#sprintModal"><i class="fas fa-plus me-1"></i>Nuevo Sprint</button>
-                {% endif %}
-            </div>
-
-            {% if active_sprint %}
-            <div class="card border-0 shadow-sm mb-4 border-start border-4 border-info">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-info"></i>Gráfico Burndown - {{ active_sprint.name }}</h5>
-                    <small class="text-muted">{{ active_sprint.start_date }} → {{ active_sprint.end_date }}</small>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <h3 class="fw-bold text-info">{{ active_sprint_data.total }}</h3>
-                            <small class="text-muted">Total Tareas</small>
-                        </div>
-                        <div class="col-4">
-                            <h3 class="fw-bold text-success">{{ active_sprint_data.done }}</h3>
-                            <small class="text-muted">Completadas</small>
-                        </div>
-                        <div class="col-4">
-                            <h3 class="fw-bold text-warning">{{ active_sprint_data.total|add:"-"|add:active_sprint_data.done }}</h3>
-                            <small class="text-muted">Restantes</small>
-                        </div>
-                    </div>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" style="width:180px;" id="projectFilterSprint" onchange="window.location.href='?project='+this.value">
+                        <option value="">Todos los proyectos</option>
+                        {% for p in projects %}
+                        <option value="{{ p.id }}" {% if request.GET.project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sprintModal"><i class="fas fa-plus me-1"></i>Nuevo Sprint</button>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
 
-            <div class="d-flex flex-column gap-3">
-                {% for sprint in sprints %}
-                <div class="card border-0 shadow-sm border-start border-4 {% if sprint.status == 'active' %}border-info{% elif sprint.status == 'completed' %}border-success{% else %}border-secondary{% endif %}">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <h5 class="mb-1">{{ sprint.name }} <span class="text-muted fw-normal fs-6">- {{ sprint.project.name }}</span></h5>
-                                <p class="text-muted mb-2 small">{{ sprint.goal }}</p>
-                                <div class="d-flex gap-3 small text-muted">
-                                    <span><i class="fas fa-calendar me-1"></i>{{ sprint.start_date }} - {{ sprint.end_date }}</span>
-                                    <span><i class="fas fa-tasks me-1"></i>{{ sprint.tasks.count }} tareas</span>
-                                    <span class="badge bg-{{ sprint.status }}">{{ sprint.get_status_display }}</span>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div style="width:120px">
-                                        <div class="d-flex justify-content-between small mb-1">
-                                            <span class="text-muted">{{ sprint.tasks.count }} tareas</span>
-                                            <span class="fw-bold">{{ sprint.tasks.count|default:0 }}%</span>
-                                        </div>
-                                        <div class="progress" style="height:6px">
-                                            <div class="progress-bar bg-{% if sprint.status == 'completed' %}success{% else %}info{% endif %}" style="width:{{ sprint.tasks.count|default:0 }}%"></div>
-                                        </div>
-                                    </div>
-                                    {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                                    <div class="btn-group">
-                                        {% if sprint.status == 'planned' %}
-                                        <form method="post" action="{% url 'iniciar_sprint' sprint.id %}" class="d-inline">
-                                            {% csrf_token %}
-                                            <button class="btn btn-sm btn-success" title="Iniciar"><i class="fas fa-play"></i></button>
-                                        </form>
-                                        {% elif sprint.status == 'active' %}
-                                        <form method="post" action="{% url 'completar_sprint' sprint.id %}" class="d-inline">
-                                            {% csrf_token %}
-                                            <button class="btn btn-sm btn-warning" title="Completar"><i class="fas fa-flag-checkered"></i></button>
-                                        </form>
-                                        {% endif %}
-                                    </div>
+            {% regroup sprints by project as project_groups %}
+            {% for group in project_groups %}
+            <div class="mb-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:12px;height:12px;background:{{ group.grouper.color|default:'#00bcd4' }};"></div>
+                    <h6 class="mb-0 text-primary">{{ group.grouper.name }}</h6>
+                    <small class="text-muted">{{ group.list|length }} sprint(s)</small>
+                </div>
+
+                {% for sprint in group.list %}
+                <div class="card border-0 mb-2 {% if sprint.status == 'ACT' %}card-accent-left{% endif %}">
+                    <div class="card-body py-2 px-3">
+                        <div class="row align-items-center g-2">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-medium text-primary" style="font-size:0.85rem;">{{ sprint.name }}</span>
+                                    {% if sprint.status == 'ACT' %}
+                                    <span class="badge" style="background:var(--accent-soft);color:var(--accent);font-size:0.6rem;">ACT</span>
+                                    {% elif sprint.status == 'CMP' %}
+                                    <span class="badge bg-secondary" style="font-size:0.6rem;">CMP</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary" style="font-size:0.6rem;">PLAN</span>
+                                    {% endif %}
+                                    {% if sprint.status == 'ACT' %}
+                                    <a href="{% url 'ver_tablero' %}?sprint={{ sprint.id }}" class="btn btn-sm btn-ghost" title="Ver tablero" style="font-size:0.65rem;">
+                                        <i class="fas fa-columns"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if sprint.status != 'CMP' or user|role_is:'super-admin' %}
+                                    <button class="btn btn-sm btn-ghost" onclick="editarSprintDrawer({{ sprint.id }})" title="Editar sprint" style="font-size:0.6rem;padding:0 4px;">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
                                     {% endif %}
                                 </div>
+                                {% if sprint.goal %}<p class="text-secondary mb-0 mt-1" style="font-size:0.72rem;">{{ sprint.goal|truncatechars:100 }}</p>{% endif %}
+                            </div>
+                            <div class="col-md-2 text-secondary" style="font-size:0.75rem;">
+                                <i class="far fa-calendar me-1"></i>{{ sprint.start_date|date:"d/m" }} — {{ sprint.end_date|date:"d/m" }}
+                            </div>
+                            <div class="col-md-2">
+                                {% with total=sprint.tasks.count %}
+                                {% if total > 0 %}
+                                {% with done=sprint.tasks_finished|default:0 %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:6px;">
+                                        <div class="progress-bar {% if sprint.status == 'CMP' %}bg-success{% else %}bg-accent{% endif %}"
+                                             style="width:{% widthratio done total 100 %}%"></div>
+                                    </div>
+                                    <small class="text-muted" style="font-size:0.68rem;white-space:nowrap;">{{ done }}/{{ total }}</small>
+                                </div>
+                                {% endwith %}
+                                {% else %}
+                                <small class="text-muted" style="font-size:0.72rem;">Sin tareas</small>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                            <div class="col-md-3 d-flex align-items-center gap-1">
+                                {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                                    {% if sprint.status == 'PLAN' %}
+                                    <button class="btn btn-sm btn-primary" onclick="abrirDrawerSprint({{ sprint.id }})" title="Planificar e iniciar"><i class="fas fa-play me-1"></i>Iniciar</button>
+                                    {% elif sprint.status == 'ACT' %}
+                                    <form method="post" action="{% url 'completar_sprint' sprint.id %}" class="d-inline" onsubmit="return confirmarCompletarSprint(event, '{{ sprint.name|escapejs }}', {{ sprint.tasks_total }}, {{ sprint.tasks_finished }})">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-secondary" title="Completar"><i class="fas fa-flag-checkered me-1"></i>Completar</button>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
+                                {% if sprint.status == 'ACT' %}
+                                <a href="{% url 'ver_tablero' %}?sprint={{ sprint.id }}" class="btn btn-sm btn-ghost" title="Tablero"><i class="fas fa-columns"></i></a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-                </div>
-                {% empty %}
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-running fa-2x mb-2 d-block"></i>Sin sprints
                 </div>
                 {% endfor %}
             </div>
+            {% empty %}
+            <div class="text-center py-5 text-secondary">
+                <i class="fas fa-running d-block mb-3" style="font-size:3rem;opacity:0.15;"></i>
+                <h6>Sin sprints</h6>
+                <p class="small">Crea sprints para organizar el trabajo de tus proyectos.</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -107,19 +123,13 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label">Nombre</label>
-                    <input type="text" name="name" class="form-control" placeholder="Sprint 1 - Inicio" required>
+                    <input type="text" name="name" class="form-control" placeholder="Sprint 1 - Kickoff" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Proyecto</label>
                     <select name="project" class="form-select" required>
-                        {% for project in sprints|dictsort:"project.name"|slice:":1" %}
-                        {% endfor %}
-                        {% for project in projects|default:sprints|dictsort:"project.name" %}
-                        <option value="{{ project.project.id }}">{{ project.project.name }}</option>
-                        {% empty %}
-                        {% for project in projects %}
-                        <option value="{{ project.id }}">{{ project.name }}</option>
-                        {% endfor %}
+                        {% for p in projects %}
+                        <option value="{{ p.id }}" {% if request.GET.project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -140,10 +150,223 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-success">Crear</button>
+                <button type="submit" class="btn btn-primary">Crear</button>
             </div>
         </form>
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var sprintDrawerOverlay = null;
+
+function abrirDrawerSprint(sprintId) {
+    if (!sprintDrawerOverlay) {
+        sprintDrawerOverlay = document.createElement('div');
+        sprintDrawerOverlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;justify-content:flex-end;background:rgba(0,0,0,0.4);';
+        sprintDrawerOverlay.innerHTML = '<div class="drawer-panel" style="width:480px;max-width:92vw;height:100vh;background:var(--surface-1);display:flex;flex-direction:column;overflow:hidden;animation:drawerSlideIn 0.2s ease;"></div>';
+        document.body.appendChild(sprintDrawerOverlay);
+        sprintDrawerOverlay.addEventListener('click', function(e) {
+            if (e.target === sprintDrawerOverlay) cerrarDrawerSprint();
+        });
+    }
+
+    sprintDrawerOverlay.style.display = 'flex';
+    var panel = sprintDrawerOverlay.querySelector('.drawer-panel');
+    panel.innerHTML = '<div class="text-center py-5" style="color:var(--text-muted);"><span class="spinner-border spinner-border-sm" style="color:var(--accent);"></span> Cargando...</div>';
+
+    fetch('/sprint/' + sprintId + '/select/', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+        panel.innerHTML = html;
+        var checks = panel.querySelectorAll('.sprint-task-check');
+        var count = panel.querySelector('#sprintDrawerCount');
+        var btn = panel.querySelector('#sprintDrawerSubmit');
+        function updateBtn() {
+            var n = panel.querySelectorAll('.sprint-task-check:checked').length;
+            count.textContent = n + ' seleccionadas';
+            if (n > 0) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play me-1"></i>Iniciar Sprint (' + n + ')';
+            } else {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-play me-1"></i>Selecciona tareas';
+            }
+        }
+        checks.forEach(function(cb) { cb.addEventListener('change', updateBtn); });
+        if (checks.length === 0) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-play me-1"></i>Sin tareas disponibles';
+        }
+    });
+}
+
+function cerrarDrawerSprint() {
+    if (sprintDrawerOverlay) sprintDrawerOverlay.style.display = 'none';
+}
+
+function getCsrfTokenSprint() {
+    var meta = document.querySelector('meta[name=csrf-token]');
+    if (meta && meta.content) return meta.content;
+    var input = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (input && input.value) return input.value;
+    return '';
+}
+
+function confirmarCompletarSprint(e, sprintName, total, done) {
+    e.preventDefault();
+    var pending = total - done;
+    var msg = pending === 0
+        ? 'Todas las tareas estan completadas. El sprint se marcara como completado.'
+        : pending + ' tarea(s) pendiente(s) (TODO / PROG / TEST) volveran al Product Backlog. Las tareas DONE conservaran su historial.';
+    showConfirm(
+        'Completar Sprint',
+        '"' + sprintName + '": ' + total + ' tarea(s) total, ' + done + ' completada(s). ' + msg,
+        function() { e.target.submit(); }
+    );
+    return false;
+}
+
+function enviarSprintDrawer(e, sprintId) {
+    e.preventDefault();
+    var form = document.getElementById('sprintTaskForm');
+    var btn = document.getElementById('sprintDrawerSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span> Iniciando...';
+
+    var fd = new URLSearchParams(new FormData(form));
+
+    fetch('/sprint/' + sprintId + '/select/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCsrfTokenSprint(),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: fd
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            cerrarDrawerSprint();
+            location.reload();
+        } else {
+            if (typeof showToast === 'function') showToast(data.error || 'Error', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play me-1"></i>Iniciar Sprint';
+        }
+    })
+    .catch(function(err) {
+        if (typeof showToast === 'function') showToast('Error de conexion', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-play me-1"></i>Iniciar Sprint';
+    });
+}
+
+function editarSprintDrawer(sprintId) {
+    fetch('/sprint/' + sprintId + '/edit/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) { alert(data.error); return; }
+
+            if (!sprintDrawerOverlay) {
+                sprintDrawerOverlay = document.createElement('div');
+                sprintDrawerOverlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;justify-content:flex-end;background:rgba(0,0,0,0.4);';
+                sprintDrawerOverlay.innerHTML = '<div class="drawer-panel" style="width:480px;max-width:92vw;height:100vh;background:var(--surface-1);display:flex;flex-direction:column;overflow:hidden;animation:drawerSlideIn 0.2s ease;"></div>';
+                document.body.appendChild(sprintDrawerOverlay);
+                sprintDrawerOverlay.addEventListener('click', function(e) {
+                    if (e.target === sprintDrawerOverlay) cerrarDrawerSprint();
+                });
+            }
+
+            var isSuper = {{ user|role_is:'super-admin'|yesno:'true,false' }};
+            var canEditDates = data.status === 'PLAN' || isSuper;
+            var canEditName = data.status !== 'CMP' || isSuper;
+            var title = data.status === 'ACT' ? 'Editar Objetivo' : 'Editar Sprint';
+
+            var panel = sprintDrawerOverlay.querySelector('.drawer-panel');
+            panel.innerHTML =
+                '<div class="drawer-header">' +
+                '  <h6 class="drawer-title"><i class="fas fa-pen me-2" style="color:var(--accent);"></i>' + title + '</h6>' +
+                '  <button type="button" class="drawer-close" onclick="cerrarDrawerSprint()"><i class="fas fa-times"></i></button>' +
+                '</div>' +
+                '<div class="drawer-body" style="display:flex;flex-direction:column;gap:14px;">' +
+                '  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;">' +
+                '    <span class="text-secondary" style="font-size:0.75rem;">' + data.project_name + '</span>' +
+                '    <span class="badge bg-secondary ms-2" style="font-size:0.6rem;">' + data.status + '</span>' +
+                '  </div>' +
+                '  <form id="sprintEditForm" onsubmit="guardarEdicionSprint(event, ' + sprintId + ')">' +
+                '    <input type="hidden" name="csrfmiddlewaretoken" value="' + getCsrfTokenSprint() + '">' +
+                '    <div class="crud-field">' +
+                '      <label class="crud-label">Nombre</label>' +
+                '      <input type="text" name="name" class="crud-input" value="' + escapeHtml(data.name || '') + '"' + (canEditName ? '' : ' disabled') + '>' +
+                (canEditName ? '' : '      <div class="crud-help" style="display:block;">Solo super-admin puede editar el nombre de un sprint completado</div>') +
+                '    </div>' +
+                '    <div class="row g-2">' +
+                '      <div class="col-6"><div class="crud-field">' +
+                '        <label class="crud-label">Inicio</label>' +
+                '        <input type="date" name="start_date" class="crud-input" value="' + (data.start_date || '') + '"' + (canEditDates ? '' : ' disabled') + '>' +
+                (canEditDates ? '' : '        <div class="crud-help" style="display:block;">Las fechas no se modifican en un sprint activo</div>') +
+                '      </div></div>' +
+                '      <div class="col-6"><div class="crud-field">' +
+                '        <label class="crud-label">Fin</label>' +
+                '        <input type="date" name="end_date" class="crud-input" value="' + (data.end_date || '') + '"' + (canEditDates ? '' : ' disabled') + '>' +
+                '      </div></div>' +
+                '    </div>' +
+                '    <div class="crud-field">' +
+                '      <label class="crud-label">Objetivo</label>' +
+                '      <textarea name="goal" class="crud-input crud-textarea" rows="3">' + escapeHtml(data.goal || '') + '</textarea>' +
+                '    </div>' +
+                '  </form>' +
+                '</div>' +
+                '<div class="drawer-footer">' +
+                '  <button type="button" class="crud-btn-cancel" onclick="cerrarDrawerSprint()">Cancelar</button>' +
+                '  <button type="button" class="crud-btn-submit" id="sprintEditSubmit" onclick="document.getElementById(\'sprintEditForm\').requestSubmit()"><i class="fas fa-check me-1"></i>Guardar</button>' +
+                '</div>';
+
+            sprintDrawerOverlay.style.display = 'flex';
+        });
+}
+
+function guardarEdicionSprint(e, sprintId) {
+    e.preventDefault();
+    var form = document.getElementById('sprintEditForm');
+    var btn = document.getElementById('sprintEditSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span> Guardando...';
+
+    var fd = new URLSearchParams(new FormData(form));
+    fetch('/sprint/' + sprintId + '/edit/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCsrfTokenSprint(),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: fd
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            cerrarDrawerSprint();
+            location.reload();
+        } else {
+            if (typeof showToast === 'function') showToast(data.error || 'Error', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Guardar';
+        }
+    })
+    .catch(function() {
+        if (typeof showToast === 'function') showToast('Error de conexion', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Guardar';
+    });
+}
+
+function escapeHtml(t) { return (t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
 {% endblock %}

@@ -1,75 +1,99 @@
 {% load static %}
-<div class="top-bar d-flex justify-content-between align-items-center" role="banner">
+<div class="top-bar" role="banner">
     <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-sm btn-outline-secondary d-md-none sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu de navegacion"><i class="fas fa-bars" aria-hidden="true"></i></button>
-        <h5 class="mb-0 page-title">{% block page_title %}{% endblock %}</h5>
+        <button class="sidebar-toggle d-md-none" id="sidebarToggle" aria-label="Abrir menu"><i class="fas fa-bars"></i></button>
+        <div class="topbar-org">
+            <div class="topbar-logo"><i class="fas fa-cube"></i></div>
+            <span class="topbar-org-name">Winnie</span>
+        </div>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <div class="input-group input-group-sm global-search-group">
-            <span class="input-group-text"><i class="fas fa-search"></i></span>
-            <input type="text" class="form-control" placeholder="Buscar..." aria-label="Busqueda global" id="globalSearch">
+        <div class="topbar-search-wrapper">
+            <i class="fas fa-search topbar-search-icon"></i>
+            <input type="text" class="topbar-search-input" placeholder="Buscar..." aria-label="Busqueda global" id="globalSearch">
         </div>
         <div class="dropdown">
-            <button class="btn btn-sm position-relative notif-btn" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
-                <i class="fas fa-bell" aria-hidden="true"></i>
-                {% if unread_count %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill notif-badge notif-count">{{ unread_count }}</span>
-                {% endif %}
+            <button class="notif-btn" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+                <i class="far fa-bell"></i>
+                {% if unread_count %}<span class="notif-count-dot"></span>{% endif %}
             </button>
             <div class="dropdown-menu dropdown-menu-end notif-dropdown p-0" aria-labelledby="notifDropdown">
                 <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
-                    <span class="fw-semibold small">Notificaciones</span>
+                    <span class="fw-semibold" style="font-size:0.78rem;">Notificaciones</span>
                     {% if unread_count > 0 %}
                     <form method="post" action="{% url 'marcar_todas_leidas' %}">
                         {% csrf_token %}
-                        <button class="btn btn-link btn-sm p-0 text-decoration-none mark-read-btn" aria-label="Marcar todas las notificaciones como leidas">Marcar todo leido</button>
+                        <button type="submit" class="border-0 bg-transparent mark-read-btn" style="font-size:0.7rem;">Marcar todas leidas</button>
                     </form>
                     {% endif %}
                 </div>
-                {% if pending_count > 0 %}
-                <a href="{% url 'ver_pendientes' %}" class="dropdown-item pending-reg-link">
-                    <div class="notif-drop-icon unread notif-icon-warning">
-                        <i class="fas fa-user-clock" aria-hidden="true"></i>
-                    </div>
-                    <div class="notif-drop-body">
-                        <div class="notif-drop-title">{{ pending_count }} registro(s) pendiente(s)</div>
-                        <div class="notif-drop-msg">Hay nuevos usuarios esperando aprobacion</div>
-                    </div>
-                    <span class="notif-drop-dot notif-dot-warning" aria-hidden="true"></span>
-                </a>
-                <div class="border-top"></div>
-                {% endif %}
                 <div class="notif-scroll">
-                    {% if notifications_preview %}
-                        {% for n in notifications_preview %}
-                        <a href="{% url 'ver_notificaciones' %}" class="dropdown-item notif-dropdown-item {% if not n.read %}unread{% endif %}">
-                            <div class="notif-drop-icon {% if not n.read %}unread{% endif %}">
-                                <i class="fas {{ n.icon|default:'fa-bell' }}" aria-hidden="true"></i>
-                            </div>
-                            <div class="notif-drop-body">
-                                <div class="notif-drop-title">{{ n.title }}</div>
-                                <div class="notif-drop-msg">{{ n.message|truncatechars:60 }}</div>
-                                <div class="notif-drop-time">{{ n.created_at|timesince }} atras</div>
-                            </div>
-                            {% if not n.read %}
-                            <span class="notif-drop-dot" aria-hidden="true"></span>
+                    {% if notifications %}
+                    {% for notif in notifications|slice:":20" %}
+                    <a href="{{ notif.link|default:'#' }}" class="notif-dropdown-item {% if not notif.read %}unread{% endif %}">
+                        <div class="notif-drop-icon {% if not notif.read %}unread{% endif %}">
+                            {% if 'project_' in notif.type %}<i class="fas fa-folder"></i>
+                            {% elif 'task_' in notif.type %}<i class="fas fa-check-circle"></i>
+                            {% elif 'message' in notif.type %}<i class="fas fa-envelope"></i>
+                            {% elif 'registration' in notif.type %}<i class="fas fa-user-plus"></i>
+                            {% else %}<i class="fas fa-bell"></i>
                             {% endif %}
-                        </a>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-4 text-muted notif-empty-state">
-                            <i class="far fa-bell d-block mb-2" aria-hidden="true"></i>
-                            Sin notificaciones
                         </div>
+                        <div class="notif-drop-body">
+                            <div class="notif-drop-title">{{ notif.title }}</div>
+                            <div class="notif-drop-msg">{{ notif.message }}</div>
+                            <div class="notif-drop-time">{{ notif.created_at|date:"d/m H:i" }}</div>
+                        </div>
+                        {% if not notif.read %}<div class="notif-drop-dot"></div>{% endif %}
+                    </a>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4 notif-empty-state">
+                        <i class="far fa-bell d-block mb-2"></i>
+                        <span>Sin notificaciones</span>
+                    </div>
                     {% endif %}
                 </div>
                 <div class="border-top p-2 text-center">
-                    <a href="{% url 'ver_notificaciones' %}" class="text-decoration-none small notif-view-all">Ver todas las notificaciones</a>
+                    <a href="{% url 'ver_notificaciones' %}" class="notif-view-all" style="font-size:0.72rem;text-decoration:none;">Ver todas las notificaciones</a>
                 </div>
             </div>
         </div>
+        <button class="btn-ai-trigger" id="aiOpenBtn" aria-label="Abrir asistente IA" title="Winnie AI (Ctrl+K)">
+            <i class="fas fa-bolt"></i>
+            <span class="d-none d-sm-inline">Ask AI</span>
+        </button>
+        <div class="dropdown">
+            <button class="topbar-avatar-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu de usuario">
+                {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="" class="topbar-avatar">
+                {% else %}
+                <div class="topbar-avatar-initials">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end theme-dropdown-menu">
+                <li class="theme-dropdown-header">
+                    <div class="theme-dropdown-name">{{ user.get_full_name }}</div>
+                    <div class="theme-dropdown-email">{{ user.email }}</div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'ver_perfil' %}"><i class="far fa-user me-2"></i>Perfil</a></li>
+                <li><a class="dropdown-item" href="{% url 'ver_configuracion' %}"><i class="fas fa-cog me-2"></i>Configuracion</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="dropdown-submenu-wrapper">
+                    <span class="dropdown-item theme-trigger" id="themeTrigger">
+                        <i class="fas fa-palette me-2"></i><span id="themeLabel">Tema: Sistema</span>
+                        <i class="fas fa-chevron-right ms-auto" style="font-size:0.6rem;opacity:0.5;"></i>
+                    </span>
+                    <ul class="dropdown-menu dropdown-submenu theme-submenu" id="themeSubmenu">
+                        <li><button class="dropdown-item theme-option" data-theme="system"><i class="fas fa-desktop me-2"></i>Sistema</button></li>
+                        <li><button class="dropdown-item theme-option" data-theme="dark"><i class="fas fa-moon me-2"></i>Oscuro</button></li>
+                        <li><button class="dropdown-item theme-option" data-theme="light"><i class="fas fa-sun me-2"></i>Claro</button></li>
+                    </ul>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault();showConfirm('Salir','Estas seguro de que quieres cerrar sesion?',function(){window.location.href='{% url 'cerrar_sesion' %}';})"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesion</a></li>
+            </ul>
+        </div>
     </div>
 </div>
-
-<link href="{% static 'css/topbar.css' %}" rel="stylesheet">
-<script src="{% static 'js/topbar.js' %}"></script>

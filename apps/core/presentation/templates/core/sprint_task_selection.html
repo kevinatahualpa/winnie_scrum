@@ -1,0 +1,133 @@
+{% extends 'core/base.html' %}
+{% load role_tags %}
+{% block title %}Iniciar Sprint - Winnie{% endblock %}
+{% block body %}
+<div class="app-layout">
+    {% include 'core/sidebar.html' %}
+    <div class="main-area">
+        {% include 'core/topbar.html' %}
+        <div class="page-content density-low" id="main-content" role="main">
+            <div class="mb-4">
+                <a href="{% url 'ver_sprints' %}" class="btn btn-ghost btn-sm mb-3">
+                    <i class="fas fa-arrow-left me-1"></i>Volver a Sprints
+                </a>
+                <h4 class="text-primary">
+                    <i class="fas fa-play me-2" style="color:var(--accent);"></i>Iniciar Sprint
+                </h4>
+                <div class="d-flex gap-3 flex-wrap mt-2">
+                    <div>
+                        <small class="text-muted">Sprint</small>
+                        <div class="fw-semibold">{{ sprint.name }}</div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Proyecto</small>
+                        <div class="fw-semibold">{{ sprint.project.name }}</div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Fechas</small>
+                        <div class="fw-semibold">{{ sprint.start_date|date:"d/m/Y" }} al {{ sprint.end_date|date:"d/m/Y" }}</div>
+                    </div>
+                    {% if sprint.goal %}
+                    <div class="w-100 mt-1">
+                        <small class="text-muted">Objetivo</small>
+                        <div class="fw-semibold">{{ sprint.goal }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-list me-2" style="color:var(--accent);"></i>
+                        Tareas del Product Backlog
+                        <small class="text-muted ms-2" style="font-size:0.75rem;">Selecciona las tareas para este sprint</small>
+                    </h5>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-play me-1"></i>Iniciar Sprint con <span id="selectedCount">0</span> tareas
+                    </button>
+                </div>
+
+                {% if backlog_tasks %}
+                <div class="card border-0">
+                    <div class="card-body p-0">
+                        <table class="table table-compact">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">
+                                        <input type="checkbox" id="selectAll" aria-label="Seleccionar todas">
+                                    </th>
+                                    <th>Titulo</th>
+                                    <th style="width:90px;">Prioridad</th>
+                                    <th style="width:80px;">Puntos</th>
+                                    <th style="width:150px;">Asignado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for task in backlog_tasks %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="task-check" name="task_ids" value="{{ task.id }}" aria-label="Seleccionar {{ task.title }}">
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium text-primary">{{ task.title }}</div>
+                                        {% if task.tags.all %}
+                                        <div class="mt-1">
+                                            {% for tag in task.tags.all %}
+                                            <span class="badge" style="background:{{ tag.color }};font-size:0.62rem;">{{ tag.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="priority-badge priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                                    </td>
+                                    <td class="text-center">{{ task.points }}</td>
+                                    <td class="text-secondary" style="font-size:0.75rem;">
+                                        {{ task.assignee.get_full_name|default:'' }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fas fa-inbox d-block mb-2" style="font-size:2.5rem;opacity:0.15;"></i>
+                    <p class="mb-0">No hay tareas en el Product Backlog de este proyecto.</p>
+                    <p class="small">Crea tareas primero desde la seccion <a href="{% url 'ver_backlog' %}">Backlog</a>.</p>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var selectAll = document.getElementById('selectAll');
+    var checks = document.querySelectorAll('.task-check');
+    var count = document.getElementById('selectedCount');
+
+    function updateCount() {
+        var n = document.querySelectorAll('.task-check:checked').length;
+        count.textContent = n;
+    }
+
+    selectAll.addEventListener('change', function() {
+        checks.forEach(function(cb) { cb.checked = selectAll.checked; });
+        updateCount();
+    });
+
+    checks.forEach(function(cb) {
+        cb.addEventListener('change', updateCount);
+    });
+
+    updateCount();
+});
+</script>
+{% endblock %}

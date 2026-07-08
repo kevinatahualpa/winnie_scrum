@@ -1,26 +1,24 @@
 {% extends 'core/base.html' %}
 {% load static %}
 {% block title %}Registros Pendientes - Winnie{% endblock %}
-{% block page_title %}Registros Pendientes{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-low">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h4 class="mb-0"><i class="fas fa-user-clock me-2"></i>Solicitudes Pendientes</h4>
-                    <small class="text-muted">Haz click en <i class="fas fa-eye"></i> para abrir el CV y validar</small>
+                    <h4 class="mb-0 text-primary" style="font-size:1.15rem;font-weight:600;letter-spacing:-0.02em;">Solicitudes Pendientes</h4>
                 </div>
                 {% if pending_users %}
-                <span class="badge rounded-pill" style="background:var(--accent);font-size:0.8rem;padding:0.4rem 0.8rem;">{{ pending_users|length }} pendiente(s)</span>
+                <span class="pending-count-pill">{{ pending_users|length }} pendiente{{ pending_users|length|pluralize }}</span>
                 {% endif %}
             </div>
 
             {% if messages %}
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2" role="alert" style="font-size:0.8rem;">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -28,112 +26,94 @@
             {% endif %}
 
             {% if pending_users %}
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead>
-                                <tr>
-                                    <th style="width:44px"></th>
-                                    <th>Candidato</th>
-                                    <th>Titular</th>
-                                    <th>Especialidad</th>
-                                    <th>Skills</th>
-                                    <th>CV</th>
-                                    <th>Recibido</th>
-                                    <th style="width:140px" class="text-end">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user_profile in pending_users %}
-                                {% with cp=user_profile.user.candidate_profile %}
-                                <tr>
-                                    <td>
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                             style="width:34px;height:34px;background:var(--accent);color:#fff;font-size:0.7rem;font-weight:600;">
-                                            {{ user_profile.user.first_name|first|upper }}{{ user_profile.user.last_name|first|upper }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="fw-medium" style="font-size:0.85rem;">{{ user_profile.user.get_full_name }}</div>
-                                        <small class="text-muted">{{ user_profile.user.email }}</small>
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ cp.headline|default:'-' }}</small>
-                                    </td>
-                                    <td>
-                                        {% if cp.primary_specialty %}
-                                        <span class="badge" style="background:var(--accent);font-size:0.7rem;">
-                                            {{ cp.primary_specialty.name }}
-                                        </span>
-                                        {% if cp.years_experience %}
-                                        <small class="text-muted d-block">{{ cp.years_experience }}a exp.</small>
-                                        {% endif %}
-                                        {% else %}
-                                        <small class="text-muted">-</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if cp %}
-                                        <span class="badge bg-light text-dark border" style="font-size:0.7rem;">
-                                            <i class="fas fa-code me-1"></i>{{ cp.candidatetechnology_set.count }} tech
-                                        </span>
-                                        {% if cp.candidatetechnology_set.count %}
-                                        <small class="text-muted d-block" style="font-size:0.65rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                            {% for ct in cp.candidatetechnology_set.all|slice:":3" %}{{ ct.technology.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if cp.candidatetechnology_set.count > 3 %}...{% endif %}
-                                        </small>
-                                        {% endif %}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if cp.cv_file %}
-                                        <i class="fas fa-file-pdf text-success"></i>
-                                        {% else %}
-                                        <i class="fas fa-times text-muted"></i>
-                                        {% endif %}
-                                    </td>
-                                    <td><small class="text-muted" style="font-size:0.75rem;">{{ user_profile.created_at|date:"d M, H:i" }}</small></td>
-                                    <td class="text-end">
-                                        <button type="button" class="btn btn-sm btn-primary review-btn"
-                                                data-url="{% url 'candidato_detalle' user_profile.id %}"
-                                                title="Abrir perfil y revisar CV">
-                                            <i class="fas fa-eye"></i> Revisar
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endwith %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="team-table-wrap">
+                <table class="team-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px"></th>
+                            <th>Candidato</th>
+                            <th>Especialidad</th>
+                            <th>Skills</th>
+                            <th>CV</th>
+                            <th>Recibido</th>
+                            <th style="width:100px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_profile in pending_users %}
+                        {% with cp=user_profile.user.candidate_profile %}
+                        <tr>
+                            <td>
+                                <div class="team-avatar" style="background: var(--accent);">{{ user_profile.user.first_name|first|upper }}{{ user_profile.user.last_name|first|upper }}</div>
+                            </td>
+                            <td>
+                                <div class="team-name">{{ user_profile.user.get_full_name }}</div>
+                                <div class="team-email">{{ user_profile.user.email }}</div>
+                            </td>
+                            <td>
+                                {% if cp.primary_specialty %}
+                                <span class="role-badge" style="background:var(--accent);color:#fff;">{{ cp.primary_specialty.name }}</span>
+                                {% if cp.years_experience %}
+                                <span class="team-area-tag">{{ cp.years_experience }}a exp.</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="team-email">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span style="font-size:0.72rem;color:var(--text-primary);">{{ cp.candidatetechnology_set.count }} tech</span>
+                                {% if cp.candidatetechnology_set.count %}
+                                <div class="team-email" style="max-width:160px;">
+                                    {% for ct in cp.candidatetechnology_set.all|slice:":3" %}{{ ct.technology.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if cp.candidatetechnology_set.count > 3 %}...{% endif %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>{% if cp.cv_file %}<i class="fas fa-file-pdf" style="color:#22c55e;font-size:0.9rem;"></i>{% else %}<span class="team-email">-</span>{% endif %}</td>
+                            <td><span class="team-email" style="font-size:0.72rem;">{{ user_profile.created_at|date:"d M, H:i" }}</span></td>
+                            <td>
+                                <button type="button" class="btn btn-sm team-btn-outline review-btn-trigger" style="font-size:0.72rem;padding:0.2rem 0.6rem;"
+                                        data-url="{% url 'candidato_detalle' user_profile.id %}">
+                                    <i class="fas fa-eye me-1"></i>Revisar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-user-check fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.2;"></i>
-                <h5 class="text-muted">Sin registros pendientes</h5>
-                <p class="text-muted small">Todos los candidatos han sido revisados</p>
+            <div class="team-empty">
+                <p class="mb-0">Sin registros pendientes — todos los candidatos han sido revisados</p>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_css %}
 <style>
-.review-btn { background: var(--accent); border: none; }
-.review-btn:hover { background: #c74315; }
-.review-btn:focus { box-shadow: 0 0 0 3px rgba(233,84,32,0.25); }
+.pending-count-pill {
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--accent);
+    color: #fff;
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+}
 </style>
+{% endblock %}
 
+{% block extra_js %}
 <script src="{% static 'js/drawer.js' %}"></script>
-
 <script>
 (function() {
     if (window.__winniePendientesInit) return;
     window.__winniePendientesInit = true;
 
     document.addEventListener('click', async function(e) {
-        const btn = e.target.closest('.review-btn');
+        const btn = e.target.closest('.review-btn-trigger');
         if (!btn) return;
         e.preventDefault();
         const url = btn.dataset.url;
@@ -154,15 +134,11 @@
             const html = await res.text();
             const inner = host.querySelector('.drawer-host-inner');
             inner.innerHTML = html;
-            if (typeof window.initDrawerContent === 'function') {
-                window.initDrawerContent();
-            }
-            if (typeof window.initAiSection === 'function') {
-                window.initAiSection();
-            }
+            if (typeof window.initDrawerContent === 'function') { window.initDrawerContent(); }
+            if (typeof window.initAiSection === 'function') { window.initAiSection(); }
         } catch (err) {
             host.querySelector('.drawer-host-inner').innerHTML =
-                '<div class="p-4"><div class="alert alert-danger">Error al cargar el perfil: ' + err.message + '</div></div>';
+                '<div class="p-4"><div class="alert alert-danger">Error: ' + err.message + '</div></div>';
         }
     });
 
@@ -171,160 +147,63 @@
         if (host) return host;
         host = document.createElement('div');
         host.id = 'drawerHost';
-        host.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;justify-content:flex-end;background:rgba(15,23,42,0.55);';
-        host.innerHTML = '<div class="drawer-host-inner" style="width:96%;max-width:1280px;height:100vh;background:var(--surface);box-shadow:-8px 0 24px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden;"></div>';
+        host.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;justify-content:flex-end;background:rgba(0,0,0,0.6);';
+        host.innerHTML = '<div class="drawer-host-inner" style="width:96%;max-width:1280px;height:100vh;background:var(--surface-1);box-shadow:-8px 0 24px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;"></div>';
         document.body.appendChild(host);
-        host.addEventListener('click', function(e) {
-            if (e.target === host) closeDrawer();
-        });
+        host.addEventListener('click', function(e) { if (e.target === host) closeDrawer(); });
         return host;
     }
 
     window.closeDrawer = function() {
         const host = document.getElementById('drawerHost');
-        if (host) {
-            host.style.display = 'none';
-            const inner = host.querySelector('.drawer-host-inner');
-            if (inner) inner.innerHTML = '';
-        }
+        if (host) { host.style.display = 'none'; host.querySelector('.drawer-host-inner').innerHTML = ''; }
     };
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeDrawer();
-    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDrawer(); });
 })();
 </script>
 
 <script>
-// Boton IA para analisis de candidatos (se ejecuta al cargar la pagina,
-// y se reinvoca cada vez que se abre un drawer con initAiSection())
 window.initAiSection = function() {
     var btn = document.getElementById('aiReviewBtn');
     var resultEl = document.getElementById('aiResult');
     if (!btn) return;
-
     btn.addEventListener('click', async function() {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-        // Mostrar el panel IA y descolapsar
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         var aiPanel = document.getElementById('aiPanel');
-        if (aiPanel) {
-            aiPanel.style.display = '';
-            aiPanel.classList.remove('collapsed');
-        }
-        resultEl.innerHTML = '<div class="text-center py-3 text-muted" style="font-size:0.75rem;"><i class="fas fa-spinner fa-spin me-2"></i>Analizando con IA...</div>';
-
+        if (aiPanel) { aiPanel.style.display = ''; aiPanel.classList.remove('collapsed'); }
+        resultEl.innerHTML = '<div class="text-center py-3 text-muted" style="font-size:0.75rem;"><i class="fas fa-spinner fa-spin me-2"></i>Analizando...</div>';
         var decidirUrl = document.getElementById('decidirUrl');
         var match = decidirUrl ? decidirUrl.value.match(/pending\/(\d+)\/decidir/) : null;
         var pk = match ? match[1] : null;
-
-        if (!pk) {
-            resultEl.innerHTML = '<div class="alert alert-danger py-1 px-2 small mb-0">Error: ID no encontrado</div>';
-            btnReset(); return;
-        }
-
-        var csrf = getCsrfToken();
-
+        if (!pk) { resultEl.innerHTML = '<div class="alert alert-danger py-1 px-2 small mb-0">Error: ID no encontrado</div>'; btnReset(); return; }
         try {
-            var resp = await fetch('/pending/' + pk + '/ai-review/', {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': csrf,
-                },
-                credentials: 'same-origin',
-            });
-
-            if (!resp.ok) {
-                var errJson = {};
-                try { errJson = await resp.json(); } catch(e) {}
-                throw new Error(errJson.error || 'HTTP ' + resp.status);
-            }
-
+            var csrf = document.cookie.split(';').find(function(c){return c.trim().startsWith('csrftoken=');});
+            csrf = csrf ? csrf.split('=')[1] : '';
+            var resp = await fetch('/pending/' + pk + '/ai-review/', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf }, credentials: 'same-origin' });
+            if (!resp.ok) { var errJson = {}; try { errJson = await resp.json(); } catch(e){} throw new Error(errJson.error || 'HTTP ' + resp.status); }
             var data = await resp.json();
             var strengthsHtml = (data.strengths || []).map(function(s) { return '<li>' + s + '</li>'; }).join('');
             var discrepanciesHtml = (data.discrepancies || []).map(function(d) { return '<li>' + d + '</li>'; }).join('');
             var comment = data.comment || '';
-
-            resultEl.innerHTML =
-                '<h6><i class="fas fa-robot me-1"></i>Analisis IA</h6>' +
-                '<div class="ai-section">' +
-                '  <div class="ai-label">Resumen</div>' +
-                '  <div>' + (data.summary || 'No disponible') + '</div>' +
-                '</div>' +
-                (strengthsHtml ? '<div class="ai-section">' +
-                '  <div class="ai-label">Fortalezas</div>' +
-                '  <ul class="strength-list">' + strengthsHtml + '</ul>' +
-                '</div>' : '') +
-                (discrepanciesHtml ? '<div class="ai-section">' +
-                '  <div class="ai-label" style="color:#f59e0b;">Discrepancias CV vs Formulario</div>' +
-                '  <ul class="strength-list" style="color:#e67e22;">' + discrepanciesHtml + '</ul>' +
-                '</div>' : '') +
-                (comment ? '<div class="ai-section">' +
-                '  <div class="ai-label">Comentario sugerido</div>' +
-                '  <div style="font-style:italic;color:var(--text-secondary);">' + comment + '</div>' +
-                '  <div class="ai-actions">' +
-                '    <button type="button" class="btn-ai-action" id="aiUseComment">' +
-                '      <i class="fas fa-copy me-1"></i> Usar como nota' +
-                '    </button>' +
-                '  </div>' +
-                '</div>' : '');
-
+            resultEl.innerHTML = '<h6 style="font-size:0.8rem;"><i class="fas fa-robot me-1"></i>Analisis IA</h6>' +
+                '<div class="ai-section"><div class="ai-label">Resumen</div><div style="font-size:0.78rem;">' + (data.summary || 'No disponible') + '</div></div>' +
+                (strengthsHtml ? '<div class="ai-section"><div class="ai-label">Fortalezas</div><ul class="strength-list">' + strengthsHtml + '</ul></div>' : '') +
+                (discrepanciesHtml ? '<div class="ai-section"><div class="ai-label" style="color:var(--warning);">Discrepancias</div><ul class="strength-list" style="color:var(--warning);">' + discrepanciesHtml + '</ul></div>' : '') +
+                (comment ? '<div class="ai-section"><div class="ai-label">Comentario sugerido</div><div style="font-style:italic;font-size:0.78rem;color:var(--text-secondary);">' + comment + '</div><button type="button" class="btn-ai-action" id="aiUseComment"><i class="fas fa-copy me-1"></i>Usar como nota</button></div>' : '');
             var useBtn = document.getElementById('aiUseComment');
-            if (useBtn && comment) {
-                useBtn.addEventListener('click', function() {
-                    var note = document.getElementById('reviewNote');
-                    if (note) note.value = comment;
-                });
-            }
-
-            // Auto-rellenar checklist segun sugerencias de la IA
+            if (useBtn && comment) { useBtn.addEventListener('click', function() { var note = document.getElementById('reviewNote'); if (note) note.value = comment; }); }
             var checklist = data.checklist || {};
             var totalChecked = 0;
             ['cv_coherente','experiencia','tecnologias','documentacion'].forEach(function(key) {
                 var chk = document.querySelector('.cl-item[data-key="' + key + '"] input[type=checkbox]');
-                if (chk) {
-                    var suggested = checklist[key] === true;
-                    chk.checked = suggested;
-                    var label = chk.closest('.cl-item');
-                    if (label) {
-                        label.classList.toggle('ai-suggest-check', suggested);
-                        label.classList.toggle('ai-suggest-warn', !suggested);
-                    }
-                    if (suggested) totalChecked++;
-                }
+                if (chk) { var suggested = checklist[key] === true; chk.checked = suggested; var label = chk.closest('.cl-item'); if (label) { label.classList.toggle('ai-suggest-check', suggested); label.classList.toggle('ai-suggest-warn', !suggested); } if (suggested) totalChecked++; }
             });
-            // Actualizar score pill
             var scorePill = document.getElementById('scorePill');
-            if (scorePill) {
-                scorePill.textContent = totalChecked + '/4';
-                scorePill.className = 'score-pill' +
-                    (totalChecked >= 3 ? ' ready' : ' warn');
-            }
-        } catch (e) {
-            resultEl.innerHTML = '<div class="alert alert-danger py-1 px-2 small mb-0">Error: ' + e.message + '</div>';
-        } finally {
-            btnReset();
-        }
+            if (scorePill) { scorePill.textContent = totalChecked + '/4'; scorePill.className = 'score-pill' + (totalChecked >= 3 ? ' ready' : ' warn'); }
+        } catch (e) { resultEl.innerHTML = '<div class="alert alert-danger py-1 px-2 small mb-0">Error: ' + e.message + '</div>'; }
+        finally { btnReset(); }
     });
-
-    function btnReset() {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-robot"></i> IA';
-    }
-
-    function getCsrfToken() {
-        var name = 'csrftoken=';
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var c = cookies[i].trim();
-            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
-        }
-        var input = document.getElementById('csrfToken');
-        return input ? input.value : '';
-    }
+    function btnReset() { btn.disabled = false; btn.innerHTML = '<i class="fas fa-robot"></i> IA'; }
 };
 </script>
-
 {% endblock %}

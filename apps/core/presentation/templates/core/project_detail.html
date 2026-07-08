@@ -8,12 +8,12 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-low">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold mb-0">{{ project.name }}</h5>
                 <div class="d-flex gap-2">
                     {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                    <a href="{% url 'editar_proyecto' project.id %}" class="btn btn-info btn-sm">
+                    <a href="{% url 'editar_proyecto' project.id %}" class="btn btn-secondary btn-sm">
                         <i class="fas fa-edit me-1"></i>Editar Proyecto
                     </a>
                     {% endif %}
@@ -22,20 +22,20 @@
                         <i class="fas fa-users me-1"></i>Miembros
                     </a>
                     {% endif %}
-                    <a href="{% url 'ver_proyectos' %}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{% url 'ver_proyectos' %}" class="btn btn-secondary btn-sm">
                         <i class="fas fa-arrow-left me-1"></i>Volver
                     </a>
                 </div>
             </div>
 
             <!-- Card de Info del Proyecto -->
-            <div class="card shadow-sm border-0 mb-3">
+            <div class="card border-0 mb-3">
                 <div class="card-body p-3">
                     <!-- Descripcion -->
                     <p class="text-muted mb-3" style="font-size: 0.85rem; line-height: 1.4;">{{ project.description }}</p>
 
                     <!-- Fila 1: Metadatos -->
-                    <div class="d-flex flex-wrap gap-3 mb-3 pb-3" style="border-bottom: 1px solid var(--border-light);">
+                    <div class="d-flex flex-wrap gap-3 mb-3 pb-3" style="border-bottom: 1px solid var(--border);">
                         <div class="d-flex align-items-center gap-2">
                             <div class="d-flex align-items-center justify-content-center rounded" style="width: 28px; height: 28px; background: var(--info-soft); color: var(--info);">
                                 <i class="fas fa-tag" style="font-size: 0.75rem;"></i>
@@ -81,7 +81,7 @@
                             {% if project.lead %}
                             <div class="position-relative" title="Lider: {{ project.lead.get_full_name|default:project.lead.username }}">
                                 {% if project.lead.profile.avatar %}
-                                <img src="{{ project.lead.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border-light);">
+                                <img src="{{ project.lead.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border);">
                                 {% else %}
                                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 28px; height: 28px; font-size: 0.6rem; background: {{ project.lead.profile.color|default:'var(--accent)' }};">
                                     {{ project.lead.profile.initials|default:project.lead.username|slice:":2"|upper }}
@@ -95,7 +95,7 @@
                             {% if forloop.counter <= 5 %}
                             <div class="position-relative" title="{{ member.get_full_name|default:member.username }} — {{ member.profile.get_role_display }}" style="margin-left: -6px;">
                                 {% if member.profile.avatar %}
-                                <img src="{{ member.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border-light);">
+                                <img src="{{ member.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border);">
                                 {% else %}
                                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold border border-2 border-white" style="width: 28px; height: 28px; font-size: 0.6rem; background: {{ member.profile.color|default:'var(--info)' }};">
                                     {{ member.profile.initials|default:member.username|slice:":2"|upper }}
@@ -112,7 +112,7 @@
                             {% endfor %}
                         </div>
                         {% if not user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                        <a href="{% url 'ver_usuarios' %}?project={{ project.id }}" class="btn btn-sm btn-outline-secondary ms-auto" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">
+                        <a href="{% url 'ver_usuarios' %}?project={{ project.id }}" class="btn btn-sm btn-secondary ms-auto" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">
                             <i class="fas fa-users me-1"></i>Ver Miembros
                         </a>
                         {% endif %}
@@ -141,12 +141,12 @@
                 </button>
             </div>
 
-            <div class="card shadow-sm border-0 tab-panel tab-panel-card" id="tab-tasks">
-                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+            <div class="card border-0 tab-panel tab-panel-card" id="tab-tasks">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
                     <h6 class="fw-semibold mb-0 small">Tareas del Proyecto</h6>
-                    <a href="{% url 'crear_tarea' %}" class="btn btn-sm btn-success">
+                    <button class="btn btn-sm btn-primary" onclick="openTaskDrawer()">
                         <i class="fas fa-plus me-1"></i>Nueva Tarea
-                    </a>
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -174,22 +174,22 @@
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
                                             {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                                            <a href="{% url 'editar_tarea' task.pk %}" class="btn btn-info" title="Editar"><i class="fas fa-edit"></i></a>
-                                            <form method="post" action="{% url 'eliminar_tarea' task.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar tarea?')">
+                                            <button class="btn btn-secondary" title="Editar" onclick="openTaskDrawer('{{ task.pk }}')"><i class="fas fa-edit"></i></button>
+                                            <form method="post" action="{% url 'eliminar_tarea' task.pk %}" class="d-inline" onsubmit="return confirm('Eliminar tarea?')">
                                                 {% csrf_token %}
-                                                <button class="btn btn-outline-danger" title="Eliminar" style="border:none;background:none;padding:0.25rem 0.5rem;"><i class="fas fa-trash"></i></button>
+                                                <button class="btn btn-danger-outline" title="Eliminar"><i class="fas fa-trash"></i></button>
                                             </form>
                                             {% endif %}
                                             <form method="post" action="{% url 'actualizar_estado_tarea' task.pk %}" class="d-inline">{% csrf_token %}
-                                                {% if task.status == 'backlog' %}
-                                                <input type="hidden" name="status" value="todo">
-                                                <button type="submit" class="btn btn-outline-primary" title="Mover a Por Hacer"><i class="fas fa-arrow-right"></i></button>
-                                                {% elif task.status == 'todo' %}
-                                                <input type="hidden" name="status" value="in-progress">
-                                                <button type="submit" class="btn btn-outline-warning" title="Mover a En Progreso"><i class="fas fa-arrow-right"></i></button>
-                                                {% elif task.status == 'in-progress' %}
-                                                <input type="hidden" name="status" value="done">
-                                                <button type="submit" class="btn btn-outline-success" title="Completar"><i class="fas fa-check"></i></button>
+                                                {% if task.status == 'TODO' %}
+                                                <input type="hidden" name="status" value="PROG">
+                                                <button type="submit" class="btn btn-secondary" title="Mover a En Progreso"><i class="fas fa-arrow-right"></i></button>
+                                                {% elif task.status == 'PROG' %}
+                                                <input type="hidden" name="status" value="TEST">
+                                                <button type="submit" class="btn btn-secondary" title="Mover a En Testing"><i class="fas fa-arrow-right"></i></button>
+                                                {% elif task.status == 'TEST' %}
+                                                <input type="hidden" name="status" value="DONE">
+                                                <button type="submit" class="btn btn-secondary" title="Completar"><i class="fas fa-check"></i></button>
                                                 {% endif %}
                                             </form>
                                         </div>
@@ -208,8 +208,8 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm border-0 tab-panel tab-panel-card" id="tab-docs" style="display:none;">
-                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+            <div class="card border-0 tab-panel tab-panel-card" id="tab-docs" style="display:none;">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
                     <h6 class="fw-semibold mb-0 small">Documentos del Proyecto</h6>
                     <form method="post" action="{% url 'subir_documento_proyecto' project.id %}" enctype="multipart/form-data" class="d-flex gap-2">
                         {% csrf_token %}
@@ -237,18 +237,18 @@
                                         <i class="fas {% if doc.type == 'pdf' %}fa-file-pdf text-danger{% elif doc.type == 'excel' %}fa-file-excel text-success{% elif doc.type == 'word' %}fa-file-word text-primary{% elif doc.type == 'image' %}fa-file-image text-warning{% else %}fa-file text-muted{% endif %} me-1"></i>
                                         {{ doc.name }}
                                     </td>
-                                    <td><span class="badge bg-light text-dark small">{{ doc.get_type_display }}</span></td>
+                                    <td><span class="badge bg-secondary text-white small">{{ doc.get_type_display }}</span></td>
                                     <td>{% if doc.size < 1024 %}{{ doc.size }}B{% elif doc.size < 1048576 %}{% widthratio doc.size 1024 1 %}KB{% else %}{% widthratio doc.size 1048576 1 %}MB{% endif %}</td>
                                     <td>{% if doc.uploaded_by %}{{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.email }}{% else %}-{% endif %}</td>
                                     <td>{{ doc.created_at|date:"d/m/Y" }}</td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
                                             {% if doc.file %}
-                                            <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary" title="Descargar" download><i class="fas fa-download"></i></a>
+                                            <a href="{{ doc.file.url }}" class="btn btn-sm btn-secondary" title="Descargar" download><i class="fas fa-download"></i></a>
                                             {% endif %}
                                             <form method="post" action="{% url 'eliminar_documento_proyecto' project.id doc.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar {{ doc.name }}?')">
                                                 {% csrf_token %}
-                                                <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                                <button class="btn btn-sm btn-danger-outline" title="Eliminar"><i class="fas fa-trash"></i></button>
                                             </form>
                                         </div>
                                     </td>
@@ -266,12 +266,12 @@
                 </div>
             </div>
 
-            <div class="card shadow-sm border-0 tab-panel tab-panel-card" id="tab-chat" style="display:none;">
+            <div class="card border-0 tab-panel tab-panel-card" id="tab-chat" style="display:none;">
                 <!-- Sub-tabs: Grupal / Directos -->
-                <div class="d-flex gap-2 p-2 border-bottom" style="background: var(--surface);">
+                <div class="d-flex gap-2 p-2 border-bottom" style="background: var(--surface-1);">
                     <button class="btn sub-tab-btn active flex-fill" data-subtab="grupal">
                         <i class="fas fa-users me-1"></i>Chat Grupal
-                        {% if comments.count > 0 %}<span class="badge bg-white text-dark ms-1" style="font-size: 0.6rem;">{{ comments.count }}</span>{% endif %}
+                        {% if comments.count > 0 %}<span class="badge text-primary ms-1" style="font-size: 0.6rem;">{{ comments.count }}</span>{% endif %}
                     </button>
                     <button class="btn sub-tab-btn flex-fill" data-subtab="directos">
                         <i class="fas fa-user me-1"></i>Mensajes Directos
@@ -280,7 +280,7 @@
 
                 <!-- ====== CHAT GRUPAL ====== -->
                 <div class="sub-panel" id="subtab-grupal">
-                    <div class="p-3" style="max-height: 380px; overflow-y: auto; background: var(--surface);" id="projectChat">
+                    <div class="p-3" style="max-height: 380px; overflow-y: auto; background: var(--surface-1);" id="projectChat">
                         {% for comment in comments %}
                         <div class="d-flex mb-3 {% if comment.author == user %}justify-content-end{% endif %}">
                             <div class="{% if comment.author == user %}ms-4{% else %}me-4{% endif %}" style="max-width: 75%;">
@@ -306,15 +306,15 @@
                                         {% with ext=comment.file.name|lower %}
                                         {% if '.jpg' in ext or '.jpeg' in ext or '.png' in ext or '.gif' in ext or '.webp' in ext %}
                                         <a href="{{ comment.file.url }}" target="_blank">
-                                            <img src="{{ comment.file.url }}" alt="Adjunto" style="max-width: 200px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-light);">
+                                            <img src="{{ comment.file.url }}" alt="Adjunto" style="max-width: 200px; max-height: 140px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border);">
                                         </a>
                                         {% elif '.pdf' in ext %}
-                                        <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                        <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: var(--surface-2); border: 1px solid var(--border);">
                                             <i class="fas fa-file-pdf text-danger" style="font-size: 1.1rem;"></i>
                                             <span class="small text-muted">PDF adjunto</span>
                                         </a>
                                         {% else %}
-                                        <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: var(--surface-alt); border: 1px solid var(--border-light);">
+                                        <a href="{{ comment.file.url }}" target="_blank" class="d-flex align-items-center gap-2 text-decoration-none p-2 rounded" style="background: var(--surface-2); border: 1px solid var(--border);">
                                             <i class="fas fa-paperclip text-muted" style="font-size: 0.9rem;"></i>
                                             <span class="small text-muted">Archivo adjunto</span>
                                         </a>
@@ -334,7 +334,7 @@
                         {% endfor %}
                     </div>
                     <!-- Input grupal -->
-                    <div class="border-top p-2" style="background: var(--surface);">
+                    <div class="border-top p-2" style="background: var(--surface-1);">
                         <form method="post" action="{% url 'comentar_proyecto' project.id %}" class="d-flex gap-2 align-items-center">
                             {% csrf_token %}
                             <input type="text" name="text" class="form-control form-control-sm" placeholder="Escribe un mensaje para el equipo..." required style="font-size: 0.8rem; border-radius: var(--radius-lg);">
@@ -348,7 +348,7 @@
                 <!-- ====== MENSAJES DIRECTOS ====== -->
                 <div class="sub-panel" id="subtab-directos" style="display:none;">
                     <!-- Selector de usuario -->
-                    <div class="p-2 border-bottom" style="background: var(--surface-alt);">
+                    <div class="p-2 border-bottom" style="background: var(--surface-2);">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-user text-muted" style="font-size: 0.8rem;"></i>
                             <select class="form-select form-select-sm flex-fill" id="dmUserSelect" style="font-size: 0.75rem; border-radius: var(--radius);" onchange="goDM(this.value)">
@@ -366,7 +366,7 @@
 
                     {% if dm_user %}
                     <!-- Header conversacion -->
-                    <div class="p-2 d-flex align-items-center gap-2 border-bottom" style="background: var(--surface);">
+                    <div class="p-2 d-flex align-items-center gap-2 border-bottom" style="background: var(--surface-1);">
                         {% if dm_user.profile.avatar %}
                         <img src="{{ dm_user.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
                         {% else %}
@@ -378,13 +378,13 @@
                             <strong class="small" style="font-size: 0.8rem;">{{ dm_user.get_full_name|default:dm_user.username }}</strong>
                             <small class="d-block text-muted" style="font-size: 0.6rem;">{{ dm_user.profile.get_role_display }}</small>
                         </div>
-                        <a href="{% url 'ver_conversacion' dm_user.id %}" class="btn btn-sm btn-outline-secondary ms-auto" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">
+                        <a href="{% url 'ver_conversacion' dm_user.id %}" class="btn btn-sm btn-secondary ms-auto" style="font-size: 0.65rem; padding: 0.2rem 0.5rem;">
                             <i class="fas fa-external-link-alt me-1"></i>Ver completo
                         </a>
                     </div>
 
                     <!-- Mensajes -->
-                    <div class="p-3" style="max-height: 300px; overflow-y: auto; background: var(--surface);" id="directChat">
+                    <div class="p-3" style="max-height: 300px; overflow-y: auto; background: var(--surface-1);" id="directChat">
                         {% if dm_messages %}
                             {% for msg in dm_messages %}
                             <div class="d-flex mb-3 {% if msg.sender == user %}justify-content-end{% endif %}">
@@ -410,7 +410,7 @@
                     </div>
 
                     <!-- Input directo -->
-                    <div class="border-top p-2" style="background: var(--surface);">
+                    <div class="border-top p-2" style="background: var(--surface-1);">
                         <form method="post" action="{% url 'enviar_mensaje' %}" class="d-flex gap-2 align-items-center">
                             {% csrf_token %}
                             <input type="hidden" name="receiver_id" value="{{ dm_user.id }}">
@@ -424,7 +424,7 @@
                     </div>
                     {% else %}
                     <!-- Estado vacio: sin usuario seleccionado -->
-                    <div class="text-center py-5 text-muted" style="background: var(--surface);">
+                    <div class="text-center py-5 text-muted" style="background: var(--surface-1);">
                         <i class="fas fa-user-friends d-block mb-3" style="font-size: 2rem; opacity: 0.2; color: var(--accent);"></i>
                         <p class="small mb-1 fw-medium">Selecciona un miembro del proyecto</p>
                         <p class="small text-muted">Para enviarle un mensaje directo</p>
@@ -449,13 +449,13 @@
     filter: brightness(0.95);
 }
 .tab-btn.active {
-    background: var(--surface);
+    background: var(--surface-1);
     color: var(--accent);
     font-weight: 600;
     box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
 }
 .tab-btn:not(.active) {
-    background: var(--bg);
+    background: var(--surface-0);
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -474,7 +474,7 @@
     color: #fff;
 }
 .sub-tab-btn:not(.active) {
-    background: var(--surface);
+    background: var(--surface-1);
     color: var(--text-secondary);
 }
 </style>
@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             var subtab = this.dataset.subtab;
             subBtns.forEach(function(b) {
-                b.style.background = 'var(--surface)';
+                b.style.background = 'var(--surface-1)';
                 b.style.color = 'var(--text-secondary)';
                 b.style.border = '1px solid var(--border)';
             });
@@ -561,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var directBtn = document.querySelector('[data-subtab="directos"]');
     var grupalBtn = document.querySelector('[data-subtab="grupal"]');
     if (directBtn && grupalBtn) {
-        grupalBtn.style.background = 'var(--surface)';
+        grupalBtn.style.background = 'var(--surface-1)';
         grupalBtn.style.color = 'var(--text-secondary)';
         grupalBtn.style.border = '1px solid var(--border)';
         directBtn.style.background = 'var(--accent)';
@@ -573,8 +573,105 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 });
 </script>
+
+{% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+<script src="{% static 'js/crud_drawer.js' %}"></script>
+<script>
+window.taskProjectOptions = [
+    {value:'{{ project.id }}', label:'{{ project.name|escapejs }}'},
+];
+window.taskAssigneeOptions = [
+    {value:'', label:'Sin asignar'},
+    {% for m in project.members.all %}
+    {value:'{{ m.id }}', label:'{{ m.get_full_name|default:m.username|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+{% if project.lead %}
+window.taskAssigneeOptions.push({value:'{{ project.lead.id }}', label:'{{ project.lead.get_full_name|escapejs }}'});
+{% endif %}
+
+var __taskSprintCache = {};
+window.taskSprintOptions = [];
+
+function loadTaskSprints(projectId) {
+    if (__taskSprintCache[projectId]) {
+        return Promise.resolve(__taskSprintCache[projectId]);
+    }
+    return fetch('/api/sprints/' + projectId + '/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            __taskSprintCache[projectId] = data.sprints;
+            return data.sprints;
+        });
+}
+
+function openTaskDrawer(taskId) {
+    if (taskId) {
+        fetch('/task/' + taskId + '/json/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.project) {
+                    loadTaskSprints(data.project).then(function() {
+                        openCrudDrawer('task', data);
+                    });
+                } else {
+                    openCrudDrawer('task', data);
+                }
+            });
+    } else {
+        openCrudDrawer('task');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initCrudDrawer({
+        entity: 'task',
+        label: 'Tarea',
+        fields: [
+            {name:'title', label:'Titulo', type:'text', placeholder:'Titulo de la tarea', required:true},
+            {name:'project', label:'Proyecto', type:'select', optionsData:'taskProjectOptions', required:true},
+            {name:'sprint', label:'Sprint', type:'select', optionsData:'taskSprintOptions'},
+            {name:'assignee', label:'Asignado a', type:'select', optionsData:'taskAssigneeOptions'},
+            {name:'type', label:'Tipo', type:'select', options:[
+                {value:'task', label:'Tarea'}, {value:'story', label:'Historia'},
+                {value:'bug', label:'Bug'}, {value:'epic', label:'Epic'},
+            ], default:'task'},
+            {name:'priority', label:'Prioridad', type:'select', options:[
+                {value:'medium', label:'Media'}, {value:'high', label:'Alta'}, {value:'low', label:'Baja'},
+            ], default:'medium'},
+            {name:'points', label:'Puntos', type:'select', options:[
+                {value:'1', label:'1 pt'}, {value:'2', label:'2 pts'},
+                {value:'3', label:'3 pts'}, {value:'5', label:'5 pts'},
+                {value:'8', label:'8 pts'}, {value:'13', label:'13 pts'},
+            ], default:'1'},
+            {name:'description', label:'Descripcion', type:'textarea', rows:3, placeholder:'Detalles de la tarea...'},
+        ],
+        createUrl: '{% url "crear_tarea_rapida" %}',
+        editUrl: '/task/',
+        onAfterRender: function(form, data, isEdit) {
+            var projEl = form.querySelector('#crudField_project');
+            var sprintEl = form.querySelector('#crudField_sprint');
+            if (!projEl || !sprintEl) return;
+
+            function refreshSprints(pid) {
+                loadTaskSprints(pid).then(function(sprints) {
+                    window.taskSprintOptions = sprints;
+                    rebuildCustomSelectOptions(sprintEl, sprints, data ? data.sprint : '');
+                });
+            }
+
+            projEl.addEventListener('change', function() {
+                refreshSprints(this.value);
+            });
+
+            if (isEdit && data.project) {
+                refreshSprints(data.project);
+            }
+        },
+    });
+});
+</script>
+{% endif %}
 {% endblock %}
 
-{% block extra_css %}
-<link href="{% static 'css/chat.css' %}" rel="stylesheet">
-{% endblock %}
+{% block extra_css %}{% endblock %}

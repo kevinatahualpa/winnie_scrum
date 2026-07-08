@@ -25,7 +25,8 @@
         // Primero intenta leerlo del input hidden (caso AJAX con drawer inyectado)
         const input = document.getElementById('csrfToken');
         if (input && input.value) return input.value;
-        // Fallback: leerlo de la cookie (si Django no la marco como HttpOnly)
+        const meta = document.querySelector('meta[name=csrf-token]');
+        if (meta && meta.content) return meta.content;
         const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
         if (match) return match[1];
         return '';

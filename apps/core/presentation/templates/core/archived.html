@@ -7,13 +7,13 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-high">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h5 class="fw-bold mb-1">Items Archivados</h5>
+                    <h5 class="fw-bold mb-1 text-primary">Items Archivados</h5>
                     <small class="text-muted">Total: {{ total_archived }} item{{ total_archived|pluralize:"s" }} archivado{{ total_archived|pluralize:"s" }}</small>
                 </div>
-                <a href="{% url 'ver_auditoria' %}" class="btn btn-sm btn-outline-secondary">
+                <a href="{% url 'ver_auditoria' %}" class="btn btn-sm btn-secondary">
                     <i class="fas fa-shield-alt"></i> Ver Auditoria
                 </a>
             </div>
@@ -87,7 +87,7 @@
 
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="tab-projects" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -112,7 +112,7 @@
                                             {% else %}fecha desconocida{% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#restoreModal" data-tipo="project" data-pk="{{ p.id }}" data-nombre="{{ p.name|escape }}">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#restoreModal" data-tipo="project" data-pk="{{ p.id }}" data-nombre="{{ p.name|escape }}">
                                                 <i class="fas fa-undo"></i> Restaurar
                                             </button>
                                         </td>
@@ -127,7 +127,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-areas" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -147,7 +147,7 @@
                                         <td class="text-end">
                                             <form method="post" action="{% url 'restaurar' 'area' a.id %}" class="d-inline">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar area {{ a.name|escapejs }}?')">
+                                                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Restaurar area {{ a.name|escapejs }}?')">
                                                     <i class="fas fa-undo"></i> Restaurar
                                                 </button>
                                             </form>
@@ -163,7 +163,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-clients" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -184,7 +184,7 @@
                                         <td class="text-end">
                                             <form method="post" action="{% url 'restaurar' 'client' c.id %}" class="d-inline">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar cliente {{ c.name|escapejs }}?')">
+                                                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Restaurar cliente {{ c.name|escapejs }}?')">
                                                     <i class="fas fa-undo"></i> Restaurar
                                                 </button>
                                             </form>
@@ -200,7 +200,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-specialties" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -220,7 +220,7 @@
                                         <td class="text-end">
                                             <form method="post" action="{% url 'restaurar' 'specialty' s.id %}" class="d-inline">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar especialidad {{ s.name|escapejs }}?')">
+                                                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Restaurar especialidad {{ s.name|escapejs }}?')">
                                                     <i class="fas fa-undo"></i> Restaurar
                                                 </button>
                                             </form>
@@ -236,7 +236,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-technologies" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -257,7 +257,7 @@
                                         <td class="text-end">
                                             <form method="post" action="{% url 'restaurar' 'technology' t.id %}" class="d-inline">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar tecnologia {{ t.name|escapejs }}?')">
+                                                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Restaurar tecnologia {{ t.name|escapejs }}?')">
                                                     <i class="fas fa-undo"></i> Restaurar
                                                 </button>
                                             </form>
@@ -273,7 +273,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-services" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -294,7 +294,7 @@
                                         <td class="text-end">
                                             <form method="post" action="{% url 'restaurar' 'service_request' sr.id %}" class="d-inline">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar solicitud?')">
+                                                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Restaurar solicitud?')">
                                                     <i class="fas fa-undo"></i> Restaurar
                                                 </button>
                                             </form>
@@ -310,7 +310,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-documents" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -331,7 +331,7 @@
                                         <td class="text-end">
                                             <form method="post" action="{% url 'restaurar' 'document' d.id %}" class="d-inline">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Restaurar documento {{ d.name|escapejs }}?')">
+                                                <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Restaurar documento {{ d.name|escapejs }}?')">
                                                     <i class="fas fa-undo"></i> Restaurar
                                                 </button>
                                             </form>
@@ -347,7 +347,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="tab-users" role="tabpanel">
-                    <div class="card shadow-sm border-0">
+                    <div class="card border-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
@@ -362,7 +362,7 @@
                                         <td>{{ u.get_role_display }}</td>
                                         <td>
                                             {% if u.status == 'dismissed' %}
-                                                <span class="badge bg-warning text-dark">Desactivado</span>
+                                                <span class="badge bg-warning">Desactivado</span>
                                             {% else %}
                                                 <span class="badge bg-danger">Rechazado</span>
                                             {% endif %}
@@ -374,7 +374,7 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#restoreModal" data-tipo="user" data-pk="{{ u.id }}" data-nombre="{{ user_name|escape }}">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#restoreModal" data-tipo="user" data-pk="{{ u.id }}" data-nombre="{{ user_name|escape }}">
                                                 <i class="fas fa-undo"></i> Restaurar
                                             </button>
                                         </td>
@@ -414,7 +414,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-undo"></i> Restaurar
                     </button>
                 </div>

@@ -8,156 +8,130 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content" id="main-content" role="main">
-            <div class="d-flex align-items-center mb-3 flex-wrap gap-2">
-                <h4 class="mb-0"><i class="fas fa-columns me-2" style="color:var(--accent);"></i>Tablero</h4>
-                <div class="d-flex align-items-center gap-2 flex-wrap" role="toolbar" aria-label="Filtros del tablero">
-                    {% if role in 'super-admin,admin' %}
-                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
-                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
-                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="areaFilter" aria-label="Filtrar por area">
+        <div class="board-toolbar" role="toolbar" aria-label="Herramientas del tablero">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h4 class="board-toolbar-title mb-0">
+                    <i class="fas fa-columns board-toolbar-icon" aria-hidden="true"></i>Tablero
+                </h4>
+                {% if active_sprint %}
+                <span class="text-muted" style="font-size:0.78rem;">
+                    <strong>{{ active_sprint.name }}</strong> — {{ active_sprint.project.name }}
+                    &middot; {{ active_sprint.start_date|date:"d/m" }} al {{ active_sprint.end_date|date:"d/m" }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                {% if not active_sprint %}
+                    {% if areas.exists %}
+                    <div class="board-filter-wrap">
+                        <select class="form-select form-select-sm board-filter-select" name="area" aria-label="Area"
+                                onchange="var v=this.value;var u=new URL(window.location);v?u.searchParams.set('area',v):u.searchParams.delete('area');u.searchParams.delete('sprint');window.location=u;">
                             <option value="">Todas las areas</option>
-                            {% for area in areas %}
-                            <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }} - {{ area.name }}</option>
+                            {% for a in areas %}
+                            <option value="{{ a.id }}" {% if filters.area == a.id|stringformat:"s" %}selected{% endif %}>{{ a.code }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     {% endif %}
-                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
-                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
-                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="projectFilter" aria-label="Filtrar por proyecto" {% if not filters.area %}disabled{% endif %}>
-                            <option value="">Todos los proyectos</option>
-                            {% for project in projects %}
-                            <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                    <div class="board-filter-wrap">
+                        <select class="form-select form-select-sm board-filter-select" name="sprint" aria-label="Sprint activo"
+                                onchange="var v=this.value;var u=new URL(window.location);v?u.searchParams.set('sprint',v):u.searchParams.delete('sprint');window.location=u;">
+                            <option value="">Sprints activos</option>
+                            {% for s in active_sprints %}
+                            <option value="{{ s.id }}" {% if filters.sprint == s.id|stringformat:"s" %}selected{% endif %}>
+                                {{ s.project.name }} — {{ s.name }}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
-                    {% if role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
-                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
-                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
-                        <select class="form-select form-select-sm filter-select" style="padding-left:1.6rem;" id="assigneeFilter" aria-label="Filtrar por asignado" disabled>
-                            <option value="">Todos los asignados</option>
-                            {% for u, projects_csv in assignee_opts %}
-                            <option value="{{ u.id }}" data-projects="{{ projects_csv }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
-                    {% if filters.area or filters.project or filters.assignee %}
-                    <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-danger" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
-                    {% endif %}
+                {% endif %}
+                <div class="board-filter-wrap">
+                    <select class="form-select form-select-sm board-filter-select" name="assignee" aria-label="Asignado"
+                            onchange="var v=this.value;var u=new URL(window.location);v?u.searchParams.set('assignee',v):u.searchParams.delete('assignee');window.location=u;">
+                        <option value="">Todos los asignados</option>
+                        {% for u in assignees %}
+                        <option value="{{ u.id }}" {% if filters.assignee == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="d-flex align-items-center gap-2 ms-auto">
-                {% if filters.project %}
-                <a href="{% url 'ver_detalle_proyecto' filters.project %}" class="btn btn-sm btn-outline-info" title="Ir al proyecto"><i class="fas fa-external-link-alt me-1"></i>Ver Proyecto</a>
-                {% else %}
-                <button class="btn btn-sm btn-outline-info" disabled title="Selecciona un proyecto para ir"><i class="fas fa-external-link-alt me-1"></i>Ver Proyecto</button>
+                {% if filters.area or filters.sprint or filters.assignee %}
+                <a href="{% url 'ver_tablero' %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
+                {% endif %}
+                {% if active_sprint %}
+                <a href="{% url 'ver_detalle_proyecto' active_sprint.project.id %}" class="btn btn-sm btn-secondary" title="Ir al proyecto">
+                    <i class="fas fa-external-link-alt me-1"></i>Ver Proyecto
+                </a>
                 {% endif %}
                 {% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
-                <button class="btn btn-success btn-sm" id="quickTaskBtn" aria-label="Crear nueva tarea"><i class="fas fa-plus me-1" aria-hidden="true"></i>Nueva Tarea</button>
+                <button class="btn btn-sm btn-primary" onclick="openTaskDrawer()" aria-label="Crear nueva tarea">
+                    <i class="fas fa-plus me-1"></i>Nueva Tarea
+                </button>
                 {% endif %}
             </div>
-            </div>
+        </div>
 
-            <div class="row g-3 flex-nowrap overflow-auto pb-2" id="board" role="list" aria-label="Columnas del tablero">
-                {% for status_key, status_label, tasks_list in board_columns %}
-                <div class="col-md-3 flex-shrink-0" role="listitem" style="min-width:260px;">
-                    <div class="card shadow-sm border-0 h-100 column-card" data-status="{{ status_key }}">
-                        <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-                            <h6 class="fw-semibold mb-0 small">{{ status_label }}</h6>
-                            <span class="badge bg-secondary small task-count" data-status="{{ status_key }}" aria-label="{{ tasks_list|length }} tareas">{{ tasks_list|length }}</span>
-                        </div>
-                        <div class="card-body p-2 task-column" data-status="{{ status_key }}"
-                             role="list"
-                             aria-label="Tareas en {{ status_label }}"
-                             style="min-height:200px;max-height:70vh;overflow-y:auto;transition:background 0.2s;">
-                            {% for task in tasks_list %}
-                            <div class="card border-0 shadow-sm mb-2 task-card priority-{{ task.priority }}"
-                                 draggable="true"
-                                 data-task-id="{{ task.pk }}"
-                                 data-status="{{ task.status }}"
-                                 data-priority="{{ task.priority }}"
-                                 id="task-{{ task.pk }}"
-                                 role="listitem"
-                                 tabindex="0"
-                                 aria-label="Tarea: {{ task.title }}, Prioridad: {{ task.get_priority_display }}, Tipo: {{ task.get_type_display }}">
-                                <div class="card-body p-2 position-relative">
-                                    <div class="d-flex align-items-center gap-1 mb-1">
-                                        <span class="priority-badge priority-{{ task.priority }}"><i class="fas fa-flag" aria-hidden="true"></i> {{ task.get_priority_display }}</span>
-                                        <span class="badge badge-type-{{ task.type }} small">{{ task.get_type_display }}</span>
-                                        {% if task.sprint %}
-                                        <span class="badge bg-info bg-opacity-10 text-info small">{{ task.sprint.name }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <p class="fw-medium small mb-1 task-title">{{ task.title }}</p>
-                                    <div class="d-flex justify-content-between align-items-center small text-muted">
-                                        {% if task.assignee %}
-                                        <span class="assignee-badge">
-                                            <i class="fas fa-user-circle me-1" aria-hidden="true"></i>{{ task.assignee.get_full_name|default:task.assignee.username }}
-                                        </span>
-                                        {% endif %}
-                                        <span class="points-badge">{{ task.points }} pts</span>
-                                    </div>
-                                    {% if task.tags.all %}
-                                    <div class="task-tags mt-1">
-                                        {% for tag in task.tags.all|slice:":3" %}
-                                        <span class="badge" style="background:{{ tag.color }};font-size:0.65rem">{{ tag.name }}</span>
-                                        {% endfor %}
-                                        {% if task.tags.all|length > 3 %}
-                                        <span class="badge bg-light text-dark" style="font-size:0.65rem">+{{ task.tags.all|length|add:"-3" }}</span>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
-                                    <div class="d-flex gap-1 mt-1 align-items-center">
-                                        <button class="btn btn-sm py-0 px-1 toggle-obs-btn" data-task="{{ task.pk }}" title="Observaciones">
-                                            <i class="fas fa-comment-dots"></i>
-                                            {% if task.comment_count %}
-                                            <span style="font-size:0.55rem;">{{ task.comment_count }}</span>
-                                            {% endif %}
-                                        </button>
-                                        {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                                        <div class="ms-auto d-flex gap-1">
-                                            <a href="{% url 'editar_tarea' task.pk %}" class="btn btn-info btn-sm py-0 px-1" aria-label="Editar tarea {{ task.title }}" style="font-size:0.7rem"><i class="fas fa-edit" aria-hidden="true"></i></a>
-                                            <form method="post" action="{% url 'eliminar_tarea' task.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar tarea?')">
-                                                {% csrf_token %}
-                                                <button class="btn btn-outline-danger btn-sm py-0 px-1" aria-label="Eliminar tarea {{ task.title }}" style="font-size:0.7rem"><i class="fas fa-trash" aria-hidden="true"></i></button>
-                                            </form>
+        <div class="page-content density-high" id="main-content" role="main">
+            {% if not active_sprint %}
+            <div class="mb-3">
+                <h5 class="text-primary mb-3"><i class="fas fa-running me-2" style="color:var(--accent);"></i>Sprints Activos</h5>
+                {% if active_sprints %}
+                <div class="row g-3">
+                    {% for s in active_sprints %}
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <a href="?sprint={{ s.id }}{% if filters.area %}&area={{ filters.area }}{% endif %}"
+                           class="text-decoration-none">
+                            <div class="card sprint-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1 text-primary">{{ s.name }}</h6>
+                                            <small class="text-muted">{{ s.project.name }}</small>
                                         </div>
-                                        {% endif %}
+                                        <span class="badge status-active">ACT</span>
                                     </div>
-                                    <div class="obs-inline mt-1" id="obs-{{ task.pk }}" style="display:none;">
-                                        <form method="post" action="{% url 'comentar_tarea' task.pk %}" class="d-flex gap-1">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="area" value="{{ filters.area|default:'' }}">
-                                            <input type="hidden" name="project" value="{{ filters.project|default:'' }}">
-                                            <input type="hidden" name="assignee" value="{{ filters.assignee|default:'' }}">
-                                            <input type="text" name="text" class="form-control form-control-sm" placeholder="Observación..." required style="font-size:0.65rem; padding:0.2rem 0.4rem;">
-                                            <button type="submit" class="btn btn-sm py-0 px-2 obs-submit-btn" title="Enviar"><i class="fas fa-check"></i></button>
-                                        </form>
+                                    {% if s.goal %}<p class="text-secondary small mb-2">{{ s.goal|truncatechars:80 }}</p>{% endif %}
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">{{ s.start_date|date:"d/m" }} — {{ s.end_date|date:"d/m" }}</small>
+                                        <small class="text-secondary">
+                                            <i class="fas fa-tasks me-1"></i>{{ s.tasks.count }} tareas
+                                        </small>
                                     </div>
                                 </div>
                             </div>
-                            {% empty %}
-                            <div class="text-center text-muted py-3 small empty-msg">Sin tareas</div>
-                            {% endfor %}
-                        </div>
+                        </a>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                {% else %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fas fa-clipboard-list d-block mb-2" style="font-size:2.5rem;opacity:0.15;"></i>
+                    <p>No hay sprints activos. <a href="{% url 'ver_sprints' %}">Ir a Sprints</a> para activar uno.</p>
+                </div>
+                {% endif %}
             </div>
+            {% else %}
+            <div id="board"
+                 hx-get="{% url 'ver_tablero_fragment' %}?sprint={{ active_sprint.id }}&assignee={{ filters.assignee|default:'' }}"
+                 hx-trigger="boardRefresh from:body"
+                 hx-swap="innerHTML"
+                 hx-indicator="#boardLoader"
+                 class="row g-3 flex-nowrap overflow-auto pb-2"
+                 role="list" aria-label="Columnas del tablero">
+                {% include 'core/board_columns.html' %}
+            </div>
+            <div id="boardLoader" class="htmx-indicator text-center py-4" style="display:none;">
+                <span class="spinner-border spinner-border-sm me-2" style="color:var(--accent);"></span>Cargando...
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
-
-{% include 'core/_task_quick_modal.html' %}
 {% endblock %}
 
-{% block extra_css %}
-<link href="{% static 'css/board.css' %}" rel="stylesheet">
-<link href="{% static 'css/chat.css' %}" rel="stylesheet">
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/board.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.toggle-obs-btn').forEach(function(btn) {
@@ -168,7 +142,117 @@ document.addEventListener('DOMContentLoaded', function() {
             if (obs) obs.style.display = obs.style.display === 'none' ? '' : 'none';
         });
     });
+
+    // Cascade: area filter → hide sprints from other areas
+    var areaFilter = document.querySelector('#areaFilter') || document.querySelector('[name="area"]');
+    var sprintFilter = document.querySelector('[name="sprint"]');
+    if (areaFilter && sprintFilter) {
+        areaFilter.addEventListener('change', function() {
+            var aid = this.value;
+            sprintFilter.querySelectorAll('option[data-area]').forEach(function(o) {
+                o.style.display = (!aid || o.dataset.area === aid) ? '' : 'none';
+            });
+            if (!aid) sprintFilter.value = '';
+        });
+    }
 });
 </script>
-<script src="{% static 'js/board.js' %}"></script>
+
+{% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
+<script src="{% static 'js/crud_drawer.js' %}"></script>
+<script>
+window.taskProjectOptions = [
+    {% for p in projects %}
+    {value:'{{ p.id }}', label:'{{ p.name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+window.taskAssigneeOptions = [
+    {value:'', label:'Sin asignar'},
+    {% for u in assignees %}
+    {value:'{{ u.id }}', label:'{{ u.get_full_name|default:u.username|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+var __taskSprintCache = {};
+window.taskSprintOptions = [];
+
+function loadTaskSprints(projectId) {
+    if (__taskSprintCache[projectId]) {
+        return Promise.resolve(__taskSprintCache[projectId]);
+    }
+    return fetch('/api/sprints/' + projectId + '/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            __taskSprintCache[projectId] = data.sprints;
+            return data.sprints;
+        });
+}
+
+function openTaskDrawer(taskId) {
+    if (taskId) {
+        fetch('/task/' + taskId + '/json/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.project) {
+                    loadTaskSprints(data.project).then(function() {
+                        openCrudDrawer('task', data);
+                    });
+                } else {
+                    openCrudDrawer('task', data);
+                }
+            });
+    } else {
+        openCrudDrawer('task');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initCrudDrawer({
+        entity: 'task',
+        label: 'Tarea',
+        fields: [
+            {name:'title', label:'Titulo', type:'text', placeholder:'Titulo de la tarea', required:true},
+            {name:'project', label:'Proyecto', type:'select', optionsData:'taskProjectOptions', required:true},
+            {name:'sprint', label:'Sprint', type:'select', optionsData:'taskSprintOptions'},
+            {name:'assignee', label:'Asignado a', type:'select', optionsData:'taskAssigneeOptions'},
+            {name:'type', label:'Tipo', type:'select', options:[
+                {value:'task', label:'Tarea'}, {value:'story', label:'Historia'},
+                {value:'bug', label:'Bug'}, {value:'epic', label:'Epic'},
+            ], default:'task'},
+            {name:'priority', label:'Prioridad', type:'select', options:[
+                {value:'medium', label:'Media'}, {value:'high', label:'Alta'}, {value:'low', label:'Baja'},
+            ], default:'medium'},
+            {name:'points', label:'Puntos', type:'select', options:[
+                {value:'1', label:'1 pt'}, {value:'2', label:'2 pts'},
+                {value:'3', label:'3 pts'}, {value:'5', label:'5 pts'},
+                {value:'8', label:'8 pts'}, {value:'13', label:'13 pts'},
+            ], default:'1'},
+            {name:'description', label:'Descripcion', type:'textarea', rows:3, placeholder:'Detalles de la tarea...'},
+        ],
+        createUrl: '{% url "crear_tarea_rapida" %}',
+        editUrl: '/task/',
+        onAfterRender: function(form, data, isEdit) {
+            var projEl = form.querySelector('#crudField_project');
+            var sprintEl = form.querySelector('#crudField_sprint');
+            if (!projEl || !sprintEl) return;
+
+            function refreshSprints(pid) {
+                loadTaskSprints(pid).then(function(sprints) {
+                    window.taskSprintOptions = sprints;
+                    rebuildCustomSelectOptions(sprintEl, sprints, data ? data.sprint : '');
+                });
+            }
+
+            projEl.addEventListener('change', function() {
+                refreshSprints(this.value);
+            });
+
+            if (isEdit && data.project) {
+                refreshSprints(data.project);
+            }
+        },
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

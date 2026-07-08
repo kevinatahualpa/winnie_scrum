@@ -6,7 +6,7 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-low">
             <a href="{% url 'ver_detalle_proyecto' project.id %}" class="btn btn-sm btn-link mb-3">
                 <i class="fas fa-arrow-left me-1"></i>Volver al proyecto
             </a>
@@ -37,8 +37,8 @@
 
             <div class="row g-3">
                 <div class="col-lg-7">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div class="card border-0">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0"><i class="fas fa-users me-2"></i>Miembros actuales</h5>
                             <span class="badge bg-secondary">{{ members|length }}</span>
                         </div>
@@ -50,7 +50,8 @@
                                         <tr>
                                             <th>Usuario</th>
                                             <th>Rol</th>
-                                            <th>Area</th>
+                                            <th>Especialidad</th>
+                                            <th>Tecnologias</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -66,7 +67,7 @@
                                                         <div class="fw-semibold">
                                                             {{ m.get_full_name|default:m.username }}
                                                             {% if m.id == project.lead_id %}
-                                                            <span class="badge bg-warning text-dark ms-1"><i class="fas fa-crown"></i> Lider</span>
+                                                            <span class="badge bg-warning ms-1"><i class="fas fa-crown"></i> Lider</span>
                                                             {% endif %}
                                                         </div>
                                                         <small class="text-muted">{{ m.email }}</small>
@@ -74,9 +75,24 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-dark">{{ m.profile.get_role_display|default:'-' }}</span>
+                                                <span class="badge bg-secondary text-white">{{ m.profile.get_role_display|default:'-' }}</span>
                                             </td>
-                                            <td>{{ m.profile.area.name|default:'-' }}</td>
+                                            <td>
+                                                <span class="text-secondary" style="font-size:0.78rem;">{{ m.profile.specialty.name|default:'-' }}</span>
+                                            </td>
+                                            <td>
+                                                {% with techs=m.profile.technologies.all %}
+                                                {% if techs %}
+                                                <div class="d-flex flex-wrap gap-1">
+                                                {% for t in techs %}
+                                                    <span class="badge" style="background:{{ t.color }};font-size:0.62rem;color:#fff;">{{ t.name }}</span>
+                                                {% endfor %}
+                                                </div>
+                                                {% else %}
+                                                <span class="text-muted" style="font-size:0.7rem;">-</span>
+                                                {% endif %}
+                                                {% endwith %}
+                                            </td>
                                             <td class="text-end">
                                                 {% if m.id == project.lead_id %}
                                                 <span class="text-muted small">Lider del proyecto</span>
@@ -85,7 +101,7 @@
                                                     {% csrf_token %}
                                                     <input type="hidden" name="action" value="remove">
                                                     <input type="hidden" name="user_id" value="{{ m.id }}">
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Quitar del proyecto"
+                                                    <button type="submit" class="btn btn-sm btn-danger-outline" title="Quitar del proyecto"
                                                             onclick="return confirm('Quitar a {{ m.get_full_name|default:m.username }} del proyecto?');">
                                                         <i class="fas fa-user-minus"></i>
                                                     </button>
@@ -108,8 +124,8 @@
                 </div>
 
                 <div class="col-lg-5">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white">
+                    <div class="card border-0">
+                        <div class="card-header">
                             <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Agregar miembro</h5>
                         </div>
                         <div class="card-body">
@@ -122,18 +138,27 @@
                                 </div>
                                 <div id="membersList" style="max-height: 400px; overflow-y: auto;">
                                     {% for u in available_users %}
-                                    <button type="submit" name="user_id" value="{{ u.id }}"
+                                     <button type="submit" name="user_id" value="{{ u.id }}"
                                             class="member-item w-100 text-start p-2 mb-2 border rounded d-flex align-items-center gap-2"
-                                            style="background: #fff; cursor: pointer;">
+                                            style="background: var(--surface-1); cursor: pointer;">
                                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 36px; height: 36px; background: {{ u.color|default:'#00bcd4' }}; font-size: 0.75rem; flex-shrink: 0;">
                                             {{ u.initials|default:'-' }}
                                         </div>
                                         <div class="flex-grow-1" style="min-width: 0;">
                                             <div class="fw-semibold text-truncate">{{ u.name }}</div>
                                             <small class="text-muted text-truncate d-block">{{ u.email }}</small>
-                                            <small class="text-muted">{{ u.role }} &middot; {{ u.area }}</small>
+                                            <div class="d-flex flex-wrap gap-1 align-items-center mt-1">
+                                                <span class="text-muted" style="font-size:0.7rem;">{{ u.role }}</span>
+                                                {% if u.specialty %}
+                                                <span class="text-muted" style="font-size:0.7rem;">&middot;</span>
+                                                <span class="text-muted" style="font-size:0.7rem;">{{ u.specialty }}</span>
+                                                {% endif %}
+                                                {% for t in u.technologies %}
+                                                <span class="badge" style="background:{{ t.color }};font-size:0.58rem;color:#fff;">{{ t.name }}</span>
+                                                {% endfor %}
+                                            </div>
                                         </div>
-                                        <i class="fas fa-plus text-success"></i>
+                                        <i class="fas fa-plus" style="color:var(--accent);"></i>
                                     </button>
                                     {% endfor %}
                                 </div>

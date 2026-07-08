@@ -1,0 +1,73 @@
+{% if chat_type == 'dm' and partner %}
+<div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: var(--surface-1);">
+    {% if partner.profile.avatar %}
+    <img src="{{ partner.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+    {% else %}
+    <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 36px; height: 36px; background: {{ partner.profile.color|default:'#00bcd4' }}; font-size: 13px;">
+        {{ partner.profile.initials|default:partner.username|slice:":2"|upper }}
+    </div>
+    {% endif %}
+    <div>
+        <strong class="small">{{ partner.get_full_name|default:partner.username }}</strong>
+        <small class="text-muted d-block" style="font-size: 0.6rem;">{{ partner.profile.get_role_display }}</small>
+    </div>
+</div>
+<div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
+     hx-get="{% url 'ver_conversacion_fragment' partner.id %}?t={% now 'U' %}"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML"
+     hx-indicator=".msg-loader">
+    {% include 'core/chat_messages_partial.html' %}
+</div>
+<div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+    <i class="fas fa-spinner fa-pulse"></i> Actualizando...
+</div>
+<div class="border-top p-2" style="background: var(--surface-1);">
+    <form method="post" action="{% url 'enviar_mensaje' %}"
+          hx-post="{% url 'enviar_mensaje' %}"
+          hx-target="#chatMessages"
+          hx-swap="innerHTML"
+          hx-indicator=".msg-loader"
+          class="d-flex gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="receiver_id" value="{{ partner.id }}">
+        <input type="text" name="subject" class="form-control form-control-sm" placeholder="Asunto" required style="max-width: 120px; font-size: 0.7rem;">
+        <textarea name="body" class="form-control form-control-sm" rows="1" placeholder="Escribe un mensaje..." required style="font-size: 0.7rem; resize: none;"></textarea>
+        <button type="submit" class="chat-send-btn"><i class="fas fa-paper-plane" style="font-size: 0.7rem;"></i></button>
+    </form>
+</div>
+
+{% elif chat_type == 'project' and project_chat %}
+<div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: var(--surface-1);">
+    <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:36px;height:36px;background:{{ project_chat.color|default:'#00bcd4' }};font-size:13px;">
+        <i class="fas fa-hashtag"></i>
+    </div>
+    <div>
+        <strong class="small">{{ project_chat.name }}</strong>
+        <small class="text-muted d-block" style="font-size:0.6rem;">Chat de proyecto</small>
+    </div>
+</div>
+<div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
+     hx-get="{% url 'ver_conversacion_proyecto_fragment' project_chat.id %}?t={% now 'U' %}"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML"
+     hx-indicator=".msg-loader">
+    {% include 'core/chat_messages_partial.html' %}
+</div>
+<div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+    <i class="fas fa-spinner fa-pulse"></i> Actualizando...
+</div>
+<div class="border-top p-2" style="background: var(--surface-1);">
+    <form method="post" action="{% url 'comentar_proyecto' project_chat.id %}"
+          hx-post="{% url 'comentar_proyecto' project_chat.id %}"
+          hx-target="#chatMessages"
+          hx-swap="innerHTML"
+          hx-indicator=".msg-loader"
+          class="d-flex gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'ver_conversacion_proyecto' project_chat.id %}">
+        <textarea name="text" class="form-control form-control-sm" rows="1" placeholder="Escribe un mensaje..." required style="font-size:0.7rem;resize:none;"></textarea>
+        <button type="submit" class="chat-send-btn"><i class="fas fa-paper-plane" style="font-size:0.7rem;"></i></button>
+    </form>
+</div>
+{% endif %}

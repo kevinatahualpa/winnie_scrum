@@ -1,0 +1,21 @@
+{% if messages_list %}
+    {% for msg in messages_list %}
+    <div class="d-flex mb-2 {% if msg.sender == request.user %}justify-content-end{% endif %}">
+        <div class="message-bubble {% if msg.sender == request.user %}sent{% else %}received{% endif %}" style="max-width: 70%;">
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                <small class="fw-bold msg-sender-{% if msg.sender == request.user %}self{% else %}other{% endif %}">
+                    {{ msg.sender.get_full_name|default:msg.sender.username }}
+                </small>
+                <small style="font-size: 0.55rem; opacity: 0.6;">{{ msg.created_at|date:"d/m H:i" }}</small>
+            </div>
+            {% if msg.subject %}<small class="d-block mb-1" style="font-size: 0.6rem; opacity: 0.5;">{{ msg.subject }}</small>{% endif %}
+            <p class="mb-0 small">{{ msg.body }}</p>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="text-center py-5 text-muted small">
+        <i class="fas fa-comments d-block mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
+        Sin mensajes aun — escribe uno abajo
+    </div>
+{% endif %}

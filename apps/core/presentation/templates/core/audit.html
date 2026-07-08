@@ -6,10 +6,10 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
-            <h5 class="fw-bold mb-3">Registro de Auditoria</h5>
+        <div class="page-content density-high">
+            <h5 class="fw-bold mb-3 text-primary">Registro de Auditoria</h5>
 
-            <div class="card shadow-sm border-0">
+            <div class="card border-0">
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 small">
@@ -31,7 +31,7 @@
                                             <span class="text-muted fst-italic">Sistema</span>
                                         {% endif %}
                                     </td>
-                                    <td><span class="badge bg-light text-dark">{{ log.action }}</span></td>
+                                    <td><span class="badge bg-secondary text-white">{{ log.action }}</span></td>
                                     <td>{{ log.entity }}</td>
                                     <td class="text-muted">{{ log.created_at|date:"d/m/Y H:i" }}</td>
                                 </tr>

@@ -1,0 +1,39 @@
+{% load static %}
+<div class="ai-overlay" id="aiOverlay" aria-hidden="true" role="dialog" aria-label="Winnie AI Assistant">
+    <div class="ai-panel">
+        <div class="ai-panel-header">
+            <div class="d-flex align-items-center gap-2">
+                <div class="ai-sparkle-icon">
+                    <i class="fas fa-bolt" aria-hidden="true"></i>
+                </div>
+                <span class="ai-panel-title">Winnie AI Assistant</span>
+            </div>
+            <button class="ai-close-btn" id="aiCloseBtn" aria-label="Cerrar asistente">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="ai-messages" id="aiMessages">
+            <div class="ai-welcome">
+                <div class="ai-welcome-icon">
+                    <i class="fas fa-bolt" aria-hidden="true"></i>
+                </div>
+                <p class="ai-welcome-greeting">Hola{{ user.first_name|yesno:',' }}{% if user.first_name %} {{ user.first_name }}{% endif %}!</p>
+                <p class="ai-welcome-text">Soy tu asistente de Winnie. Puedo ayudarte con gestion de proyectos, tareas, sprints, reportes, configuracion y mas. Preguntame lo que necesites.</p>
+            </div>
+        </div>
+        <div class="ai-input-area">
+            <div class="ai-loading" id="aiLoading" style="display:none;">
+                <div class="ai-typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            <form id="aiChatForm" class="ai-input-form">
+                <input type="text" id="aiChatInput" class="ai-input" placeholder="Preguntame algo sobre Winnie..." aria-label="Escribe tu mensaje" autocomplete="off">
+                <button type="submit" class="ai-send-btn" id="aiSendBtn" aria-label="Enviar mensaje">
+                    <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                </button>
+            </form>
+            <p class="ai-powered-by">Powered by DeepSeek</p>
+        </div>
+    </div>
+</div>

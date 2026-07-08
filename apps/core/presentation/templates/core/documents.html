@@ -6,14 +6,14 @@
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content density-low">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="fas fa-file-alt me-2" style="color:var(--accent);"></i>Documentacion</h4>
-                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="fas fa-upload me-1"></i>Subir Archivo</button>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="fas fa-upload me-1"></i>Subir Archivo</button>
             </div>
 
             <!-- Filter bar -->
-            <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+            <div class="d-flex gap-2 align-items-center mb-3" style="overflow-x:auto;">
                 <select name="project" class="form-select form-select-sm filter-select" id="projectFilter">
                     <option value="">Todos los proyectos</option>
                     {% for p in projects %}
@@ -118,15 +118,13 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-success">Subir</button>
+                <button type="submit" class="btn btn-primary">Subir</button>
             </div>
         </form>
     </div>
 </div>
 
-{% block extra_css %}
-<link href="{% static 'css/documents.css' %}" rel="stylesheet">
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/documents.js' %}"></script>

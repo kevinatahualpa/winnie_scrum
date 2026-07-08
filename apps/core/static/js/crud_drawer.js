@@ -1,254 +1,386 @@
 /**
- * crud_drawer.js - Generic slide-in drawer for CRUD operations.
- *
- * Usage:
- *   initCrudDrawer({
- *       entity: 'project',
- *       label: 'Proyecto',
- *       fields: [
- *           {name:'name', label:'Nombre', type:'text', required:true},
- *           {name:'email', label:'Email', type:'email'},
- *           {name:'budget', label:'Presupuesto', type:'number', default:0},
- *           {name:'start', label:'Inicio', type:'date'},
- *           {name:'area', label:'Area', type:'select', options: [...]},
- *           {name:'client', label:'Cliente', type:'select', optionsData:'clientOptions'},
- *       ],
- *       createUrl: '/.../create/',
- *       editUrl: '/.../',
- *   });
- *
- * Supported field types: text, email, tel, number, date, color, textarea, select, checkbox_group
- * For select: use `options` (inline array) or `optionsData` (global variable name).
- * For checkbox_group: uses {name}[] as form field name.
+ * crud_drawer.js — Drawer CRUD unificado
+ * Usa clases de crud_forms.css. Selects custom. Validación en español.
  */
-
 var __crudInstances = {};
 
 function initCrudDrawer(config) {
     __crudInstances[config.entity] = config;
+    ensureHost();
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeCrudDrawer(); });
+}
 
-    if (!document.getElementById('crudDrawerHost')) {
-        var host = document.createElement('div');
-        host.id = 'crudDrawerHost';
-        host.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;justify-content:flex-end;background:rgba(15,23,42,0.55);';
-        host.innerHTML = '<div class="crud-drawer-inner" style="width:480px;max-width:92vw;height:100vh;background:var(--surface);box-shadow:-8px 0 24px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden;"></div>';
-        document.body.appendChild(host);
-
-        host.addEventListener('click', function(e) {
-            if (e.target === host) closeCrudDrawer();
-        });
-    }
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeCrudDrawer();
-    });
+function ensureHost() {
+    if (document.getElementById('crudDrawerHost')) return;
+    var host = document.createElement('div');
+    host.id = 'crudDrawerHost';
+    host.className = 'crud-drawer-overlay';
+    host.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;justify-content:flex-end;background:rgba(0,0,0,0.4);';
+    host.innerHTML = '<div class="crud-drawer-panel" style="width:480px;max-width:92vw;height:100vh;background:var(--surface-1);display:flex;flex-direction:column;overflow:hidden;"></div>';
+    document.body.appendChild(host);
+    host.addEventListener('click', function(e) { if (e.target === host) closeCrudDrawer(); });
 }
 
 function openCrudDrawer(entity, data) {
     var config = __crudInstances[entity];
     if (!config) return;
-
     var host = document.getElementById('crudDrawerHost');
-    var inner = host.querySelector('.crud-drawer-inner');
+    var inner = host.querySelector('.crud-drawer-panel');
     var isEdit = data && data.id;
 
-    var html = '';
-    html += '<div class="drawer-header">';
-    html += '  <h6 class="mb-0">' + (isEdit ? 'Editar ' : 'Nuevo ') + config.label + '</h6>';
-    html += '  <button type="button" class="btn-close-drawer ms-auto" onclick="closeCrudDrawer()"><i class="fas fa-times"></i></button>';
-    html += '</div>';
-    html += '<div style="flex:1;overflow-y:auto;padding:1.25rem;">';
-    html += '  <form id="crudDrawerForm">';
-    html += '    <input type="hidden" name="csrfmiddlewaretoken" value="' + getCsrfToken() + '">';
-    html += '    <input type="hidden" name="id" id="crudField_id" value="' + (data ? (data.id || '') : '') + '">';
+    var fem = config.label.endsWith('a') || config.label.endsWith('d');
+    var h = '';
+    h += '<div class="crud-drawer-header">';
+    h += '  <h6 class="crud-drawer-title">' + (isEdit ? 'Editar ' : (fem ? 'Nueva ' : 'Nuevo ')) + config.label + '</h6>';
+    h += '  <button type="button" class="crud-btn-close" onclick="closeCrudDrawer()"><i class="fas fa-times"></i></button>';
+    h += '</div>';
+    h += '<div class="crud-drawer-body">';
+    h += '  <form id="crudDrawerForm" novalidate>';
+    h += '    <input type="hidden" name="csrfmiddlewaretoken" value="' + getCsrfToken() + '">';
+    h += '    <input type="hidden" name="id" id="crudField_id" value="' + (data ? (data.id || '') : '') + '">';
 
     config.fields.forEach(function(f) {
         var val = data ? (data[f.name] != null ? data[f.name] : (f.default || '')) : (f.default || '');
-        html += '    <div class="mb-2">';
-        html += '      <label class="form-label small">' + f.label + (f.required ? ' *' : '') + '</label>';
+        h += '    <div class="crud-field">';
+        h += '      <label class="crud-label" for="crudField_' + f.name + '">' + f.label + (f.required ? ' <span class="crud-label-required">*</span>' : '') + '</label>';
 
         if (f.type === 'textarea') {
-            html += '      <textarea name="' + f.name + '" id="crudField_' + f.name + '" class="form-control form-control-sm" rows="' + (f.rows || 2) + '"' + attr('placeholder', f.placeholder) + (f.required ? ' required' : '') + '>' + escapeHtml(val) + '</textarea>';
-        } else if (f.type === 'color') {
-            html += '      <input type="color" name="' + f.name + '" id="crudField_' + f.name + '" class="form-control form-control-color" value="' + escapeHtml(val) + '"' + (f.required ? ' required' : '') + '>';
+            h += '      <textarea name="' + f.name + '" id="crudField_' + f.name + '" class="crud-input crud-textarea" rows="' + (f.rows || 3) + '"' + attr('placeholder', f.placeholder) + (f.required ? ' data-required="true"' : '') + '>' + escapeHtml(val) + '</textarea>';
         } else if (f.type === 'select') {
             var opts = resolveOptions(f, data);
-            html += '      <select name="' + f.name + '" id="crudField_' + f.name + '" class="form-select form-select-sm"' + (f.required ? ' required' : '') + '>';
-            if (f.emptyLabel !== false) {
-                html += '        <option value="">' + (f.emptyLabel || '-- ' + f.label + ' --') + '</option>';
-            }
-            opts.forEach(function(o) {
-                var ov = (o.value != null ? o.value : o);
-                var ol = (o.label != null ? o.label : o);
-                var selected = (String(ov) === String(val)) ? ' selected' : '';
-                html += '        <option value="' + escapeHtml(ov) + '"' + selected + '>' + escapeHtml(ol) + '</option>';
-            });
-            html += '      </select>';
+            var placeholder = f.emptyLabel || 'Seleccionar ' + f.label.toLowerCase();
+            h += buildSelect(f.name, opts, val, placeholder, f.required);
+        } else if (f.type === 'color') {
+            h += '      <div class="crud-color-row">';
+            h += '        <input type="color" name="' + f.name + '" id="crudField_' + f.name + '" class="crud-input" value="' + escapeHtml(val) + '">';
+            h += '        <span class="crud-color-value">' + escapeHtml(val || '#000000') + '</span>';
+            h += '      </div>';
         } else if (f.type === 'checkbox_group') {
             var copts = resolveOptions(f, data);
-            html += '      <div class="row g-1">';
-            var valArr = val;
-            if (typeof val === 'string' && val) valArr = val.split(',');
-            if (!valArr) valArr = [];
+            var vArr = typeof val === 'string' ? val.split(',').filter(Boolean) : (val || []);
+            h += '      <div class="crud-checkbox-group">';
             copts.forEach(function(o) {
                 var ov = (o.value != null ? o.value : o);
                 var ol = (o.label != null ? o.label : o);
-                var checked = valArr.indexOf(String(ov)) !== -1 ? ' checked' : '';
-                html += '        <div class="col-6">';
-                html += '          <label class="form-check form-check-sm">';
-                html += '            <input class="form-check-input" type="checkbox" name="' + f.name + '[]" value="' + escapeHtml(ov) + '"' + checked + '>';
-                html += '            <span class="form-check-label small">' + escapeHtml(ol) + '</span>';
-                html += '          </label>';
-                html += '        </div>';
+                var chk = vArr.indexOf(String(ov)) !== -1 ? ' checked' : '';
+                h += '        <label class="crud-checkbox"><input type="checkbox" name="' + f.name + '[]" value="' + escapeHtml(ov) + '"' + chk + '>' + escapeHtml(ol) + '</label>';
             });
-            html += '      </div>';
+            h += '      </div>';
         } else {
-            var inputType = f.type || 'text';
-            if (inputType === 'phone') inputType = 'tel';
-            html += '      <input type="' + inputType + '" name="' + f.name + '" id="crudField_' + f.name + '" class="form-control form-control-sm" value="' + escapeHtml(val) + '"' + (f.step ? ' step="' + f.step + '"' : '') + attr('placeholder', f.placeholder) + (f.required ? ' required' : '') + '>';
+            var type = f.type || 'text';
+            if (type === 'phone') type = 'tel';
+            h += '      <input type="' + type + '" name="' + f.name + '" id="crudField_' + f.name + '" class="crud-input" value="' + escapeHtml(val) + '"' + (f.step ? ' step="' + f.step + '"' : '') + attr('placeholder', f.placeholder) + (f.required ? ' data-required="true"' : '') + '>';
         }
-        html += '    </div>';
+        h += '      <div class="crud-error"></div>';
+        h += '    </div>';
     });
 
-    html += '    <div class="d-flex justify-content-end gap-2 p-3 border-top">';
-    html += '      <button type="button" class="btn btn-sm btn-ghost" onclick="closeCrudDrawer()">Cancelar</button>';
-    html += '      <button type="submit" class="btn btn-sm btn-success" id="crudDrawerSubmit"><i class="fas fa-save me-1"></i> Guardar</button>';
-    html += '    </div>';
-    html += '  </form>';
-    html += '</div>';
+    h += '  </form>';
+    h += '</div>';
+    h += '<div class="crud-drawer-footer">';
+    h += '  <button type="button" class="crud-btn-cancel" onclick="closeCrudDrawer()">Cancelar</button>';
+    h += '  <button type="button" class="crud-btn-submit" id="crudDrawerSubmit"><i class="fas fa-check"></i>' + (isEdit ? 'Guardar' : 'Crear ' + config.label) + '</button>';
+    h += '</div>';
 
-    // Fix gender for 'Nuevo/Nueva'
-    var fem = ['Area', 'Especialidad', 'Tecnologia', 'Solicitud'];
-    if (!isEdit && fem.indexOf(config.label) !== -1) {
-        html = html.replace('Nuevo ', 'Nueva ');
+    inner.innerHTML = h;
+    host.style.display = 'flex';
+    animateIn(inner);
+
+    setTimeout(function() {
+        var first = inner.querySelector('.crud-input:not([type=hidden]):not([type=color]), .crud-textarea, .custom-select-trigger');
+        if (first) first.focus();
+    }, 250);
+
+    // Init custom selects
+    inner.querySelectorAll('.custom-select-wrapper').forEach(function(w) { initSelect(w); });
+
+    // Hook for dynamic fields (sprint → project dependency, etc.)
+    if (config.onAfterRender) {
+        config.onAfterRender(form, data, isEdit);
     }
 
-    inner.innerHTML = html;
-    host.style.display = 'flex';
+    // Submit handler
+    document.getElementById('crudDrawerSubmit').addEventListener('click', function() { submitForm(config, isEdit); });
+}
 
-    inner.style.transform = 'translateX(100%)';
-    inner.style.transition = 'transform 0.18s ease';
-    requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-            inner.style.transform = 'translateX(0)';
+/* ── Custom Select ──────────────────────────────────────── */
+
+function buildSelect(name, options, selectedValue, placeholder, required) {
+    var found = options.find(function(o) {
+        var ov = o.value != null ? o.value : o;
+        return String(ov) === String(selectedValue);
+    });
+    var display = found ? (found.label || '') : placeholder;
+    var hasSelection = !!found;
+
+    var h = '<div class="custom-select-wrapper">';
+    h += '  <input type="hidden" name="' + name + '" id="crudField_' + name + '" class="custom-select-value" value="' + escapeHtml(selectedValue || '') + '"' + (required ? ' data-required="true"' : '') + '>';
+    h += '  <button type="button" class="custom-select-trigger" tabindex="0">';
+    h += '    <span class="custom-select-display' + (hasSelection ? ' selected' : '') + '">' + escapeHtml(display) + '</span>';
+    h += '    <i class="fas fa-chevron-down custom-select-chevron"></i>';
+    h += '  </button>';
+    h += '  <div class="custom-select-dropdown">';
+    if (options.length === 0) {
+        h += '    <div class="custom-select-option option-empty">Sin opciones</div>';
+    }
+    options.forEach(function(o) {
+        var ov = o.value != null ? o.value : o;
+        var ol = o.label != null ? o.label : o;
+        var sel = String(ov) === String(selectedValue);
+        h += '    <div class="custom-select-option' + (sel ? ' selected' : '') + '" data-value="' + escapeHtml(ov) + '">';
+        h += '      <span>' + escapeHtml(ol) + '</span>';
+        if (sel) h += '      <i class="fas fa-check option-check"></i>';
+        h += '    </div>';
+    });
+    h += '  </div>';
+    h += '</div>';
+    return h;
+}
+
+function initSelect(wrapper) {
+    var trigger = wrapper.querySelector('.custom-select-trigger');
+    var display = wrapper.querySelector('.custom-select-display');
+    var input = wrapper.querySelector('.custom-select-value');
+    var dropdown = wrapper.querySelector('.custom-select-dropdown');
+    var options = dropdown.querySelectorAll('.custom-select-option');
+    var fieldErr = wrapper.closest('.crud-field').querySelector('.crud-error');
+    wrapper._placeholder = display.textContent;
+
+    function open() {
+        closeAll();
+        dropdown.style.display = 'block';
+        wrapper.classList.add('open');
+        var sel = dropdown.querySelector('.custom-select-option.selected');
+        if (sel) sel.scrollIntoView({ block: 'nearest' });
+    }
+    function close() { dropdown.style.display = 'none'; wrapper.classList.remove('open'); }
+
+    trigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.style.display === 'block' ? close() : open();
+    });
+    trigger.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+        if (e.key === 'Escape') close();
+        if (e.key === 'ArrowDown') { e.preventDefault(); open(); var first = dropdown.querySelector('.custom-select-option'); if (first) first.focus(); }
+    });
+
+    options.forEach(function(opt) {
+        opt.addEventListener('click', function() {
+            var val = this.dataset.value;
+            input.value = val;
+            display.textContent = this.querySelector('span').textContent;
+            display.classList.add('selected');
+            wrapper.querySelectorAll('.custom-select-option').forEach(function(o) { o.classList.remove('selected'); });
+            this.classList.add('selected');
+            trigger.classList.remove('has-error');
+            if (fieldErr) fieldErr.style.display = 'none';
+            close();
+        });
+        opt.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); this.click(); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); var n = this.nextElementSibling; if (n && n.classList.contains('custom-select-option')) n.focus(); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); var p = this.previousElementSibling; if (p && p.classList.contains('custom-select-option')) p.focus(); }
+            if (e.key === 'Escape') close();
         });
     });
 
-    setTimeout(function() {
-        var firstInput = inner.querySelector('input:not([type=hidden]):not([type=color]), textarea, select');
-        if (firstInput) firstInput.focus();
-    }, 200);
+    wrapper._close = close;
+    wrapper._open = open;
+}
 
+function closeAll() {
+    document.querySelectorAll('.custom-select-wrapper').forEach(function(w) {
+        w.querySelector('.custom-select-dropdown').style.display = 'none';
+        w.classList.remove('open');
+    });
+}
+
+document.addEventListener('click', closeAll);
+
+/* ── Dynamic select rebuild (for dependent dropdowns) ────── */
+function rebuildCustomSelectOptions(inputEl, options, selectedValue) {
+    var wrapper = inputEl.closest('.custom-select-wrapper');
+    if (!wrapper) return;
+
+    var display = wrapper.querySelector('.custom-select-display');
+    var dropdown = wrapper.querySelector('.custom-select-dropdown');
+
+    dropdown.innerHTML = '';
+    if (!options || options.length === 0) {
+        dropdown.innerHTML = '<div class="custom-select-option option-empty">Sin opciones</div>';
+    }
+    var found = false;
+    (options || []).forEach(function(o) {
+        var ov = o.value != null ? o.value : o;
+        var ol = o.label != null ? o.label : o;
+        var sel = String(ov) === String(selectedValue);
+        if (sel) found = true;
+        dropdown.innerHTML += '<div class="custom-select-option' + (sel ? ' selected' : '') + '" data-value="' + escapeHtml(ov) + '">'
+            + '<span>' + escapeHtml(ol) + '</span>'
+            + (sel ? '<i class="fas fa-check option-check"></i>' : '')
+            + '</div>';
+    });
+
+    // Re-init event listeners on new options
+    dropdown.querySelectorAll('.custom-select-option').forEach(function(opt) {
+        opt.addEventListener('click', function() {
+            dropdown.querySelectorAll('.custom-select-option').forEach(function(o) { o.classList.remove('selected'); var chk = o.querySelector('.option-check'); if (chk) chk.remove(); });
+            this.classList.add('selected');
+            var v = this.dataset.value;
+            inputEl.value = v;
+            display.textContent = v ? this.querySelector('span').textContent : (wrapper._placeholder || 'Seleccionar');
+            display.classList.toggle('selected', !!v);
+            var errEl = wrapper.closest('.crud-field').querySelector('.crud-error');
+            if (errEl) errEl.style.display = 'none';
+            wrapper.querySelector('.custom-select-trigger').classList.remove('has-error');
+            dropdown.style.display = 'none';
+            wrapper.classList.remove('open');
+            inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+
+    // Update display
+    var match = found ? options.find(function(o) { return String(o.value != null ? o.value : o) === String(selectedValue); }) : null;
+    display.textContent = match ? match.label : (wrapper._placeholder || 'Seleccionar');
+    display.classList.toggle('selected', !!match);
+    inputEl.value = selectedValue || '';
+    dropdown.style.display = 'none';
+}
+
+/* ── Form Submit + Validation ───────────────────────────── */
+
+function submitForm(config, isEdit) {
     var form = document.getElementById('crudDrawerForm');
-    if (!form) {
-        console.error('crudDrawer: form#crudDrawerForm not found in DOM');
+    var host = document.getElementById('crudDrawerHost');
+    var inner = host.querySelector('.crud-drawer-panel');
+
+    clearErrors(inner);
+    var errors = validateFields(config, inner);
+    if (errors.length > 0) {
+        var first = inner.querySelector('.has-error, .custom-select-trigger.has-error');
+        if (first) first.focus();
         return;
     }
-    form.onsubmit = function(e) {
-            e.preventDefault();
-            var btn = document.getElementById('crudDrawerSubmit');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
-            var idEl = document.getElementById('crudField_id');
-            var id = idEl ? idEl.value : '';
-            var url;
-            if (id && config.editUrl) {
-                url = config.editUrl + id + '/edit/';
-            } else {
-                url = config.createUrl;
+    var btn = document.getElementById('crudDrawerSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span> Procesando...';
+
+    var idEl = document.getElementById('crudField_id');
+    var id = idEl ? idEl.value : '';
+    var url = (id && config.editUrl) ? (config.editUrl + id + '/edit/') : config.createUrl;
+    var fd = new URLSearchParams(new FormData(form));
+
+    config.fields.forEach(function(f) {
+        if (f.type === 'checkbox_group') {
+            fd.delete(f.name + '[]'); fd.delete(f.name);
+            form.querySelectorAll('[name="' + f.name + '[]"]:checked').forEach(function(cb) { fd.append(f.name, cb.value); });
+        }
+    });
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd
+    })
+    .then(function(r) { return r.ok ? r.json() : r.text().then(function(t) { throw new Error(t ? t.substring(0, 200) : 'HTTP ' + r.status); }); })
+    .then(function(data) {
+        if (data.success) {
+            closeCrudDrawer();
+            var fem = config.label.endsWith('a') || config.label.endsWith('d');
+            var msg = config.label + (isEdit ? ' actualizad' : ' cread') + (fem ? 'a' : 'o');
+            if (typeof showToast === 'function') showToast(msg, 'success');
+            setTimeout(function() { if (data.redirect) window.location.href = data.redirect; else location.reload(); }, 500);
+        } else {
+            var errMsg = data.errors ? flattenErrors(data.errors) : (data.error || 'Error desconocido');
+            if (typeof showToast === 'function') showToast(errMsg, 'error');
+        }
+    })
+    .catch(function(err) {
+        if (typeof showToast === 'function') showToast(err.message || 'Error de conexión', 'error');
+    })
+    .finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i>' + (isEdit ? 'Guardar' : 'Crear ' + config.label);
+    });
+}
+
+function validateFields(config, container) {
+    var errors = [];
+    config.fields.forEach(function(f) {
+        if (!f.required) return;
+        var fieldEl = document.getElementById('crudField_' + f.name);
+        var errEl = container.querySelector('#crudField_' + f.name) ? container.querySelector('#crudField_' + f.name).closest('.crud-field').querySelector('.crud-error') : null;
+
+        var isEmpty = false;
+        var target = null;
+
+        if (f.type === 'select') {
+            var wrapper = container.querySelector('.custom-select-wrapper input[name="' + f.name + '"]')?.closest('.custom-select-wrapper');
+            var hidden = wrapper?.querySelector('.custom-select-value');
+            isEmpty = !hidden || !hidden.value;
+            target = wrapper?.querySelector('.custom-select-trigger');
+            if (isEmpty && errEl) {
+                errEl.textContent = 'Seleccioná ' + f.label.toLowerCase();
+                errEl.style.display = 'block';
+                if (target) target.classList.add('has-error');
             }
-            var formData = new URLSearchParams(new FormData(this));
+        } else {
+            var val = fieldEl ? fieldEl.value : '';
+            isEmpty = !val || (typeof val === 'string' && !val.trim());
+            if (isEmpty && errEl) {
+                errEl.textContent = f.label + ' es obligatorio';
+                errEl.style.display = 'block';
+                if (fieldEl) fieldEl.classList.add('has-error');
+                target = fieldEl;
+            }
+        }
 
-            // Normalize checkbox_group values for Django (send each as separate param)
-            config.fields.forEach(function(f) {
-                if (f.type === 'checkbox_group') {
-                    formData.delete(f.name + '[]');
-                    formData.delete(f.name);
-                    var checked = form.querySelectorAll('[name="' + f.name + '[]"]:checked');
-                    checked.forEach(function(cb) { formData.append(f.name, cb.value); });
-                }
-            });
+        if (isEmpty) errors.push({ field: f, target: target });
+    });
+    return errors;
+}
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCsrfToken(),
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            })
-            .then(function(r) {
-                if (!r.ok) {
-                    return r.text().then(function(t) {
-                        throw new Error('HTTP ' + r.status + ': ' + (t || '').substring(0, 200));
-                    });
-                }
-                return r.json();
-            })
-            .then(function(data) {
-                if (data.success) {
-                    closeCrudDrawer();
-                    var msg = config.label + (isEdit ? ' actualizad' : ' cread') + (fem.indexOf(config.label) !== -1 ? 'a' : 'o');
-                    if (typeof showToast === 'function') showToast(msg, 'success');
-                    setTimeout(function() {
-                        if (data.redirect) { window.location.href = data.redirect; }
-                        else { location.reload(); }
-                    }, 500);
-                } else {
-                    var errMsg = data.errors ? flattenErrors(data.errors) : (data.error || 'Error desconocido');
-                    if (typeof showToast === 'function') showToast(errMsg, 'error');
-                }
-            })
-            .catch(function(err) {
-                var msg = err.message || 'Error de conexion';
-                if (typeof showToast === 'function') showToast(msg, 'error');
-            })
-            .finally(function() {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save me-1"></i> Guardar';
-            });
-        };
+function clearErrors(container) {
+    container.querySelectorAll('.crud-error').forEach(function(e) { e.style.display = 'none'; e.textContent = ''; });
+    container.querySelectorAll('.has-error').forEach(function(e) { e.classList.remove('has-error'); });
+}
+
+/* ── Drawer Lifecycle ────────────────────────────────────── */
+
+function animateIn(panel) {
+    panel.style.transform = 'translateX(100%)';
+    panel.style.transition = 'transform 0.2s ease';
+    requestAnimationFrame(function() { requestAnimationFrame(function() { panel.style.transform = 'translateX(0)'; }); });
 }
 
 function closeCrudDrawer() {
     var host = document.getElementById('crudDrawerHost');
     if (!host) return;
-    var inner = host.querySelector('.crud-drawer-inner');
+    var inner = host.querySelector('.crud-drawer-panel');
     if (inner) {
         inner.style.transform = 'translateX(100%)';
-        setTimeout(function() {
-            host.style.display = 'none';
-            inner.innerHTML = '';
-        }, 180);
-    } else {
-        host.style.display = 'none';
+        setTimeout(function() { host.style.display = 'none'; inner.innerHTML = ''; }, 200);
     }
 }
 
-// --- helpers ---
+/* ── Helpers ─────────────────────────────────────────────── */
 
 function resolveOptions(f, data) {
     if (f.options) return f.options;
     if (f.optionsData) {
         var raw = window[f.optionsData] || [];
-        if (typeof raw[0] === 'object') return raw;
-        return raw.map(function(v) { return {value: v, label: v}; });
+        return typeof raw[0] === 'object' ? raw : raw.map(function(v) { return {value: v, label: v}; });
     }
     if (f.optionsFrom) {
-        // optionsFrom: 'otherFieldName' -> use the value from the data object
-        var key = f.optionsFrom;
-        var raw2 = (data && data[key]) ? data[key] : (window[key] || []);
-        if (typeof raw2[0] === 'object') return raw2;
-        return raw2.map(function(v) { return {value: v, label: v}; });
+        var raw2 = (data && data[f.optionsFrom]) ? data[f.optionsFrom] : (window[f.optionsFrom] || []);
+        return typeof raw2[0] === 'object' ? raw2 : raw2.map(function(v) { return {value: v, label: v}; });
     }
     return [];
 }
 
-function attr(name, value) {
-    return value ? ' ' + name + '="' + escapeHtml(value) + '"' : '';
-}
+function attr(name, value) { return value ? ' ' + name + '="' + escapeHtml(value) + '"' : ''; }
 
 function flattenErrors(errors) {
     if (typeof errors === 'string') return errors;
@@ -263,16 +395,13 @@ function flattenErrors(errors) {
 function getCsrfToken() {
     var input = document.querySelector('[name=csrfmiddlewaretoken]');
     if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name=csrf-token]');
+    if (meta && meta.content) return meta.content;
     var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
     return match ? match[1] : '';
 }
 
 function escapeHtml(str) {
     if (str == null) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

@@ -3,13 +3,13 @@
 {% load role_tags %}
 {% block title %}Tecnologias - Winnie{% endblock %}
 {% block body %}
-<div class="app-layout">
+<div class="app-layout density-low">
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
         <div class="page-content">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0"><i class="fas fa-code me-2" style="color:var(--accent);"></i>Tecnologias</h4>
+                <h4 class="mb-0"><i class="fas fa-code me-2 text-primary"></i>Tecnologias</h4>
                 <div class="d-flex gap-2">
                     {% if show_archived %}
                     <a href="{% url 'ver_tecnologias' %}" class="btn btn-ghost btn-sm"><i class="fas fa-eye me-1"></i>Ver activas</a>
@@ -17,7 +17,7 @@
                     <a href="{% url 'ver_tecnologias' %}?archived=1" class="btn btn-ghost btn-sm"><i class="fas fa-archive me-1"></i>Ver archivadas</a>
                     {% endif %}
                     {% if user|has_role:"super-admin,admin" %}
-                    <button class="btn btn-success btn-sm" onclick="openCrudDrawer('technology')"><i class="fas fa-plus me-1"></i>Nueva Tecnologia</button>
+                    <button class="btn btn-primary btn-sm" onclick="openCrudDrawer('technology')"><i class="fas fa-plus me-1"></i>Nueva Tecnologia</button>
                     {% endif %}
                 </div>
             </div>
@@ -40,7 +40,7 @@
                             {% for tech in technologies %}
                             <tr class="{% if not tech.is_active %}text-muted{% endif %}">
                                 <td>
-                                    <div class="entity-icon" style="background:{{ tech.color }};color:#fff;font-weight:600;">{{ tech.name|first|upper }}</div>
+                                    <div class="entity-icon text-white fw-semibold" style="background:{{ tech.color }}">{{ tech.name|first|upper }}</div>
                                 </td>
                                 <td>
                                     <div class="fw-medium" style="font-size:0.8rem;">{{ tech.name }}</div>
@@ -65,7 +65,7 @@
             </div>
             {% else %}
             <div class="text-center py-5">
-                <i class="fas fa-code fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                <i class="fas fa-code fa-3x mb-3 d-block text-muted"></i>
                 <h6 class="text-muted">Sin tecnologias</h6>
             </div>
             {% endif %}

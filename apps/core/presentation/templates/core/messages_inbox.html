@@ -1,7 +1,6 @@
 {% extends 'core/base.html' %}
 {% load role_tags %}
 {% block title %}Mensajes - Winnie{% endblock %}
-{% block page_title %}Mensajes{% endblock %}
 {% block body %}
 <div class="app-layout" style="grid-template-columns: auto 1fr;">
     {% include 'core/sidebar.html' %}
@@ -9,7 +8,7 @@
         {% include 'core/topbar.html' %}
         <div class="page-content p-0">
             <div class="d-flex" style="height: calc(100vh - 110px);">
-                <div class="border-end d-flex flex-column flex-shrink-0" style="width: 340px; background: #fff;">
+                <div class="border-end d-flex flex-column flex-shrink-0" style="width: 340px; background: var(--surface-1);">
                     <div class="p-2 border-bottom">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="fw-bold mb-0 small">Chats</h6>
@@ -19,64 +18,13 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 overflow-auto">
-                        {% if threads %}
-                        <div class="list-group list-group-flush">
-                            {% for thread in threads %}
-                            <a href="{% url thread.url_name thread.url_id %}" class="list-group-item list-group-item-action border-0 d-flex align-items-center gap-2 py-2 px-3 {% if partner and partner.id == thread.partner.id %}active-chat{% endif %}" style="border-left: 3px solid {% if partner and partner.id == thread.partner.id %}var(--accent){% else %}transparent{% endif %};">
-                                <div class="position-relative flex-shrink-0">
-                                    {% if thread.type == 'project' %}
-                                    <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: {{ thread.project.color }}; font-size: 14px;">
-                                        <i class="fas fa-folder" style="font-size: 0.8rem;"></i>
-                                    </div>
-                                    {% else %}
-                                    {% if thread.partner.profile.avatar %}
-                                    <img src="{{ thread.partner.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                                    {% else %}
-                                    <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: {{ thread.partner.profile.color|default:'#00bcd4' }}; font-size: 14px;">
-                                        {{ thread.partner.profile.initials|default:thread.partner.username|slice:":2"|upper }}
-                                    </div>
-                                    {% endif %}
-                                    {% endif %}
-                                    {% if thread.unread %}
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle p-1 online-dot"></span>
-                                    {% endif %}
-                                </div>
-                                <div class="flex-grow-1 min-width-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <strong class="small text-truncate {% if thread.unread %}text-dark fw-bold{% endif %}" style="max-width: 180px;">
-                                            {% if thread.type == 'project' %}
-                                            <i class="fas fa-hashtag me-1" style="font-size: 0.5rem; opacity: 0.5;"></i>{{ thread.project.name }}
-                                            {% else %}
-                                            {{ thread.partner.get_full_name|default:thread.partner.username }}
-                                            {% endif %}
-                                        </strong>
-                                        <small class="text-muted" style="font-size: 0.6rem;">{{ thread.last_time|date:"H:i" }}</small>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="small text-muted text-truncate d-block" style="max-width: 200px;">
-                                            {% if thread.is_mine %}<i class="fas fa-check-double me-1 read-indicator"></i>{% endif %}
-                                            {{ thread.last_preview }}
-                                        </span>
-                                        {% if thread.unread %}
-                                        <span class="badge rounded-pill flex-shrink-0 ms-1 unread-badge">{{ thread.unread }}</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </a>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                        <div class="text-center py-5 text-muted small">
-                            <i class="fas fa-comment-slash d-block mb-2" style="font-size: 2rem; opacity: 0.2;"></i>
-                            Sin conversaciones
-                        </div>
-                        {% endif %}
+                        {% include 'core/chat_threads_partial.html' %}
                     </div>
                 </div>
 
-                <div class="flex-grow-1 d-flex flex-column chat-sidebar">
+                <div class="flex-grow-1 d-flex flex-column" id="chatPanel">
                     {% if partner %}
-                    <div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: #fff;">
+                    <div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: var(--surface-1);">
                         {% if partner.profile.avatar %}
                         <img src="{{ partner.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
                         {% else %}
@@ -89,42 +37,33 @@
                             <small class="text-muted d-block" style="font-size: 0.6rem;">{{ partner.profile.get_role_display }}</small>
                         </div>
                     </div>
-                    <div class="flex-grow-1 overflow-auto p-3" id="chatMessages">
-                        {% if messages_list %}
-                            {% for msg in messages_list %}
-                            <div class="d-flex mb-2 {% if msg.sender == request.user %}justify-content-end{% endif %}">
-                                <div class="message-bubble {% if msg.sender == request.user %}sent{% else %}received{% endif %}" style="max-width: 70%;">
-                                    <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
-                                        <small class="fw-bold msg-sender msg-sender-{% if msg.sender == request.user %}self{% else %}other{% endif %}">
-                                            {{ msg.sender.get_full_name|default:msg.sender.username }}
-                                        </small>
-                                        <small style="font-size: 0.55rem; opacity: 0.6;">{{ msg.created_at|date:"d/m H:i" }}</small>
-                                    </div>
-                                    <small class="d-block mb-1" style="font-size: 0.6rem; opacity: 0.5;">{{ msg.subject }}</small>
-                                    <p class="mb-0 small">{{ msg.body }}</p>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                        <div class="text-center py-5 text-muted small">
-                            <i class="fas fa-comments d-block mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
-                            Sin mensajes aún — escribe uno abajo
-                        </div>
-                        {% endif %}
+                    <div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
+                         hx-get="{% url 'ver_conversacion_fragment' partner.id %}?t={% now 'U' %}"
+                         hx-trigger="every 5s"
+                         hx-swap="innerHTML"
+                         hx-indicator=".msg-loader">
+                        {% include 'core/chat_messages_partial.html' %}
                     </div>
-                    <div class="border-top p-2" style="background: #fff;">
-                        <form method="post" action="{% url 'enviar_mensaje' %}" class="d-flex gap-2">
+                    <div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+                        <i class="fas fa-spinner fa-pulse"></i> Actualizando...
+                    </div>
+                    <div class="border-top p-2" style="background: var(--surface-1);">
+                        <form method="post" action="{% url 'enviar_mensaje' %}"
+                              hx-post="{% url 'enviar_mensaje' %}"
+                              hx-target="#chatMessages"
+                              hx-swap="innerHTML"
+                              hx-indicator=".msg-loader"
+                              class="d-flex gap-2">
                             {% csrf_token %}
                             <input type="hidden" name="receiver_id" value="{{ partner.id }}">
                             <input type="text" name="subject" class="form-control form-control-sm" placeholder="Asunto" required style="max-width: 120px; font-size: 0.7rem;">
                             <textarea name="body" class="form-control form-control-sm" rows="1" placeholder="Escribe un mensaje..." required style="font-size: 0.7rem; resize: none;"></textarea>
-                            <button type="submit" class="btn btn-sm text-white flex-shrink-0" style="background: var(--accent); width: 36px; height: 36px; border-radius: 50%; padding: 0;"><i class="fas fa-paper-plane" style="font-size: 0.7rem;"></i></button>
+                            <button type="submit" class="chat-send-btn"><i class="fas fa-paper-plane" style="font-size: 0.7rem;"></i></button>
                         </form>
                     </div>
 
                     {% elif project_chat %}
-                    <!-- Chat de proyecto -->
-                    <div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: #fff;">
+                    <div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: var(--surface-1);">
                         <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:36px;height:36px;background:{{ project_chat.color|default:'#00bcd4' }};font-size:13px;">
                             <i class="fas fa-hashtag"></i>
                         </div>
@@ -133,45 +72,38 @@
                             <small class="text-muted d-block" style="font-size:0.6rem;">Chat de proyecto</small>
                         </div>
                     </div>
-                    <div class="flex-grow-1 overflow-auto p-3" id="chatMessages">
-                        {% if messages_list %}
-                            {% for cm in messages_list %}
-                            <div class="d-flex mb-2 {% if cm.author == request.user %}justify-content-end{% endif %}">
-                                <div class="message-bubble {% if cm.author == request.user %}sent{% else %}received{% endif %}" style="max-width: 70%;">
-                                    <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
-                                        <small class="fw-bold msg-sender-{% if cm.author == request.user %}self{% else %}other{% endif %}">
-                                            {{ cm.author.get_full_name|default:cm.author.username }}
-                                        </small>
-                                        <small style="font-size: 0.55rem; opacity: 0.6;">{{ cm.created_at|date:"d/m H:i" }}</small>
-                                    </div>
-                                    <p class="mb-0 small">{{ cm.text }}</p>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                        <div class="text-center py-5 text-muted small">
-                            <i class="fas fa-comments d-block mb-2" style="font-size:2rem;opacity:0.3;"></i>
-                            Sin comentarios aún — escribe uno abajo
-                        </div>
-                        {% endif %}
+                    <div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
+                         hx-get="{% url 'ver_conversacion_proyecto_fragment' project_chat.id %}?t={% now 'U' %}"
+                         hx-trigger="every 5s"
+                         hx-swap="innerHTML"
+                         hx-indicator=".msg-loader">
+                        {% include 'core/chat_messages_partial.html' %}
                     </div>
-                    <div class="border-top p-2" style="background:#fff;">
-                        <form method="post" action="{% url 'comentar_proyecto' project_chat.id %}" class="d-flex gap-2">
+                    <div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+                        <i class="fas fa-spinner fa-pulse"></i> Actualizando...
+                    </div>
+                    <div class="border-top p-2" style="background: var(--surface-1);">
+                        <form method="post" action="{% url 'comentar_proyecto' project_chat.id %}"
+                              hx-post="{% url 'comentar_proyecto' project_chat.id %}"
+                              hx-target="#chatMessages"
+                              hx-swap="innerHTML"
+                              hx-indicator=".msg-loader"
+                              class="d-flex gap-2">
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{% url 'ver_conversacion_proyecto' project_chat.id %}">
                             <textarea name="text" class="form-control form-control-sm" rows="1" placeholder="Escribe un mensaje..." required style="font-size:0.7rem;resize:none;"></textarea>
-                            <button type="submit" class="btn btn-sm text-white flex-shrink-0" style="background:var(--accent);width:36px;height:36px;border-radius:50%;padding:0;"><i class="fas fa-paper-plane" style="font-size:0.7rem;"></i></button>
+                            <button type="submit" class="chat-send-btn"><i class="fas fa-paper-plane" style="font-size:0.7rem;"></i></button>
                         </form>
                     </div>
 
                     {% else %}
-                    <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-muted chat-sidebar">
+                    <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-muted">
                         <div class="text-center">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; background: #fff;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; background: var(--surface-1);">
                                 <i class="fas fa-comments" style="font-size: 2.5rem; color: var(--accent);"></i>
                             </div>
                             <h6 class="fw-normal mb-2">Mensajes Winnie</h6>
-                            <p class="small mb-3">Selecciona una conversación o inicia una nueva</p>
+                            <p class="small mb-3">Selecciona una conversacion o inicia una nueva</p>
                         </div>
                     </div>
                     {% endif %}
@@ -181,101 +113,71 @@
     </div>
 </div>
 
-<div class="modal fade" id="newMessageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title fw-bold small">Nuevo Mensaje</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body pt-2">
-                <select id="filterProject" class="form-select form-select-sm mb-2" style="font-size: 0.7rem;">
-                    <option value="">Todos los proyectos</option>
-                    {% for p in projects %}
-                    <option value="{{ p.id }}">{{ p.name }}</option>
-                    {% endfor %}
-                </select>
-                <input type="text" id="userSearch" class="form-control form-control-sm mb-2" placeholder="Buscar usuario..." style="font-size: 0.7rem;">
-                <div id="userResults" class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
-                    {% for u in users %}
-                    <a href="{% url 'ver_conversacion' u.id %}" class="list-group-item list-group-item-action border-0 d-flex align-items-center gap-2 py-2 px-0">
-                        {% if u.profile.avatar %}
-                        <img src="{{ u.profile.avatar.url }}" alt="" class="rounded-circle flex-shrink-0" style="width: 32px; height: 32px; object-fit: cover;">
-                        {% else %}
-                        <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 32px; height: 32px; background: {{ u.profile.color|default:'#00bcd4' }}; font-size: 11px;">
-                            {{ u.profile.initials|default:u.username|slice:":2"|upper }}
-                        </div>
-                        {% endif %}
-                        <div class="min-width-0">
-                            <div class="small text-truncate">{{ u.get_full_name|default:u.username }}</div>
-                            <small class="text-muted" style="font-size: 0.6rem;">{{ u.profile.get_role_display }}</small>
-                        </div>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{% include 'core/chat_new_message_modal.html' %}
+{% endblock %}
 
+{% block extra_css %}
 <style>
-.active-chat {
-    background: #f0f2f5 !important;
-}
-.message-bubble {
-    border-radius: 8px;
-    padding: 8px 12px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.message-bubble.sent {
-    background: #d9fdd3;
-    border-top-right-radius: 2px;
-}
-.message-bubble.received {
-    background: #fff;
-    border-top-left-radius: 2px;
-}
+.active-chat { background: var(--surface-hover) !important; }
+[data-theme="dark"] .active-chat { background: var(--accent-soft) !important; }
+.message-bubble { border-radius: 8px; padding: 8px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.message-bubble.sent { background: var(--accent); color: #fff; border-top-right-radius: 2px; }
+.message-bubble.received { background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-top-left-radius: 2px; }
+[data-theme="dark"] .message-bubble.sent { background: var(--accent); color: #fff; }
+[data-theme="dark"] .message-bubble.received { background: var(--surface-2); color: var(--text-primary); }
 </style>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var modal = new bootstrap.Modal(document.getElementById('newMessageModal'));
+    var chatDiv = document.getElementById('chatMessages');
+    if (chatDiv) {
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
 
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.target.id === 'chatMessages') {
+            evt.target.scrollTop = evt.target.scrollHeight;
+            var textarea = document.querySelector('#chatPanel textarea');
+            if (textarea) textarea.value = '';
+        }
+    });
+
+    var modal = new bootstrap.Modal(document.getElementById('newMessageModal'));
     document.getElementById('newMessageBtn').addEventListener('click', function() { modal.show(); });
 
     var searchInput = document.getElementById('userSearch');
     var filterProject = document.getElementById('filterProject');
     var resultsDiv = document.getElementById('userResults');
 
-    function loadUsers() {
-        var q = searchInput.value;
-        var project = filterProject.value;
-        var url = '{% url "buscar_usuarios" %}' + '?q=' + encodeURIComponent(q) + '&project=' + encodeURIComponent(project);
+    if (searchInput) {
+        searchInput.addEventListener('input', loadUsers);
+        filterProject.addEventListener('change', loadUsers);
 
-        fetch(url)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                resultsDiv.innerHTML = '';
-                if (data.users.length === 0) {
-                    resultsDiv.innerHTML = '<p class="text-center text-muted small py-3">Sin resultados</p>';
-                    return;
-                }
-                data.users.forEach(function(u) {
-                    var a = document.createElement('a');
-                    a.href = '/mensajes/' + u.id + '/';
-                    a.className = 'list-group-item list-group-item-action border-0 d-flex align-items-center gap-2 py-2 px-0';
-                    a.innerHTML = '<div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:32px;height:32px;background:' + u.color + ';font-size:11px;">' + u.initials + '</div>' +
-                        '<div class="min-width-0"><div class="small text-truncate">' + u.name + '</div><small class="text-muted" style="font-size:0.6rem;">' + u.role + '</small></div>';
-                    resultsDiv.appendChild(a);
+        function loadUsers() {
+            var q = searchInput.value;
+            var project = filterProject.value;
+            var url = '/api/buscar-usuarios/?q=' + encodeURIComponent(q) + '&project=' + encodeURIComponent(project);
+            fetch(url)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    resultsDiv.innerHTML = '';
+                    if (data.users.length === 0) {
+                        resultsDiv.innerHTML = '<p class="text-center text-muted small py-3">Sin resultados</p>';
+                        return;
+                    }
+                    data.users.forEach(function(u) {
+                        var a = document.createElement('a');
+                        a.href = '/mensajes/' + u.id + '/';
+                        a.className = 'list-group-item list-group-item-action border-0 d-flex align-items-center gap-2 py-2 px-0';
+                        a.innerHTML = '<div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:32px;height:32px;background:' + u.color + ';font-size:11px;">' + u.initials + '</div>' +
+                            '<div class="min-width-0"><div class="small text-truncate">' + u.name + '</div><small class="text-muted" style="font-size:0.6rem;">' + u.role + '</small></div>';
+                        resultsDiv.appendChild(a);
+                    });
                 });
-            });
+        }
     }
-
-    searchInput.addEventListener('input', loadUsers);
-    filterProject.addEventListener('change', loadUsers);
-
-    var chatDiv = document.getElementById('chatMessages');
-    if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
 });
 </script>
 {% endblock %}

@@ -1,875 +1,391 @@
 {% extends 'core/base.html' %}
 {% load role_tags %}
 {% block title %}Dashboard - Winnie{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
-        <div class="page-content">
+        <div class="page-content" style="padding:20px 24px;background:#0D0D10;">
+        <div style="max-width:1800px;">
 
             <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <div class="d-flex align-items-center gap-2">
-                    <h4 class="mb-0">
-                        {% if role == 'super-admin' or role == 'admin' %}
-                        <i class="fas fa-chart-line me-2" style="color:var(--accent);"></i>Dashboard
-                        {% elif role == 'jefe-area' %}
-                        <i class="fas fa-sitemap me-2" style="color:var(--accent);"></i>Mi Area
-                        {% elif role == 'jefe-proyecto' %}
-                        <i class="fas fa-folder-open me-2" style="color:var(--accent);"></i>Mis Proyectos
-                        {% else %}
-                        <i class="fas fa-user me-2" style="color:var(--accent);"></i>Mi Trabajo
-                        {% endif %}
-                    </h4>
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h4 style="color:#fafafa;font-weight:600;letter-spacing:-0.02em;">
                     {% if role == 'super-admin' or role == 'admin' %}
-                    <div style="position:relative;display:inline-flex;align-items:center;width:160px;">
-                        <i class="fas fa-filter" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:0.65rem;color:var(--text-muted);z-index:10;pointer-events:none;"></i>
-                        <select class="form-select form-select-sm" style="padding-left:1.6rem;" onchange="window.location.href='?area='+this.value">
-                            <option value="">Todas las areas</option>
-                            {% for area in areas %}
-                            <option value="{{ area.id }}" {% if selected_area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% if selected_area %}
-                    <a href="{% url 'ver_dashboard' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtro"><i class="fas fa-times"></i></a>
+                        <i class="fas fa-chart-line me-2" style="color:#22c55e;"></i>Dashboard
+                    {% elif role == 'jefe-area' %}
+                        <i class="fas fa-sitemap me-2" style="color:#22c55e;"></i>Mi Area
+                    {% elif role == 'jefe-proyecto' %}
+                        <i class="fas fa-folder-open me-2" style="color:#22c55e;"></i>Mis Proyectos
+                    {% else %}
+                        <i class="fas fa-user me-2" style="color:#22c55e;"></i>Mi Trabajo
                     {% endif %}
+                </h4>
+                {% if role == 'super-admin' or role == 'admin' %}
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm" style="width:180px;background:#141416;border-color:#222;color:#aaa;"
+                            onchange="window.location.href='?area='+this.value">
+                        <option value="">Todas las areas</option>
+                        {% for area in areas %}
+                        <option value="{{ area.id }}" {% if selected_area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if selected_area %}
+                    <a href="{% url 'ver_dashboard' %}" class="btn btn-sm btn-danger-outline"><i class="fas fa-times"></i></a>
                     {% endif %}
                 </div>
-                {% if user|role_is:"miembro" %}
-                <a href="{% url 'crear_tarea' %}" class="btn btn-warning btn-sm"><i class="fas fa-bug me-1"></i> Reportar Bug</a>
+                {% elif role == 'miembro' %}
+                <a href="{% url 'crear_tarea' %}" class="btn btn-sm" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+                    <i class="fas fa-bug me-1"></i> Reportar Bug
+                </a>
                 {% endif %}
             </div>
 
-            <!-- ============================================================
-                 ADMIN / SUPER-ADMIN
-                 ============================================================ -->
             {% if role == 'super-admin' or role == 'admin' %}
-
-            <!-- KPIs Globales -->
-            <div class="row g-2 mb-3">
-                <div class="col-6 col-lg-3">
+            <!-- ============ ADMIN METRICS ============ -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
+                        <div class="stat-icon blue"><i class="fas fa-folder-open"></i></div>
                         <div class="stat-value">{{ active_projects }}</div>
                         <div class="stat-label">Proyectos Activos</div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="stat-icon amber"><i class="fas fa-clipboard-list"></i></div>
                         <div class="stat-value">{{ todo_tasks }}</div>
                         <div class="stat-label">Por Hacer</div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-cog"></i></div>
+                        <div class="stat-icon blue"><i class="fas fa-spinner"></i></div>
                         <div class="stat-value">{{ in_progress_tasks }}</div>
                         <div class="stat-label">En Progreso</div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
                         <div class="stat-value">{{ done_tasks }}</div>
                         <div class="stat-label">Completadas</div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-bug"></i></div>
+                        <div class="stat-icon red"><i class="fas fa-bug"></i></div>
                         <div class="stat-value">{{ bugs }}</div>
                         <div class="stat-label">Bugs</div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-running"></i></div>
+                        <div class="stat-icon accent"><i class="fas fa-running"></i></div>
                         <div class="stat-value">{{ active_sprints }}</div>
                         <div class="stat-label">Sprints Activos</div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-sitemap"></i></div>
+                        <div class="stat-icon purple"><i class="fas fa-sitemap"></i></div>
                         <div class="stat-value">{{ total_areas }}</div>
                         <div class="stat-label">Areas</div>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-md-4 col-xl-3">
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-icon teal"><i class="fas fa-users"></i></div>
                         <div class="stat-value">{{ total_users }}</div>
                         <div class="stat-label">Usuarios</div>
                     </div>
                 </div>
             </div>
 
-            <div class="row g-2">
-                <!-- Proyectos Recientes -->
+            <div class="row g-3">
+                <!-- Recent Projects -->
                 <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Proyectos Recientes</h6>
-                            <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
+                    <div class="dash-card">
+                        <div class="dash-card-header">
+                            <h6>Proyectos Recientes</h6>
+                            <a href="{% url 'ver_proyectos' %}" style="color:#666;font-size:0.75rem;">Ver todos &rarr;</a>
                         </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if recent_projects %}
-                            {% for project in recent_projects %}
-                            <div class="px-3 py-2 border-bottom">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="fw-medium">{{ project.name }}</a>
-                                    <span class="badge badge-status-{{ project.status }}">{{ project.get_status_display }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">{{ project.area.name|default:'-' }} | Lead: {{ project.lead.get_full_name|default:'-' }}</small>
-                                    <small class="text-muted">{{ project.progress }}%</small>
-                                </div>
-                                <div class="progress"><div class="progress-bar" style="width:{{ project.progress }}%"></div></div>
+                        {% if recent_projects %}
+                        {% for project in recent_projects %}
+                        <div style="padding:12px 16px;border-bottom:1px solid #1e1e22;">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <a href="{% url 'ver_detalle_proyecto' project.pk %}" style="color:#e0e0e0;font-size:0.82rem;font-weight:500;">{{ project.name }}</a>
+                                <span class="dash-status {{ project.status }}">{{ project.get_status_display }}</span>
                             </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin proyectos</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Estado de Tareas (Resumen) -->
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Distribucion de Tareas</h6>
-                            <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
-                        </div>
-                        <div class="card-body p-0">
-                            {% if total_tasks > 0 %}
-                            <div class="p-3">
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Backlog / Por Hacer</small>
-                                        <small class="fw-medium">{{ todo_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">En Progreso</small>
-                                        <small class="fw-medium">{{ in_progress_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Completadas</small>
-                                        <small class="fw-medium">{{ done_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Bugs Abiertos</small>
-                                        <small class="fw-medium text-danger">{{ bugs }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%"></div></div>
-                                </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-size:0.68rem;color:#666;">{{ project.area.name|default:'-' }} &middot; Lead: {{ project.lead.get_full_name|default:'-' }}</span>
+                                <span style="font-size:0.7rem;color:#888;">{{ project.progress }}%</span>
                             </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin tareas registradas</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bugs Criticos (solo bugs) -->
-            {% if bugs > 0 %}
-            <div class="row g-2 mt-2">
-                <div class="col-12">
-                    <div class="card border-danger">
-                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs Abiertos</h6>
-                            <span class="badge bg-white text-danger">{{ bugs }}</span>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if recent_tasks %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Asignado</th><th>Estado</th></tr></thead>
-                                    <tbody>
-                                        {% for task in recent_tasks %}
-                                        {% if task.type == 'bug' and task.status != 'done' %}
-                                        <tr>
-                                            <td><span class="badge bg-danger me-1">BUG</span>{{ task.title }}</td>
-                                            <td><small>{{ task.project.name }}</small></td>
-                                            <td><small>{{ task.assignee.get_full_name|default:'-' }}</small></td>
-                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
-                                        </tr>
-                                        {% endif %}
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                            <div class="dash-progress">
+                                <div class="dash-progress-fill {% if project.progress > 66 %}green{% elif project.progress > 33 %}blue{% else %}amber{% endif %}" style="width:{{ project.progress }}%;background:{% if project.progress > 66 %}var(--accent){% elif project.progress > 33 %}#3b82f6{% else %}#f59e0b{% endif %};"></div>
                             </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin bugs</small></div>
-                            {% endif %}
                         </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- ============================================================
-                 JEFE DE AREA
-                 ============================================================ -->
-            {% elif role == 'jefe-area' %}
-
-            <!-- Info del Area + Filtro Proyecto -->
-            {% if user_area %}
-            <div class="alert alert-info mb-3 d-flex align-items-center gap-2 flex-wrap">
-                <i class="fas fa-sitemap"></i>
-                <span><strong>{{ user_area.name }}</strong> ({{ user_area.code }})</span>
-                <span class="badge bg-secondary">{{ area_member_count }} miembros</span>
-                <div class="ms-auto d-flex align-items-center gap-2">
-                    <select class="form-select form-select-sm" style="width:180px;" onchange="window.location.href='?project='+this.value">
-                        <option value="">Todos los proyectos</option>
-                        {% for project in area_projects %}
-                        <option value="{{ project.id }}" {% if selected_project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
                         {% endfor %}
-                    </select>
-                    {% if selected_project %}
-                    <a href="{% url 'ver_dashboard' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtro"><i class="fas fa-times"></i></a>
-                    {% endif %}
+                        {% else %}
+                        <div style="text-align:center;padding:24px;color:#555;font-size:0.8rem;">Sin proyectos</div>
+                        {% endif %}
+                    </div>
                 </div>
+
+                <!-- Task Distribution Donut -->
+                <div class="col-lg-6">
+                    <div class="dash-card">
+                        <div class="dash-card-header">
+                            <h6>Distribucion de Tareas</h6>
+                            <a href="{% url 'ver_tablero' %}" style="color:#666;font-size:0.75rem;">Ver Tablero &rarr;</a>
+                        </div>
+                        {% if total_tasks > 0 %}
+                        <div class="row align-items-center" style="padding:14px 16px;">
+                            <div class="col-7">
+                                <div class="dist-row">
+                                    <div class="dist-dot" style="background:#f59e0b;"></div>
+                                    <span class="dist-name">Por Hacer</span>
+                                    <span class="dist-count">{{ todo_tasks }}</span>
+                                    <span class="dist-pct">{% widthratio todo_tasks total_tasks 100 %}%</span>
+                                </div>
+                                <div class="dist-row">
+                                    <div class="dist-dot" style="background:#3b82f6;"></div>
+                                    <span class="dist-name">En Progreso</span>
+                                    <span class="dist-count">{{ in_progress_tasks }}</span>
+                                    <span class="dist-pct">{% widthratio in_progress_tasks total_tasks 100 %}%</span>
+                                </div>
+                                <div class="dist-row">
+                                    <div class="dist-dot" style="background:#22c55e;"></div>
+                                    <span class="dist-name">Completadas</span>
+                                    <span class="dist-count">{{ done_tasks }}</span>
+                                    <span class="dist-pct">{% widthratio done_tasks total_tasks 100 %}%</span>
+                                </div>
+                                <div class="dist-row">
+                                    <div class="dist-dot" style="background:#ef4444;"></div>
+                                    <span class="dist-name">Bugs</span>
+                                    <span class="dist-count">{{ bugs }}</span>
+                                    <span class="dist-pct">{% widthratio bugs total_tasks 100 %}%</span>
+                                </div>
+                            </div>
+                            <div class="col-5 text-center">
+                                {% with total=total_tasks todo_pct=todo_tasks|add:0 prog_pct=in_progress_tasks|add:0 done_pct=done_tasks|add:0 bug_pct=bugs|add:0 %}
+                                <svg viewBox="0 0 120 120" width="120" height="120">
+                                    <circle cx="60" cy="60" r="46" class="donut-ring" stroke-width="10"/>
+                                    {% if total > 0 %}
+                                    <circle cx="60" cy="60" r="46" stroke="#22c55e" stroke-width="10" fill="none" stroke-linecap="round"
+                                            stroke-dasharray="{% widthratio done_tasks total_tasks 100 %} 100"
+                                            stroke-dashoffset="25" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 0.6s;"/>
+                                    <circle cx="60" cy="60" r="46" stroke="#3b82f6" stroke-width="10" fill="none" stroke-linecap="round"
+                                            stroke-dasharray="{% widthratio in_progress_tasks total_tasks 100 %} 100"
+                                            stroke-dashoffset="{% widthratio done_tasks total_tasks 100|add:25 %}" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 0.6s;"/>
+                                    <circle cx="60" cy="60" r="46" stroke="#f59e0b" stroke-width="10" fill="none" stroke-linecap="round"
+                                            stroke-dasharray="{% widthratio todo_tasks total_tasks 100 %} 100"
+                                            stroke-dashoffset="{% widthratio in_progress_tasks|add:done_tasks total_tasks 100|add:25 %}" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 0.6s;"/>
+                                    <circle cx="60" cy="60" r="46" stroke="#ef4444" stroke-width="10" fill="none" stroke-linecap="round"
+                                            stroke-dasharray="{% widthratio bugs total_tasks 100 %} 100"
+                                            stroke-dashoffset="{% widthratio todo_tasks|add:in_progress_tasks|add:done_tasks total_tasks 100|add:25 %}" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 0.6s;"/>
+                                    {% endif %}
+                                    <circle cx="60" cy="60" r="34" class="donut-center"/>
+                                    <text x="60" y="57" text-anchor="middle" fill="#fafafa" font-size="18" font-weight="700" font-family="Inter,sans-serif">{{ total_tasks }}</text>
+                                    <text x="60" y="72" text-anchor="middle" fill="#666" font-size="9" font-family="Inter,sans-serif">tareas</text>
+                                </svg>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div style="text-align:center;padding:24px;color:#555;font-size:0.8rem;">Sin tareas registradas</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% elif role == 'jefe-area' %}
+            <!-- ============ JEFE-AREA ============ -->
+            {% if user_area %}
+            <div class="d-flex align-items-center gap-3 mb-3" style="background:#141416;border:1px solid #222;border-radius:10px;padding:10px 16px;">
+                <i class="fas fa-sitemap" style="color:#8b5cf6;"></i>
+                <span style="color:#fafafa;font-size:0.85rem;font-weight:600;">{{ user_area.name }}</span>
+                <span class="dash-status active">{{ area_member_count }} miembros</span>
+                <select class="form-select form-select-sm ms-auto" style="width:180px;background:#141416;border-color:#222;color:#aaa;"
+                        onchange="window.location.href='?project='+this.value">
+                    <option value="">Todos los proyectos</option>
+                    {% for p in area_projects %}
+                    <option value="{{ p.id }}" {% if selected_project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+                {% if selected_project %}
+                <a href="{% url 'ver_dashboard' %}" class="btn btn-sm btn-danger-outline"><i class="fas fa-times"></i></a>
+                {% endif %}
             </div>
             {% endif %}
 
-            <!-- KPIs del Area -->
-            <div class="row g-2 mb-3">
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
-                        <div class="stat-value">{{ total_projects }}</div>
-                        <div class="stat-label">Proyectos del Area</div>
-                    </div>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-folder-open"></i></div><div class="stat-value">{{ total_projects }}</div><div class="stat-label">Proyectos del Area</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
-                        <div class="stat-value">{{ todo_tasks }}</div>
-                        <div class="stat-label">Por Hacer</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-clipboard-list"></i></div><div class="stat-value">{{ todo_tasks }}</div><div class="stat-label">Por Hacer</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-cog"></i></div>
-                        <div class="stat-value">{{ in_progress_tasks }}</div>
-                        <div class="stat-label">En Progreso</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-spinner"></i></div><div class="stat-value">{{ in_progress_tasks }}</div><div class="stat-label">En Progreso</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value">{{ done_tasks }}</div>
-                        <div class="stat-label">Completadas</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-value">{{ done_tasks }}</div><div class="stat-label">Completadas</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-bug"></i></div>
-                        <div class="stat-value">{{ bugs }}</div>
-                        <div class="stat-label">Bugs</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon red"><i class="fas fa-bug"></i></div><div class="stat-value">{{ bugs }}</div><div class="stat-label">Bugs</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-running"></i></div>
-                        <div class="stat-value">{{ active_sprints }}</div>
-                        <div class="stat-label">Sprints Activos</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon accent"><i class="fas fa-running"></i></div><div class="stat-value">{{ active_sprints }}</div><div class="stat-label">Sprints Activos</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-value">{{ area_member_count }}</div>
-                        <div class="stat-label">Miembros</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-users"></i></div><div class="stat-value">{{ area_member_count }}</div><div class="stat-label">Miembros</div></div>
                 </div>
             </div>
 
-            <div class="row g-2">
-                <!-- Proyectos del Area -->
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Proyectos del Area</h6>
-                            <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if area_projects %}
-                            {% for project in area_projects %}
-                            <div class="px-3 py-2 border-bottom">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="fw-medium">{{ project.name }}</a>
-                                    <span class="badge badge-status-{{ project.status }}">{{ project.get_status_display }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">Lead: {{ project.lead.get_full_name|default:'-' }} | {{ project.member_count }} miembros</small>
-                                    <small class="text-muted">{{ project.progress }}%</small>
-                                </div>
-                                <div class="progress"><div class="progress-bar" style="width:{{ project.progress }}%"></div></div>
-                            </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin proyectos en el area</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Distribucion de Tareas del Area -->
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Distribucion de Tareas del Area</h6>
-                            <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
-                        </div>
-                        <div class="card-body p-0">
-                            {% if total_tasks > 0 %}
-                            <div class="p-3">
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Backlog / Por Hacer</small>
-                                        <small class="fw-medium">{{ todo_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">En Progreso</small>
-                                        <small class="fw-medium">{{ in_progress_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Completadas</small>
-                                        <small class="fw-medium">{{ done_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Bugs Abiertos</small>
-                                        <small class="fw-medium text-danger">{{ bugs }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%"></div></div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin tareas en el area</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bugs del Area (solo bugs) -->
-            {% if bugs > 0 %}
-            <div class="row g-2 mt-2">
-                <div class="col-12">
-                    <div class="card border-danger">
-                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs del Area</h6>
-                            <span class="badge bg-white text-danger">{{ bugs }}</span>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if recent_tasks %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Asignado</th><th>Estado</th></tr></thead>
-                                    <tbody>
-                                        {% for task in recent_tasks %}
-                                        {% if task.type == 'bug' and task.status != 'done' %}
-                                        <tr>
-                                            <td><span class="badge bg-danger me-1">BUG</span>{{ task.title }}</td>
-                                            <td><small>{{ task.project.name }}</small></td>
-                                            <td><small>{{ task.assignee.get_full_name|default:'-' }}</small></td>
-                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
-                                        </tr>
-                                        {% endif %}
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin bugs</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- ============================================================
-                 JEFE DE PROYECTO
-                 ============================================================ -->
             {% elif role == 'jefe-proyecto' %}
-
-            <!-- KPIs del Proyecto -->
-            <div class="row g-2 mb-3">
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
-                        <div class="stat-value">{{ total_projects }}</div>
-                        <div class="stat-label">Mis Proyectos</div>
-                    </div>
+            <!-- ============ JEFE-PROYECTO ============ -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-folder-open"></i></div><div class="stat-value">{{ total_projects }}</div><div class="stat-label">Mis Proyectos</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
-                        <div class="stat-value">{{ todo_tasks }}</div>
-                        <div class="stat-label">Por Hacer</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-clipboard-list"></i></div><div class="stat-value">{{ todo_tasks }}</div><div class="stat-label">Por Hacer</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-cog"></i></div>
-                        <div class="stat-value">{{ in_progress_tasks }}</div>
-                        <div class="stat-label">En Progreso</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-spinner"></i></div><div class="stat-value">{{ in_progress_tasks }}</div><div class="stat-label">En Progreso</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value">{{ done_tasks }}</div>
-                        <div class="stat-label">Completadas</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-value">{{ done_tasks }}</div><div class="stat-label">Completadas</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-bug"></i></div>
-                        <div class="stat-value">{{ bugs }}</div>
-                        <div class="stat-label">Bugs</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon red"><i class="fas fa-bug"></i></div><div class="stat-value">{{ bugs }}</div><div class="stat-label">Bugs</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-running"></i></div>
-                        <div class="stat-value">{{ active_sprints }}</div>
-                        <div class="stat-label">Sprints Activos</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon accent"><i class="fas fa-running"></i></div><div class="stat-value">{{ active_sprints }}</div><div class="stat-label">Sprints Activos</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-value">{{ team_member_count }}</div>
-                        <div class="stat-label">Miembros del Equipo</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon teal"><i class="fas fa-users"></i></div><div class="stat-value">{{ team_member_count }}</div><div class="stat-label">Miembros</div></div>
                 </div>
             </div>
 
-            <div class="row g-2">
-                <!-- Mis Proyectos -->
+            <div class="row g-3">
                 <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Mis Proyectos</h6>
-                            <a href="{% url 'ver_proyectos' %}" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if projects %}
-                            {% for project in projects %}
-                            <div class="px-3 py-2 border-bottom">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="fw-medium">{{ project.name }}</a>
-                                    <span class="badge badge-status-{{ project.status }}">{{ project.get_status_display }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">{{ project.task_count }} tareas ({{ project.completed_task_count }} completadas)</small>
-                                    <small class="text-muted">{{ project.progress }}%</small>
-                                </div>
-                                <div class="progress"><div class="progress-bar" style="width:{{ project.progress }}%"></div></div>
+                    <div class="dash-card">
+                        <div class="dash-card-header"><h6>Mis Proyectos</h6><a href="{% url 'ver_proyectos' %}" style="color:#666;font-size:0.75rem;">Ver todos &rarr;</a></div>
+                        {% if projects %}
+                        {% for project in projects %}
+                        <div style="padding:12px 16px;border-bottom:1px solid #1e1e22;">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <a href="{% url 'ver_detalle_proyecto' project.pk %}" style="color:#e0e0e0;font-size:0.82rem;font-weight:500;">{{ project.name }}</a>
+                                <span class="dash-status {{ project.status }}">{{ project.get_status_display }}</span>
                             </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>No lideras proyectos aun</small></div>
-                            {% endif %}
+                            <span style="font-size:0.68rem;color:#666;">{{ project.task_count }} tareas ({{ project.completed_task_count }} completadas)</span>
+                            <div class="dash-progress mt-1"><div class="dash-progress-fill accent" style="width:{{ project.progress }}%;"></div></div>
                         </div>
+                        {% endfor %}
+                        {% else %}
+                        <div style="text-align:center;padding:24px;color:#555;">No lideras proyectos aun</div>
+                        {% endif %}
                     </div>
                 </div>
-
-                <!-- Distribucion de Tareas del Equipo -->
                 <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Distribucion de Tareas del Equipo</h6>
-                            <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
+                    <div class="dash-card">
+                        <div class="dash-card-header"><h6>Distribucion de Tareas</h6><a href="{% url 'ver_tablero' %}" style="color:#666;font-size:0.75rem;">Ver Tablero &rarr;</a></div>
+                        {% if total_tasks > 0 %}
+                        <div style="padding:14px 16px;">
+                            <div class="dist-row"><div class="dist-dot" style="background:#f59e0b;"></div><span class="dist-name">Por Hacer</span><span class="dist-count">{{ todo_tasks }}</span><span class="dist-pct">{% widthratio todo_tasks total_tasks 100 %}%</span></div>
+                            <div class="dist-row"><div class="dist-dot" style="background:#3b82f6;"></div><span class="dist-name">En Progreso</span><span class="dist-count">{{ in_progress_tasks }}</span><span class="dist-pct">{% widthratio in_progress_tasks total_tasks 100 %}%</span></div>
+                            <div class="dist-row"><div class="dist-dot" style="background:#22c55e;"></div><span class="dist-name">Completadas</span><span class="dist-count">{{ done_tasks }}</span><span class="dist-pct">{% widthratio done_tasks total_tasks 100 %}%</span></div>
+                            <div class="dist-row"><div class="dist-dot" style="background:#ef4444;"></div><span class="dist-name">Bugs</span><span class="dist-count">{{ bugs }}</span><span class="dist-pct">{% widthratio bugs total_tasks 100 %}%</span></div>
                         </div>
-                        <div class="card-body p-0">
-                            {% if total_tasks > 0 %}
-                            <div class="p-3">
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Backlog / Por Hacer</small>
-                                        <small class="fw-medium">{{ todo_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio todo_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">En Progreso</small>
-                                        <small class="fw-medium">{{ in_progress_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio in_progress_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Completadas</small>
-                                        <small class="fw-medium">{{ done_tasks }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio done_tasks total_tasks 100 %}%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Bugs Abiertos</small>
-                                        <small class="fw-medium text-danger">{{ bugs }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio bugs total_tasks 100 %}%"></div></div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin tareas del equipo</small></div>
-                            {% endif %}
-                        </div>
+                        {% else %}
+                        <div style="text-align:center;padding:24px;color:#555;">Sin tareas</div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Bugs del Equipo (solo bugs) -->
-            {% if bugs > 0 %}
-            <div class="row g-2 mt-2">
-                <div class="col-12">
-                    <div class="card border-danger">
-                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Bugs del Equipo</h6>
-                            <span class="badge bg-white text-danger">{{ bugs }}</span>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if recent_tasks %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Asignado</th><th>Estado</th></tr></thead>
-                                    <tbody>
-                                        {% for task in recent_tasks %}
-                                        {% if task.type == 'bug' and task.status != 'done' %}
-                                        <tr>
-                                            <td><span class="badge bg-danger me-1">BUG</span>{{ task.title }}</td>
-                                            <td><small>{{ task.project.name }}</small></td>
-                                            <td><small>{{ task.assignee.get_full_name|default:'-' }}</small></td>
-                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
-                                        </tr>
-                                        {% endif %}
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin bugs</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Miembros del Equipo -->
-            {% if team_members %}
-            <div class="row g-2 mt-2">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Miembros del Equipo</h6>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead><tr><th>Nombre</th><th>Especialidad</th><th>Tareas Asignadas</th><th>En Progreso</th><th>Completadas</th></tr></thead>
-                                    <tbody>
-                                        {% for member in team_members %}
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:0.6rem;background:{{ member.color }};color:#fff;">{{ member.initials }}</div>
-                                                    {{ member.user.get_full_name }}
-                                                </div>
-                                            </td>
-                                            <td><small>{{ member.specialty.name|default:'-' }}</small></td>
-                                            <td><small>{{ member.task_total }}</small></td>
-                                            <td><small>{{ member.task_in_progress }}</small></td>
-                                            <td><small>{{ member.task_done }}</small></td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- ============================================================
-                 MIEMBRO
-                 ============================================================ -->
             {% else %}
-
-            <!-- Sin proyectos -->
+            <!-- ============ MIEMBRO ============ -->
             {% if not has_projects %}
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-hourglass-half fa-2x mb-3 d-block" style="color:var(--accent);opacity:0.5;"></i>
-                    <h5 class="mb-2">Bienvenido, {{ user.get_full_name }}!</h5>
-                    <p class="text-muted mb-0 small">Tu cuenta fue aprobada exitosamente. Pronto seras asignado a un proyecto por tu Jefe de Area.</p>
-                    <p class="text-muted small mt-2 mb-0">Mientras tanto, puedes explorar tu <a href="{% url 'ver_perfil' %}">perfil</a> y configurar tu informacion.</p>
-                </div>
+            <div class="dash-card mb-4" style="text-align:center;padding:40px;">
+                <i class="fas fa-hourglass-half d-block mb-3" style="font-size:2rem;color:#22c55e;opacity:0.4;"></i>
+                <h5 style="color:#fafafa;">Bienvenido, {{ user.get_full_name }}!</h5>
+                <p style="color:#666;font-size:0.82rem;max-width:360px;margin:8px auto 0;">
+                    Tu cuenta fue aprobada. Pronto seras asignado a un proyecto.
+                </p>
             </div>
             {% endif %}
 
-            <!-- KPIs Personales -->
-            <div class="row g-2 mb-3">
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--info-soft);color:var(--info);"><i class="fas fa-folder-open"></i></div>
-                        <div class="stat-value">{{ my_project_count }}</div>
-                        <div class="stat-label">Mis Proyectos</div>
-                    </div>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-folder-open"></i></div><div class="stat-value">{{ my_project_count }}</div><div class="stat-label">Mis Proyectos</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--warning-soft);color:var(--warning);"><i class="fas fa-clipboard-list"></i></div>
-                        <div class="stat-value">{{ my_task_stats.todo }}</div>
-                        <div class="stat-label">Por Hacer</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-clipboard-list"></i></div><div class="stat-value">{{ my_task_stats.todo }}</div><div class="stat-label">Por Hacer</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--info-soft);color:var(--info);"><i class="fas fa-cog"></i></div>
-                        <div class="stat-value">{{ my_task_stats.in_progress }}</div>
-                        <div class="stat-label">En Progreso</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-spinner"></i></div><div class="stat-value">{{ my_task_stats.in_progress }}</div><div class="stat-label">En Progreso</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--success-soft);color:var(--success);"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value">{{ my_task_stats.done }}</div>
-                        <div class="stat-label">Completadas</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-value">{{ my_task_stats.done }}</div><div class="stat-label">Completadas</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--danger-soft);color:var(--danger);"><i class="fas fa-bug"></i></div>
-                        <div class="stat-value">{{ my_task_stats.bugs }}</div>
-                        <div class="stat-label">Mis Bugs</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon red"><i class="fas fa-bug"></i></div><div class="stat-value">{{ my_task_stats.bugs }}</div><div class="stat-label">Mis Bugs</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent);"><i class="fas fa-clock"></i></div>
-                        <div class="stat-value">{{ time_this_week }}</div>
-                        <div class="stat-label">Horas esta semana</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon accent"><i class="fas fa-clock"></i></div><div class="stat-value">{{ time_this_week }}</div><div class="stat-label">Horas esta semana</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--success-soft);color:var(--success);"><i class="fas fa-running"></i></div>
-                        <div class="stat-value">{{ my_sprints|length }}</div>
-                        <div class="stat-label">Sprints Activos</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon teal"><i class="fas fa-running"></i></div><div class="stat-value">{{ my_sprints|length }}</div><div class="stat-label">Sprints Activos</div></div>
                 </div>
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:var(--info-soft);color:var(--info);"><i class="fas fa-bell"></i></div>
-                        <div class="stat-value">{{ unread_notifications|length }}</div>
-                        <div class="stat-label">Notificaciones</div>
-                    </div>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-bell"></i></div><div class="stat-value">{{ unread_notifications|length }}</div><div class="stat-label">Notificaciones</div></div>
                 </div>
             </div>
 
-            <div class="row g-2">
-                <!-- Distribucion de Mis Tareas -->
+            <div class="row g-3">
                 <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Distribucion de Mis Tareas</h6>
-                            <a href="{% url 'ver_tablero' %}" class="btn btn-sm btn-outline-secondary">Ver Tablero</a>
+                    <div class="dash-card">
+                        <div class="dash-card-header"><h6>Distribucion de Mis Tareas</h6><a href="{% url 'ver_tablero' %}" style="color:#666;font-size:0.75rem;">Ver Tablero &rarr;</a></div>
+                        {% if my_task_stats.total > 0 %}
+                        <div style="padding:14px 16px;">
+                            <div class="dist-row"><div class="dist-dot" style="background:#f59e0b;"></div><span class="dist-name">Por Hacer</span><span class="dist-count">{{ my_task_stats.todo }}</span><span class="dist-pct">{% widthratio my_task_stats.todo my_task_stats.total 100 %}%</span></div>
+                            <div class="dist-row"><div class="dist-dot" style="background:#3b82f6;"></div><span class="dist-name">En Progreso</span><span class="dist-count">{{ my_task_stats.in_progress }}</span><span class="dist-pct">{% widthratio my_task_stats.in_progress my_task_stats.total 100 %}%</span></div>
+                            <div class="dist-row"><div class="dist-dot" style="background:#22c55e;"></div><span class="dist-name">Completadas</span><span class="dist-count">{{ my_task_stats.done }}</span><span class="dist-pct">{% widthratio my_task_stats.done my_task_stats.total 100 %}%</span></div>
+                            <div class="dist-row"><div class="dist-dot" style="background:#ef4444;"></div><span class="dist-name">Bugs</span><span class="dist-count">{{ my_task_stats.bugs }}</span><span class="dist-pct">{% widthratio my_task_stats.bugs my_task_stats.total 100 %}%</span></div>
                         </div>
-                        <div class="card-body p-0">
-                            {% if my_task_stats.total > 0 %}
-                            <div class="p-3">
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Backlog / Por Hacer</small>
-                                        <small class="fw-medium">{{ my_task_stats.todo }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.todo my_task_stats.total 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">En Progreso</small>
-                                        <small class="fw-medium">{{ my_task_stats.in_progress }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.in_progress my_task_stats.total 100 %}%"></div></div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Completadas</small>
-                                        <small class="fw-medium">{{ my_task_stats.done }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.done my_task_stats.total 100 %}%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="text-muted">Bugs Abiertos</small>
-                                        <small class="fw-medium text-danger">{{ my_task_stats.bugs }}</small>
-                                    </div>
-                                    <div class="progress"><div class="progress-bar" style="width:{% widthratio my_task_stats.bugs my_task_stats.total 100 %}%"></div></div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin tareas asignadas</small></div>
-                            {% endif %}
-                        </div>
+                        {% else %}
+                        <div style="text-align:center;padding:24px;color:#555;">Sin tareas asignadas</div>
+                        {% endif %}
                     </div>
                 </div>
-
-                <!-- Mis Proyectos -->
                 <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Mis Proyectos</h6>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if my_projects %}
-                            {% for project in my_projects %}
-                            <div class="px-3 py-2 border-bottom">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <a href="{% url 'ver_detalle_proyecto' project.pk %}" class="fw-medium">{{ project.name }}</a>
-                                    <span class="badge badge-status-{{ project.status }}">{{ project.get_status_display }}</span>
-                                </div>
-                                <div class="progress"><div class="progress-bar" style="width:{{ project.progress }}%"></div></div>
-                                <small class="text-muted">{{ project.progress }}% completo</small>
+                    <div class="dash-card">
+                        <div class="dash-card-header"><h6>Mis Proyectos</h6></div>
+                        {% if my_projects %}
+                        {% for project in my_projects %}
+                        <div style="padding:12px 16px;border-bottom:1px solid #1e1e22;">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <a href="{% url 'ver_detalle_proyecto' project.pk %}" style="color:#e0e0e0;font-size:0.82rem;font-weight:500;">{{ project.name }}</a>
+                                <span class="dash-status {{ project.status }}">{{ project.get_status_display }}</span>
                             </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin proyectos asignados</small></div>
-                            {% endif %}
+                            <div class="dash-progress"><div class="dash-progress-fill accent" style="width:{{ project.progress }}%;"></div></div>
+                            <span style="font-size:0.68rem;color:#666;">{{ project.progress }}% completo</span>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sprints Activos -->
-            {% if my_sprints %}
-            <div class="row g-2 mt-2">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Sprints Activos</h6>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead>
-                                        <tr><th>Sprint</th><th>Proyecto</th><th>Inicio</th><th>Fin</th><th>Estado</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for sprint in my_sprints %}
-                                        <tr>
-                                            <td><a href="{% url 'ver_sprints' %}">{{ sprint.name }}</a></td>
-                                            <td><small>{{ sprint.project.name }}</small></td>
-                                            <td><small>{{ sprint.start_date|date:"d/m" }}</small></td>
-                                            <td><small>{{ sprint.end_date|date:"d/m" }}</small></td>
-                                            <td><span class="badge badge-status-{{ sprint.status }}">{{ sprint.get_status_display }}</span></td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div style="text-align:center;padding:24px;color:#555;">Sin proyectos asignados</div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            <!-- Mis Bugs Abiertos (solo bugs) -->
-            {% if my_task_stats.bugs > 0 %}
-            <div class="row g-2 mt-2">
-                <div class="col-12">
-                    <div class="card border-danger">
-                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0"><i class="fas fa-bug me-2"></i>Mis Bugs Abiertos</h6>
-                            <span class="badge bg-white text-danger">{{ my_task_stats.bugs }}</span>
-                        </div>
-                        <div class="card-body p-0 card-body-scroll">
-                            {% if my_tasks %}
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead><tr><th>Tarea</th><th>Proyecto</th><th>Estado</th></tr></thead>
-                                    <tbody>
-                                        {% for task in my_tasks %}
-                                        {% if task.type == 'bug' and task.status != 'done' %}
-                                        <tr>
-                                            <td><span class="badge bg-danger me-1">BUG</span>{{ task.title }}</td>
-                                            <td><small>{{ task.project.name }}</small></td>
-                                            <td><span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span></td>
-                                        </tr>
-                                        {% endif %}
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="text-center text-secondary py-4"><small>Sin bugs</small></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Notificaciones -->
-            {% if unread_notifications %}
-            <div class="row g-2 mt-2">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Notificaciones</h6>
-                            <a href="{% url 'ver_notificaciones' %}" class="btn btn-sm btn-outline-secondary">Ver todas</a>
-                        </div>
-                        <div class="card-body p-0">
-                            {% for notif in unread_notifications %}
-                            <div class="px-3 py-2 border-bottom d-flex align-items-center gap-2">
-                                <i class="fas {{ notif.icon }}" style="color:var(--accent);"></i>
-                                <div class="flex-1">
-                                    <div class="fw-medium" style="font-size:0.85rem;">{{ notif.title }}</div>
-                                    <small class="text-muted">{{ notif.message|truncatechars:80 }}</small>
-                                </div>
-                                <small class="text-muted">{{ notif.created_at|timesince }} atras</small>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            {% endif %}
-
-        </div>
+        </div><!-- /max-width wrapper -->
+        </div><!-- /page-content -->
     </div>
 </div>
 {% endblock %}

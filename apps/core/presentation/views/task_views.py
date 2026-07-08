@@ -187,10 +187,10 @@ def crear_tarea_rapida(request):
         type=data.get('type', 'task'),
         priority=data.get('priority', 'medium'),
         points=int(data.get('points', 1)),
-        status=data.get('status', 'backlog'),
-        description='',
+        status=data.get('status', 'TODO'),
+        description=data.get('description', ''),
         assignee_id=data.get('assignee') or None,
-        sprint_id=None,
+        sprint_id=data.get('sprint') or None,
         required_specialty_id=None,
         tags='',
     )
@@ -311,3 +311,50 @@ def comentar_tarea(request, task_pk):
     if params:
         url += '?' + urlencode(params)
     return redirect(url)
+
+
+@login_required
+def task_json(request, pk):
+    """Return task data as JSON for the drawer edit form."""
+    task = get_object_or_404(
+        Task.objects.select_related('project', 'sprint', 'assignee'),
+        pk=pk
+    )
+    if not can_manage_task(request.user, task):
+        return JsonResponse({'error': 'No tienes permiso'}, status=403)
+
+    return JsonResponse({
+        'id': task.pk,
+        'title': task.title,
+        'project': task.project_id,
+        'project_name': task.project.name,
+        'sprint': task.sprint_id,
+        'sprint_name': task.sprint.name if task.sprint else '',
+        'assignee': task.assignee_id,
+        'type': task.type,
+        'priority': task.priority,
+        'points': task.points,
+        'status': task.status,
+        'description': task.description,
+    })
+
+
+@login_required
+def sprints_por_proyecto(request, project_id):
+    """Return sprints for a project as JSON for dynamic select."""
+    user = request.user
+    from apps.core.domain.services.permission_service import filter_queryset_by_role
+    get_user_role_local = get_user_role
+    role = get_user_role_local(user)
+
+    project = get_object_or_404(Project, pk=project_id)
+    sprints = Sprint.objects.filter(project=project).order_by('-start_date')
+    sprints = filter_queryset_by_role(sprints, user, role, model_type='sprint')
+
+    data = [{'value': '', 'label': 'Sin sprint (backlog)'}]
+    for s in sprints:
+        data.append({
+            'value': s.pk,
+            'label': f'{s.name} ({s.get_status_display()})',
+        })
+    return JsonResponse({'sprints': data})

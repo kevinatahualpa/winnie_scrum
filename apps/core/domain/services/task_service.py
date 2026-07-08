@@ -21,7 +21,7 @@ class TaskService:
         type: str = 'task',
         priority: str = 'medium',
         points: int = 1,
-        status: str = 'backlog',
+        status: str = 'TODO',
         description: str = '',
         assignee_id: Optional[int] = None,
         sprint_id: Optional[int] = None,
@@ -118,15 +118,15 @@ class TaskService:
             return False, 'Estado invalido'
 
         ALLOWED_TRANSITIONS = {
-            'backlog': ['todo'],
-            'todo': ['in-progress'],
-            'in-progress': ['done'],
-            'done': [],
+            'TODO': ['PROG'],
+            'PROG': ['TEST', 'DONE'],
+            'TEST': ['DONE', 'PROG'],
+            'DONE': [],
         }
 
         if new_status not in ALLOWED_TRANSITIONS.get(task.status, []):
             names = dict(Task.STATUS_CHOICES)
-            return False, f'No se puede mover de "{names.get(task.status, task.status)}" a "{names.get(new_status, new_status)}". Flujo: Backlog → Por Hacer → En Progreso → Completado'
+            return False, f'No se puede mover de "{names.get(task.status, task.status)}" a "{names.get(new_status, new_status)}". Flujo: Por Hacer → En Progreso → En Testing → Completado'
 
         old_status = task.status
         task.status = new_status
@@ -137,7 +137,7 @@ class TaskService:
             f'Tarea "{task.title}": {old_status} -> {new_status}'
         )
 
-        if new_status == 'done' and task.assignee and task.assignee != user:
+        if new_status == 'DONE' and task.assignee and task.assignee != user:
             from apps.core.domain.services.notification_service import create_notification
             create_notification(
                 task.assignee,
@@ -146,7 +146,7 @@ class TaskService:
                 f'La tarea "{task.title}" fue marcada como completada',
                 'fa-check-circle',
             )
-        elif new_status == 'in-progress' and task.assignee and task.assignee != user:
+        elif new_status == 'PROG' and task.assignee and task.assignee != user:
             from apps.core.domain.services.notification_service import create_notification
             create_notification(
                 task.assignee,
