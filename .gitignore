@@ -55,7 +55,8 @@ coverage.xml
 # Backup files
 *.bak
 *.backup
-backups/
+backups/*
+!backups/*.enc
 
 # Secrets
 *.pem
