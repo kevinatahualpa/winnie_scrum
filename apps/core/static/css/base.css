@@ -25,8 +25,8 @@
 
     /* Text */
     --text-primary: #0a0a0a;
-    --text-secondary: #52525b;
-    --text-muted: #a1a1aa;
+    --text-secondary: #46464d;
+    --text-muted: #6b6b73;
 
     /* Borders */
     --border: #e4e4e7;
@@ -82,6 +82,69 @@
     /* Misc */
     --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --chat-bg: #f5f5f5;
+    color-scheme: light;
+
+    /* Bootstrap overrides (driven by tokens — apply to both themes) */
+    --bs-body-color: var(--text-primary);
+    --bs-body-bg: var(--surface-0);
+    --bs-heading-color: var(--text-primary);
+    --bs-emphasis-color: var(--text-primary);
+    --bs-secondary-color: var(--text-secondary);
+    --bs-tertiary-color: var(--text-muted);
+    --bs-border-color: var(--border);
+    --bs-link-color: var(--accent);
+    --bs-link-hover-color: var(--accent-hover);
+    --bs-card-bg: var(--surface-1);
+    --bs-card-border-color: var(--border);
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: var(--border);
+    --bs-table-hover-bg: var(--surface-2);
+    --bs-table-hover-color: var(--text-primary);
+    --bs-table-striped-bg: var(--surface-2);
+    --bs-table-striped-color: var(--text-primary);
+    --bs-dropdown-bg: var(--surface-1);
+    --bs-dropdown-color: var(--text-secondary);
+    --bs-dropdown-border-color: var(--border);
+    --bs-dropdown-link-color: var(--text-secondary);
+    --bs-dropdown-link-hover-bg: var(--surface-2);
+    --bs-dropdown-link-hover-color: var(--text-primary);
+    --bs-modal-bg: var(--surface-1);
+    --bs-modal-color: var(--text-primary);
+    --bs-modal-border-color: var(--border);
+    --bs-input-bg: var(--surface-1);
+    --bs-input-border-color: var(--border);
+    --bs-input-color: var(--text-primary);
+    --bs-input-placeholder-color: var(--text-muted);
+    --bs-form-select-bg: var(--surface-1);
+    --bs-form-select-color: var(--text-primary);
+    --bs-form-select-border-color: var(--border);
+    --bs-pagination-bg: var(--surface-1);
+    --bs-pagination-border-color: var(--border);
+    --bs-pagination-color: var(--text-secondary);
+    --bs-pagination-hover-bg: var(--surface-2);
+    --bs-pagination-hover-color: var(--text-primary);
+    --bs-badge-color: var(--text-primary);
+    --bs-nav-link-color: var(--text-secondary);
+    --bs-nav-link-hover-color: var(--text-primary);
+    --bs-nav-tabs-link-active-bg: var(--surface-1);
+    --bs-nav-tabs-link-active-color: var(--text-primary);
+    --bs-nav-tabs-border-color: var(--border);
+    --bs-list-group-bg: var(--surface-1);
+    --bs-list-group-border-color: var(--border);
+    --bs-list-group-color: var(--text-primary);
+    --bs-alert-bg: transparent;
+    --bs-alert-border-color: var(--border);
+    --bs-alert-color: var(--text-primary);
+    --bs-progress-bg: var(--surface-2);
+    --bs-tooltip-bg: var(--surface-1);
+    --bs-tooltip-color: var(--text-primary);
+    --bs-popover-bg: var(--surface-1);
+    --bs-popover-border-color: var(--border);
+    --bs-popover-header-bg: var(--surface-2);
+    --bs-popover-body-color: var(--text-primary);
+    --bs-secondary-bg: var(--surface-2);
+    --bs-tertiary-bg: var(--surface-2);
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -94,8 +157,8 @@
     --surface-hover: #1f1f22;
 
     --text-primary: #fafafa;
-    --text-secondary: #a0a0ab;
-    --text-muted: #6b6b75;
+    --text-secondary: #b4b4bf;
+    --text-muted: #8b8b96;
 
     --border: #27272a;
     --border-strong: #3f3f46;
@@ -131,7 +194,7 @@
 
     --sidebar-bg: #0a0a0a;
     --sidebar-surface: #161618;
-    --sidebar-text: #6b6b75;
+    --sidebar-text: #9a9aa4;
     --sidebar-text-hover: #fafafa;
     --sidebar-active: var(--accent);
     --sidebar-active-bg: rgba(245, 158, 11, 0.12);
@@ -141,58 +204,8 @@
     --purple-soft: rgba(124, 58, 237, 0.10);
     --chat-bg: #18181b;
 
-    /* Bootstrap overrides for dark */
-    --bs-body-color: var(--text-primary);
-    --bs-body-bg: var(--surface-0);
-    --bs-heading-color: var(--text-primary);
-    --bs-emphasis-color: var(--text-primary);
-    --bs-secondary-color: var(--text-secondary);
-    --bs-tertiary-color: var(--text-muted);
-    --bs-border-color: var(--border);
-    --bs-link-color: var(--accent);
-    --bs-link-hover-color: var(--accent-hover);
-    --bs-card-bg: var(--surface-1);
-    --bs-card-border-color: var(--border);
-    --bs-table-bg: transparent;
-    --bs-table-border-color: var(--border);
-    --bs-table-hover-bg: var(--surface-2);
-    --bs-table-striped-bg: var(--surface-2);
-    --bs-dropdown-bg: var(--surface-1);
-    --bs-dropdown-border-color: var(--border);
-    --bs-dropdown-link-color: var(--text-secondary);
-    --bs-dropdown-link-hover-bg: var(--surface-2);
-    --bs-dropdown-link-hover-color: var(--text-primary);
-    --bs-modal-bg: var(--surface-1);
-    --bs-modal-border-color: var(--border);
-    --bs-input-bg: var(--surface-1);
-    --bs-input-border-color: var(--border);
-    --bs-input-color: var(--text-primary);
-    --bs-input-placeholder-color: var(--text-muted);
-    --bs-form-select-bg: var(--surface-1);
-    --bs-form-select-color: var(--text-primary);
-    --bs-form-select-border-color: var(--border);
-    --bs-pagination-bg: var(--surface-1);
-    --bs-pagination-border-color: var(--border);
-    --bs-pagination-color: var(--text-secondary);
-    --bs-pagination-hover-bg: var(--surface-2);
-    --bs-pagination-hover-color: var(--text-primary);
-    --bs-badge-color: var(--text-primary);
-    --bs-nav-link-color: var(--text-secondary);
-    --bs-nav-tabs-link-active-bg: var(--surface-1);
-    --bs-nav-tabs-link-active-color: var(--text-primary);
-    --bs-nav-tabs-border-color: var(--border);
-    --bs-list-group-bg: var(--surface-1);
-    --bs-list-group-border-color: var(--border);
-    --bs-list-group-color: var(--text-primary);
-    --bs-alert-bg: transparent;
-    --bs-alert-border-color: var(--border);
-    --bs-alert-color: var(--text-primary);
-    --bs-progress-bg: var(--surface-2);
-    --bs-tooltip-bg: var(--surface-1);
-    --bs-tooltip-color: var(--text-primary);
-    --bs-popover-bg: var(--surface-1);
-    --bs-popover-border-color: var(--border);
-    --bs-popover-body-color: var(--text-primary);
+    /* Dark needs a Bootstrap color-scheme so native controls render dark */
+    color-scheme: dark;
 }
 
 /* ──────────────────────────────────────────────────────────

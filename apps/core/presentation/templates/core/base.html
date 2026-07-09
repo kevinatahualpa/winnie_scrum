@@ -27,6 +27,14 @@
                 }
             };
             prefersDark.addEventListener('change', observer);
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'winnie-theme') {
+                    var t = (e.newValue === 'light' || e.newValue === 'dark')
+                        ? e.newValue
+                        : (prefersDark.matches ? 'dark' : 'light');
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            });
         })();
     </script>
     {% block extra_css %}{% endblock %}
@@ -68,13 +76,23 @@
 
     <script>
         window.setWinnieTheme = function(theme) {
+            var resolved;
             if (theme === 'system') {
                 var pd = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.setAttribute('data-theme', pd ? 'dark' : 'light');
+                resolved = pd ? 'dark' : 'light';
             } else {
-                document.documentElement.setAttribute('data-theme', theme);
+                resolved = theme;
             }
+            document.documentElement.setAttribute('data-theme', resolved);
             localStorage.setItem('winnie-theme', theme);
+            document.querySelectorAll('iframe').forEach(function(f) {
+                try {
+                    var doc = f.contentDocument;
+                    if (doc && doc.documentElement.hasAttribute('data-theme')) {
+                        doc.documentElement.setAttribute('data-theme', resolved);
+                    }
+                } catch (err) {}
+            });
             updateThemeUI();
         };
 

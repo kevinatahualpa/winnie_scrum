@@ -129,14 +129,14 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-1 mb-0 align-items-center flex-wrap">
+            <div class="d-flex mb-0 align-items-center flex-wrap tab-bar">
                 <a href="{% url 'ver_backlog' %}?project={{ project.id }}" class="btn tab-btn active" data-tab="backlog" data-embed="{% url 'ver_backlog' %}?project={{ project.id }}&embed=1"><i class="fas fa-layer-group me-1"></i>Backlog</a>
                 <a href="{% url 'ver_tablero' %}?project={{ project.id }}" class="btn tab-btn" data-tab="board" data-embed="{% url 'ver_tablero' %}?project={{ project.id }}&embed=1"><i class="fas fa-columns me-1"></i>Tablero</a>
                 <button class="btn tab-btn" data-tab="docs">
                     <i class="fas fa-file-alt me-1"></i>Documentos <span class="badge bg-secondary ms-1" style="font-size: 0.55rem;">{{ documents.count }}</span>
                 </button>
                 <button class="btn tab-btn" data-tab="chat">
-                    <i class="fas fa-comments me-1" style="color:var(--accent);"></i>Mensajes <span class="badge bg-secondary ms-1" style="font-size: 0.55rem;">{{ comments.count }}</span>
+                    <i class="fas fa-comments me-1"></i>Mensajes <span class="badge bg-secondary ms-1" style="font-size: 0.55rem;">{{ comments.count }}</span>
                 </button>
                 <a href="{% url 'ver_calendario' %}?project={{ project.id }}" class="btn tab-btn" data-tab="calendar" data-embed="{% url 'ver_calendario' %}?project={{ project.id }}&embed=1"><i class="fas fa-calendar-alt me-1"></i>Calendario</a>
             </div>
@@ -382,29 +382,45 @@
 
 
 <style>
+.tab-bar {
+    border-bottom: 1px solid var(--border);
+    gap: 0.35rem;
+}
 .tab-btn {
-    border-radius: 8px 8px 0 0;
+    position: relative;
     border: none;
+    border-radius: 8px 8px 0 0;
+    background: transparent;
     font-size: 0.8rem;
-    padding: 0.5rem 1rem;
-    transition: all 0.15s ease;
-}
-.tab-btn:hover {
-    filter: brightness(0.95);
-}
-.tab-btn.active {
-    background: var(--surface-1);
-    color: var(--accent);
-    font-weight: 600;
-    box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
-}
-.tab-btn:not(.active) {
-    background: var(--surface-0);
+    padding: 0.5rem 0.95rem;
     color: var(--text-secondary);
     font-weight: 500;
+    margin-bottom: -1px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+.tab-btn:not(.active):hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+}
+.tab-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+    box-shadow: none;
+}
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    left: 0.6rem;
+    right: 0.6rem;
+    bottom: -1px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px 2px 0 0;
 }
 .tab-panel-card {
-    border-radius: 0 12px 12px 12px;
+    border-radius: 12px;
+    margin-top: 0.75rem;
 }
 a.tab-btn { text-decoration: none; }
 .team-avatar { transition: transform 0.15s ease, z-index 0s; cursor: default; }
@@ -484,16 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (frame && !frame.src) frame.src = frame.dataset.src;
             }
             activeTab = tab;
-            btns.forEach(function(b) {
-                b.style.background = '#f0f2f5';
-                b.style.color = 'var(--text-secondary)';
-                b.style.fontWeight = '500';
-                b.style.boxShadow = 'none';
-            });
-            this.style.background = '#fff';
-            this.style.color = 'var(--accent)';
-            this.style.fontWeight = '600';
-            this.style.boxShadow = '0 -2px 6px rgba(0,0,0,0.05)';
+            btns.forEach(function(b) { b.classList.toggle('active', b === btn); });
 
             panels.forEach(function(p) { p.style.display = 'none'; });
             var target = document.getElementById('tab-' + tab);
@@ -502,13 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function activateTab(tab) {
-        btns.forEach(function(b) {
-            var match = b.dataset.tab === tab;
-            b.style.background = match ? '#fff' : '#f0f2f5';
-            b.style.color = match ? 'var(--accent)' : 'var(--text-secondary)';
-            b.style.fontWeight = match ? '600' : '500';
-            b.style.boxShadow = match ? '0 -2px 6px rgba(0,0,0,0.05)' : 'none';
-        });
+        btns.forEach(function(b) { b.classList.toggle('active', b.dataset.tab === tab); });
         panels.forEach(function(p) { p.style.display = 'none'; });
         var target = document.getElementById('tab-' + tab);
         if (target) {
