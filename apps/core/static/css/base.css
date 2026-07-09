@@ -1452,6 +1452,37 @@ textarea.form-control {
 }
 .bl-picker-item:hover { background: var(--surface-2); }
 
+/* ── Backlog responsive (móvil) ── */
+@media (max-width: 767px) {
+    .bl-block-head { flex-wrap: wrap; }
+    .bl-block-title { flex: 1 1 auto; min-width: 0; }
+    .bl-block-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bl-counts { margin-left: auto; }
+    .bl-block-actions { order: 99; width: 100%; justify-content: flex-end; }
+
+    .bl-row { flex-wrap: wrap; row-gap: 4px; }
+    .bl-title { flex: 1 1 100%; order: 1; white-space: normal; }
+    .bl-drag, .bl-check, .bl-code, .bl-type-dot { order: 0; }
+    .bl-status, .bl-points, .bl-due, .bl-assignee, .bl-row-menu-wrap { order: 2; }
+    .bl-spacer { display: none; }
+}
+
+@media (max-width: 480px) {
+    .bl-row { gap: 6px; padding: 8px 10px; }
+    .bl-drag, .bl-code, .bl-type-dot, .bl-due { display: none; }
+    .bl-title { font-size: 0.82rem; }
+    .bl-status { font-size: 0.62rem; }
+
+    .bl-create-form { flex-wrap: wrap; row-gap: 8px; }
+    .bl-cf-input { flex: 1 1 100%; order: 1; }
+    .bl-cf-type, .bl-cf-due, .bl-cf-assignee { order: 2; }
+    .bl-cf-submit { order: 2; margin-left: auto; }
+    .bl-cf-cancel { order: 2; }
+
+    .bl-block-name { font-size: 0.82rem; }
+    .bl-dates { font-size: 0.66rem; }
+}
+
 /* ──────────────────────────────────────────────────────────
    19. CALENDAR
    ────────────────────────────────────────────────────────── */
@@ -1625,6 +1656,9 @@ textarea.form-control {
 /* ──────────────────────────────────────────────────────────
    20. CHAT / MESSAGES
    ────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .chat-subject-input { max-width: 70px !important; }
+}
 .message-bubble {
     border-radius: 10px; padding: 8px 12px;
     word-wrap: break-word; font-size: 0.8rem; line-height: 1.4;
