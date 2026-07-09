@@ -125,12 +125,23 @@
 
             var toggle = document.getElementById('sidebarToggle');
             var sidebar = document.querySelector('.sidebar');
+            var appLayout = document.querySelector('.app-layout');
             if (toggle && sidebar) {
+                var collapsed = localStorage.getItem('winnie-sidebar-collapsed') === '1';
+                if (collapsed && appLayout) appLayout.classList.add('sidebar-collapsed');
                 toggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('open');
+                    if (window.matchMedia('(min-width: 1024px)').matches) {
+                        if (appLayout) {
+                            appLayout.classList.toggle('sidebar-collapsed');
+                            localStorage.setItem('winnie-sidebar-collapsed', appLayout.classList.contains('sidebar-collapsed') ? '1' : '0');
+                        }
+                    } else {
+                        sidebar.classList.toggle('open');
+                    }
                 });
                 document.addEventListener('click', function(e) {
-                    if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                    if (!window.matchMedia('(min-width: 1024px)').matches &&
+                        !sidebar.contains(e.target) && !toggle.contains(e.target)) {
                         sidebar.classList.remove('open');
                     }
                 });
