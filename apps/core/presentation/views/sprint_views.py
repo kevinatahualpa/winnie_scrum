@@ -2,17 +2,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.urls import reverse
 from django.http import JsonResponse
 
 from apps.core.infrastructure.models.models import Sprint, Project, Task
 from apps.core.domain.services.permission_service import get_user_role, can_manage_project, filter_queryset_by_role
 from apps.core.domain.services.sprint_service import SprintService
+from apps.core.domain.services.notification_service import create_audit_log
 from apps.core.presentation.forms import SprintForm
 from django.db.models import Count, Q
 
 
 @login_required
+@xframe_options_sameorigin
 def ver_sprints(request):
     """Sprint list grouped by project with progress bars.
 
@@ -57,8 +60,11 @@ def ver_sprints(request):
 @login_required
 def crear_sprint(request):
     """Create a new sprint in a project. Requires project management permission."""
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     role = get_user_role(request.user)
     if role == 'miembro' or not can_manage_project(request.user):
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'No tienes permiso para crear sprints'}, status=403)
         messages.error(request, 'No tienes permiso para crear sprints')
         return redirect('ver_sprints')
 
@@ -66,6 +72,8 @@ def crear_sprint(request):
     if form.is_valid():
         project = form.cleaned_data['project']
         if not can_manage_project(request.user, project):
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': 'No tienes permiso para este proyecto'}, status=403)
             messages.error(request, 'No tienes permiso para este proyecto')
             return redirect('ver_sprints')
 
@@ -79,14 +87,48 @@ def crear_sprint(request):
         )
 
         if error:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': error}, status=400)
             messages.error(request, error)
         else:
+            if is_ajax:
+                return JsonResponse({'success': True, 'message': f'Sprint "{sprint.name}" creado'})
             messages.success(request, f'Sprint "{sprint.name}" creado')
     else:
+        if is_ajax:
+            errs = '; '.join(f'{f}: {e}' for f, el in form.errors.items() for e in el)
+            return JsonResponse({'success': False, 'error': errs or 'Datos inválidos'}, status=400)
         for field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, f'{field}: {error}')
 
+    return redirect('ver_sprints')
+
+
+@require_POST
+@login_required
+def eliminar_sprint(request, pk):
+    """Delete a sprint. Its tasks return to the Product Backlog (sprint=NULL).
+
+    AJAX-aware: returns JSON when requested with X-Requested-With.
+    """
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    sprint = get_object_or_404(Sprint.objects.select_related('project'), pk=pk)
+
+    if not can_manage_project(request.user, sprint.project):
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'No tienes permiso'}, status=403)
+        messages.error(request, 'No tienes permiso para eliminar este sprint')
+        return redirect('ver_sprints')
+
+    name = sprint.name
+    Task.objects.filter(sprint=sprint).update(sprint=None, status='TODO')
+    create_audit_log(request.user, 'SPRINT_DELETE', 'sprint', sprint.pk, f'Sprint eliminado: {name}')
+    sprint.delete()
+
+    if is_ajax:
+        return JsonResponse({'success': True, 'message': f'Sprint "{name}" eliminado'})
+    messages.success(request, f'Sprint "{name}" eliminado. Sus tareas volvieron al backlog.')
     return redirect('ver_sprints')
 
 

@@ -1,5 +1,5 @@
-{% if chat_type == 'dm' and partner %}
-<div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: var(--surface-1);">
+{% load static %}
+{% if chat_type == 'dm' and partner %}<div class="d-flex align-items-center gap-2 p-2 border-bottom" style="background: var(--surface-1);">
     {% if partner.profile.avatar %}
     <img src="{{ partner.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
     {% else %}
@@ -13,13 +13,11 @@
     </div>
 </div>
 <div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
-     hx-get="{% url 'ver_conversacion_fragment' partner.id %}?t={% now 'U' %}"
-     hx-trigger="every 5s"
-     hx-swap="innerHTML"
-     hx-indicator=".msg-loader">
+     data-chat-poll-url="{% url 'ver_conversacion_fragment' partner.id %}"
+     data-chat-current-user="{{ request.user.id }}">
     {% include 'core/chat_messages_partial.html' %}
 </div>
-<div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+<div class="msg-loader text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
     <i class="fas fa-spinner fa-pulse"></i> Actualizando...
 </div>
 <div class="border-top p-2" style="background: var(--surface-1);">
@@ -48,13 +46,11 @@
     </div>
 </div>
 <div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
-     hx-get="{% url 'ver_conversacion_proyecto_fragment' project_chat.id %}?t={% now 'U' %}"
-     hx-trigger="every 5s"
-     hx-swap="innerHTML"
-     hx-indicator=".msg-loader">
+     data-chat-poll-url="{% url 'ver_conversacion_proyecto_fragment' project_chat.id %}"
+     data-chat-current-user="{{ request.user.id }}">
     {% include 'core/chat_messages_partial.html' %}
 </div>
-<div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+<div class="msg-loader text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
     <i class="fas fa-spinner fa-pulse"></i> Actualizando...
 </div>
 <div class="border-top p-2" style="background: var(--surface-1);">
@@ -71,3 +67,6 @@
     </form>
 </div>
 {% endif %}
+
+<script src="{% static 'js/chat_poll.js' %}?v=1"></script>
+<script>window.initChatPoll && window.initChatPoll();</script>

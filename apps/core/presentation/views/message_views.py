@@ -227,13 +227,41 @@ def enviar_mensaje(request):
 
 
 def ver_conversacion_fragment(request, user_id):
-    """HTMX fragment — returns only the DM chat messages HTML."""
+    """HTMX/JSON fragment for a DM conversation.
+
+    Delta-polling: if ?after=<id> is provided, returns ONLY messages newer
+    than that id as JSON (light). Otherwise returns full HTML partial.
+    """
+    from django.http import JsonResponse
     partner = get_object_or_404(User, pk=user_id)
     user = request.user
 
+    after = request.GET.get('after')
+    if after and after.isdigit():
+        new_msgs = Message.objects.filter(
+            Q(sender=user, receiver=partner) | Q(sender=partner, receiver=user),
+            id__gt=int(after),
+        ).select_related('sender').order_by('created_at')[:100]
+
+        # Mark incoming as read
+        Message.objects.filter(
+            sender=partner, receiver=user, read=False, id__gt=int(after)
+        ).update(read=True)
+
+        data = [{
+            'id': m.id,
+            'body': m.body,
+            'subject': m.subject,
+            'sender_id': m.sender_id,
+            'sender_name': m.sender.get_full_name() or m.sender.username,
+            'is_mine': m.sender_id == user.id,
+            'time': m.created_at.strftime('%d/%m %H:%M'),
+        } for m in new_msgs]
+        return JsonResponse({'messages': data, 'last_id': data[-1]['id'] if data else int(after)})
+
     messages_list = Message.objects.filter(
         Q(sender=user, receiver=partner) | Q(sender=partner, receiver=user)
-    ).select_related('sender', 'receiver').order_by('created_at')
+    ).select_related('sender', 'receiver').order_by('created_at')[:200]
 
     Message.objects.filter(sender=partner, receiver=user, read=False).update(read=True)
 
@@ -243,7 +271,11 @@ def ver_conversacion_fragment(request, user_id):
 
 
 def ver_conversacion_proyecto_fragment(request, project_id):
-    """HTMX fragment — returns only the project chat comments HTML."""
+    """HTMX/JSON fragment for a project chat.
+
+    Delta-polling: ?after=<id> returns only newer comments as JSON.
+    """
+    from django.http import JsonResponse
     project = get_object_or_404(Project, pk=project_id)
     user = request.user
     role = get_user_role(user)
@@ -252,9 +284,27 @@ def ver_conversacion_proyecto_fragment(request, project_id):
         Project.objects.filter(pk=project_id), user, role, model_type='project'
     )
     if not available.exists():
+        if request.GET.get('after') is not None:
+            return JsonResponse({'messages': [], 'last_id': 0})
         return render(request, 'core/chat_messages_partial.html', {'messages_list': []})
 
-    comments = Comment.objects.filter(project=project).select_related('author').order_by('created_at')
+    after = request.GET.get('after')
+    if after and after.isdigit():
+        new_comments = Comment.objects.filter(
+            project=project, id__gt=int(after)
+        ).select_related('author').order_by('created_at')[:100]
+        data = [{
+            'id': c.id,
+            'body': c.text,
+            'subject': '',
+            'sender_id': c.author_id,
+            'sender_name': c.author.get_full_name() or c.author.username,
+            'is_mine': c.author_id == user.id,
+            'time': c.created_at.strftime('%d/%m %H:%M'),
+        } for c in new_comments]
+        return JsonResponse({'messages': data, 'last_id': data[-1]['id'] if data else int(after)})
+
+    comments = Comment.objects.filter(project=project).select_related('author').order_by('created_at')[:200]
 
     messages_data = []
     for c in comments:

@@ -77,9 +77,9 @@
                     <!-- Fila 2: Equipo -->
                     <div class="d-flex align-items-center gap-2 mb-3">
                         <small class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-users me-1"></i>Equipo:</small>
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center team-avatars">
                             {% if project.lead %}
-                            <div class="position-relative" title="Lider: {{ project.lead.get_full_name|default:project.lead.username }}">
+                            <div class="position-relative team-avatar" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="bottom" title="<strong>{{ project.lead.get_full_name|default:project.lead.username }}</strong><br><span class='team-tt-role'>Lider de Proyecto</span>{% if project.lead.profile.specialty %}<br><span class='team-tt-spec'><i class='fas fa-code'></i> {{ project.lead.profile.specialty.name }}</span>{% endif %}">
                                 {% if project.lead.profile.avatar %}
                                 <img src="{{ project.lead.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border);">
                                 {% else %}
@@ -93,7 +93,7 @@
                             {% for member in project_members %}
                             {% if member.id != project.lead_id %}
                             {% if forloop.counter <= 5 %}
-                            <div class="position-relative" title="{{ member.get_full_name|default:member.username }} — {{ member.profile.get_role_display }}" style="margin-left: -6px;">
+                            <div class="position-relative team-avatar" style="margin-left: -6px;" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="bottom" title="<strong>{{ member.get_full_name|default:member.username }}</strong><br><span class='team-tt-role'>{{ member.profile.get_role_display }}</span>{% if member.profile.specialty %}<br><span class='team-tt-spec'><i class='fas fa-code'></i> {{ member.profile.specialty.name }}</span>{% endif %}">
                                 {% if member.profile.avatar %}
                                 <img src="{{ member.profile.avatar.url }}" alt="" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid var(--border);">
                                 {% else %}
@@ -129,83 +129,20 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-1 mb-0">
-                <button class="btn tab-btn active" data-tab="tasks">
-                    <i class="fas fa-tasks me-1"></i>Tareas <span class="badge bg-secondary ms-1" style="font-size: 0.55rem;">{{ tasks.count }}</span>
-                </button>
+            <div class="d-flex gap-1 mb-0 align-items-center flex-wrap">
+                <a href="{% url 'ver_backlog' %}?project={{ project.id }}" class="btn tab-btn active" data-tab="backlog" data-embed="{% url 'ver_backlog' %}?project={{ project.id }}&embed=1"><i class="fas fa-layer-group me-1"></i>Backlog</a>
+                <a href="{% url 'ver_tablero' %}?project={{ project.id }}" class="btn tab-btn" data-tab="board" data-embed="{% url 'ver_tablero' %}?project={{ project.id }}&embed=1"><i class="fas fa-columns me-1"></i>Tablero</a>
                 <button class="btn tab-btn" data-tab="docs">
                     <i class="fas fa-file-alt me-1"></i>Documentos <span class="badge bg-secondary ms-1" style="font-size: 0.55rem;">{{ documents.count }}</span>
                 </button>
                 <button class="btn tab-btn" data-tab="chat">
                     <i class="fas fa-comments me-1" style="color:var(--accent);"></i>Mensajes <span class="badge bg-secondary ms-1" style="font-size: 0.55rem;">{{ comments.count }}</span>
                 </button>
+                <a href="{% url 'ver_calendario' %}?project={{ project.id }}" class="btn tab-btn" data-tab="calendar" data-embed="{% url 'ver_calendario' %}?project={{ project.id }}&embed=1"><i class="fas fa-calendar-alt me-1"></i>Calendario</a>
             </div>
 
-            <div class="card border-0 tab-panel tab-panel-card" id="tab-tasks">
-                <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-semibold mb-0 small">Tareas del Proyecto</h6>
-                    <button class="btn btn-sm btn-primary" onclick="openTaskDrawer()">
-                        <i class="fas fa-plus me-1"></i>Nueva Tarea
-                    </button>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 small">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Tarea</th>
-                                    <th>Tipo</th>
-                                    <th>Prioridad</th>
-                                    <th>Asignado</th>
-                                    <th>Sprint</th>
-                                    <th>Estado</th>
-                                    <th class="text-end">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for task in tasks %}
-                                <tr>
-                                    <td class="fw-medium">{{ task.title }}</td>
-                                    <td><span class="badge badge-type-{{ task.type }} small">{{ task.get_type_display }}</span></td>
-                                    <td><span class="priority-dot priority-{{ task.priority }} me-1"></span>{{ task.get_priority_display }}</td>
-                                    <td>{% if task.assignee %}{{ task.assignee.get_full_name|default:task.assignee.username }}{% else %}-{% endif %}</td>
-                                    <td><span class="badge bg-info bg-opacity-10 text-info small">{{ task.sprint.name|default:"-" }}</span></td>
-                                    <td><span class="badge badge-status-{{ task.status }} small">{{ task.get_status_display }}</span></td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                                            <button class="btn btn-secondary" title="Editar" onclick="openTaskDrawer('{{ task.pk }}')"><i class="fas fa-edit"></i></button>
-                                            <form method="post" action="{% url 'eliminar_tarea' task.pk %}" class="d-inline" onsubmit="return confirm('Eliminar tarea?')">
-                                                {% csrf_token %}
-                                                <button class="btn btn-danger-outline" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                            </form>
-                                            {% endif %}
-                                            <form method="post" action="{% url 'actualizar_estado_tarea' task.pk %}" class="d-inline">{% csrf_token %}
-                                                {% if task.status == 'TODO' %}
-                                                <input type="hidden" name="status" value="PROG">
-                                                <button type="submit" class="btn btn-secondary" title="Mover a En Progreso"><i class="fas fa-arrow-right"></i></button>
-                                                {% elif task.status == 'PROG' %}
-                                                <input type="hidden" name="status" value="TEST">
-                                                <button type="submit" class="btn btn-secondary" title="Mover a En Testing"><i class="fas fa-arrow-right"></i></button>
-                                                {% elif task.status == 'TEST' %}
-                                                <input type="hidden" name="status" value="DONE">
-                                                <button type="submit" class="btn btn-secondary" title="Completar"><i class="fas fa-check"></i></button>
-                                                {% endif %}
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        Sin tareas
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="tab-panel tab-panel-card tab-embed" id="tab-backlog">
+                <iframe class="project-embed-frame" data-src="{% url 'ver_backlog' %}?project={{ project.id }}&embed=1" title="Backlog" loading="lazy"></iframe>
             </div>
 
             <div class="card border-0 tab-panel tab-panel-card" id="tab-docs" style="display:none;">
@@ -432,6 +369,13 @@
                     {% endif %}
                 </div>
             </div>
+
+            <div class="tab-panel tab-panel-card tab-embed" id="tab-board" style="display:none;">
+                <iframe class="project-embed-frame" data-src="{% url 'ver_tablero' %}?project={{ project.id }}&embed=1" title="Tablero" loading="lazy"></iframe>
+            </div>
+            <div class="tab-panel tab-panel-card tab-embed" id="tab-calendar" style="display:none;">
+                <iframe class="project-embed-frame" data-src="{% url 'ver_calendario' %}?project={{ project.id }}&embed=1" title="Calendario" loading="lazy"></iframe>
+            </div>
         </div>
     </div>
 </div>
@@ -462,6 +406,24 @@
 .tab-panel-card {
     border-radius: 0 12px 12px 12px;
 }
+a.tab-btn { text-decoration: none; }
+.team-avatar { transition: transform 0.15s ease, z-index 0s; cursor: default; }
+.team-avatar:hover { transform: translateY(-3px) scale(1.08); z-index: 5; }
+.team-tt-role { font-size: 0.72rem; opacity: 0.85; }
+.team-tt-spec { font-size: 0.72rem; color: #7dd3fc; }
+.tab-embed {
+    padding: 0;
+    height: calc(100vh - var(--topbar-height) - 210px);
+    min-height: 520px;
+    overflow: hidden;
+}
+.project-embed-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    background: var(--surface-0);
+}
 .sub-tab-btn {
     border: 1px solid var(--border);
     font-weight: 500;
@@ -480,10 +442,16 @@
 </style>
 
 <script>
-var activeTab = (new URLSearchParams(window.location.search)).get('tab') || 'tasks';
+var activeTab = (new URLSearchParams(window.location.search)).get('tab') || 'backlog';
 
 document.addEventListener('DOMContentLoaded', function() {
     {% if dm_user %}activeTab = 'chat';{% endif %}
+
+    if (window.bootstrap && bootstrap.Tooltip) {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+            new bootstrap.Tooltip(el);
+        });
+    }
 
     function goDM(userId) {
         if (!userId) return;
@@ -496,8 +464,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var panels = document.querySelectorAll('.tab-panel');
 
     btns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
             var tab = this.dataset.tab;
+            if (this.dataset.embed) {
+                e.preventDefault();
+                var frame = document.querySelector('#tab-' + tab + ' .project-embed-frame');
+                if (frame && !frame.src) frame.src = frame.dataset.src;
+            }
             activeTab = tab;
             btns.forEach(function(b) {
                 b.style.background = '#f0f2f5';
@@ -526,7 +499,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         panels.forEach(function(p) { p.style.display = 'none'; });
         var target = document.getElementById('tab-' + tab);
-        if (target) target.style.display = '';
+        if (target) {
+            target.style.display = '';
+            var frame = target.querySelector('.project-embed-frame');
+            if (frame && !frame.src) frame.src = frame.dataset.src;
+        }
     }
     activateTab(activeTab);
 

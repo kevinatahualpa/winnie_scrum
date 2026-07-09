@@ -1,12 +1,14 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.core.infrastructure.models.models import Task, Project, Area, User, Sprint, UserProfile
 from apps.core.domain.services.permission_service import get_user_role, filter_queryset_by_role
 
 
 @login_required
+@xframe_options_sameorigin
 def ver_tablero(request):
     """Kanban board filtered by area → project → sprint → assignee.
 
@@ -35,6 +37,8 @@ def ver_tablero(request):
     ).select_related('area').distinct()
     if area_id:
         projects = projects.filter(area_id=area_id)
+    if project_id:
+        projects = projects.filter(pk=project_id)
 
     # ── Active sprints across filtered projects ─────────────
     active_sprints = Sprint.objects.filter(
@@ -47,6 +51,9 @@ def ver_tablero(request):
         active_sprint = Sprint.objects.filter(
             pk=sprint_id, status='ACT'
         ).select_related('project', 'project__area').first()
+    elif project_id:
+        # Un proyecto tiene un unico sprint activo: mostrarlo directo.
+        active_sprint = active_sprints.first()
 
     board_columns = []
     if active_sprint:

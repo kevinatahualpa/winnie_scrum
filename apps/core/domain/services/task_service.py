@@ -27,6 +27,7 @@ class TaskService:
         sprint_id: Optional[int] = None,
         required_specialty_id: Optional[int] = None,
         tags: Optional[str] = None,
+        due_date=None,
     ) -> Tuple[Optional[Task], Optional[str]]:
         """Create a new task with permission check and notifications"""
         if not can_manage_task(user):
@@ -43,6 +44,7 @@ class TaskService:
             assignee_id=assignee_id or None,
             sprint_id=sprint_id or None,
             required_specialty_id=required_specialty_id or None,
+            due_date=due_date or None,
         )
 
         if assignee_id:

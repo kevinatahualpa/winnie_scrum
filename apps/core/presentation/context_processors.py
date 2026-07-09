@@ -69,3 +69,88 @@ def unread_notifications(request):
             context['archived_count'] = archived_count
 
     return context
+
+
+def sidebar_projects(request):
+    """Inject the projects visible to the current user into the sidebar.
+
+    Admins see all active projects; other roles see only the projects they
+    have access to (via role-based filtering). Limited and cached to keep the
+    sidebar light.
+    """
+    context = {'sidebar_projects': [], 'can_create_project': False}
+
+    if not request.user.is_authenticated:
+        return context
+
+    from apps.core.domain.services.permission_service import (
+        get_user_role, filter_queryset_by_role, can_manage_project, is_admin,
+    )
+
+    user = request.user
+    role = get_user_role(user)
+
+    if role == 'cliente':
+        return context
+
+    cache_key = f'sidebar_projects_{user.id}'
+    projects = cache.get(cache_key)
+    if projects is None:
+        qs = Project.objects.exclude(status='cancelled').only('id', 'name')
+        if not is_admin(user):
+            qs = filter_queryset_by_role(qs, user, role, model_type='project')
+        projects = list(qs.order_by('name')[:15])
+        cache.set(cache_key, projects, timeout=60)
+
+    context['sidebar_projects'] = projects
+    context['can_create_project'] = can_manage_project(user)
+    return context
+
+
+def quick_task_data(request):
+    """Provide data for the global quick-create task modal (topbar search).
+
+    Exposes the projects and assignees the user can pick, plus whether the
+    user is allowed to create tasks at all. Cached briefly.
+    """
+    context = {'quick_task_projects': [], 'quick_task_assignees': [], 'can_create_task': False}
+
+    if not request.user.is_authenticated:
+        return context
+
+    from apps.core.domain.services.permission_service import (
+        get_user_role, filter_queryset_by_role, can_manage_task, is_admin,
+    )
+
+    user = request.user
+    role = get_user_role(user)
+
+    if role == 'cliente' or not can_manage_task(user):
+        return context
+
+    context['can_create_task'] = True
+
+    cache_key_p = f'quick_task_projects_{user.id}'
+    projects = cache.get(cache_key_p)
+    if projects is None:
+        qs = Project.objects.filter(status='active').only('id', 'name')
+        if not is_admin(user):
+            qs = filter_queryset_by_role(qs, user, role, model_type='project')
+        projects = list(qs.order_by('name'))
+        cache.set(cache_key_p, projects, timeout=120)
+    context['quick_task_projects'] = projects
+
+    cache_key_a = 'quick_task_assignees'
+    assignees = cache.get(cache_key_a)
+    if assignees is None:
+        user_ids = list(UserProfile.objects.filter(status='active').values_list('user_id', flat=True))
+        from apps.core.infrastructure.models.models import User as UserModel
+        assignees = list(
+            UserModel.objects.filter(is_active=True, id__in=user_ids)
+            .select_related('profile').order_by('first_name')
+        )
+        cache.set(cache_key_a, assignees, timeout=120)
+    context['quick_task_assignees'] = assignees
+
+    return context
+

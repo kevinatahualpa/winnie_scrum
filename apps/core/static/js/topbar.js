@@ -12,8 +12,8 @@ document.getElementById('sidebarToggle')?.addEventListener('click', function() {
     function createDropdown() {
         dropdown = document.createElement('div');
         dropdown.className = 'search-dropdown';
-        dropdown.style.cssText = '\n        position:absolute;top:100%;right:0;width:320px;max-height:400px;overflow-y:auto;\n        background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);\n        z-index:1050;display:none;margin-top:4px;\n    ';
-        searchInput.closest('.position-relative').appendChild(dropdown);
+        dropdown.style.cssText = '\n        position:absolute;top:100%;left:0;right:0;max-height:400px;overflow-y:auto;\n        background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);\n        z-index:1050;display:none;margin-top:4px;\n    ';
+        (searchInput.closest('.topbar-search-wrapper') || searchInput.closest('.position-relative') || searchInput.parentNode).appendChild(dropdown);
     }
 
     function showLoading() {
@@ -25,6 +25,15 @@ document.getElementById('sidebarToggle')?.addEventListener('click', function() {
     function renderResults(data) {
         if (!dropdown) createDropdown();
         var html = '';
+        var canCreate = searchInput.dataset.canCreate === '1';
+        var query = searchInput.value.trim();
+
+        if (canCreate && query) {
+            html += '<div class="search-group">';
+            html += '<a href="#" class="search-item search-create-item" data-create-title="' + escapeHtml(query) + '">';
+            html += '<i class="fas fa-plus-circle" style="color:var(--accent);margin-right:6px;"></i>Crear tarea: <strong>' + escapeHtml(query) + '</strong>';
+            html += '</a></div>';
+        }
 
         if (data.projects && data.projects.length) {
             html += '<div class="search-group"><div class="search-group-title"><i class="fas fa-folder"></i> Proyectos</div>';
@@ -57,6 +66,18 @@ document.getElementById('sidebarToggle')?.addEventListener('click', function() {
 
         dropdown.innerHTML = html;
         dropdown.style.display = 'block';
+
+        var createItem = dropdown.querySelector('.search-create-item');
+        if (createItem) {
+            createItem.addEventListener('click', function(e) {
+                e.preventDefault();
+                var title = this.dataset.createTitle || '';
+                dropdown.style.display = 'none';
+                if (typeof window.openQuickTaskModal === 'function') {
+                    window.openQuickTaskModal(title);
+                }
+            });
+        }
     }
 
     function doSearch(query) {
@@ -93,7 +114,7 @@ document.getElementById('sidebarToggle')?.addEventListener('click', function() {
     });
 
     document.addEventListener('click', function(e) {
-        if (dropdown && !e.target.closest('.position-relative') && dropdown.style.display !== 'none') {
+        if (dropdown && !e.target.closest('.topbar-search-wrapper') && dropdown.style.display !== 'none') {
             dropdown.style.display = 'none';
         }
     });

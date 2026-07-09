@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         dayEvents.slice(0, 3).forEach(event => {
             const iconClass = event.icon || 'fa-circle';
-            html += `<span class="cal-event" style="background:${event.color}18;color:${event.color}" title="${escapeAttr(event.title)}"><i class="fas ${iconClass} cal-event-icon"></i>${escapeHtml(event.title)}</span>`;
+            html += `<span class="cal-event" style="background:${event.color}18;color:${event.color}" title="${escapeAttr(event.title)}"><i class="fas ${iconClass} cal-event-icon"></i><span class="cal-event-label">${escapeHtml(event.title)}</span></span>`;
         });
 
         if (dayEvents.length > 3) {

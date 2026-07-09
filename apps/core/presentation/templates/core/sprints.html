@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load role_tags %}
 {% block title %}Sprints - Winnie{% endblock %}
+{% block body_class %}{% if request.GET.embed %}embed-mode{% endif %}{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -10,12 +11,14 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="mb-0"><i class="fas fa-running me-2" style="color:var(--accent);"></i>Sprints</h4>
                 <div class="d-flex gap-2">
+                    {% if not request.GET.embed %}
                     <select class="form-select form-select-sm" style="width:180px;" id="projectFilterSprint" onchange="window.location.href='?project='+this.value">
                         <option value="">Todos los proyectos</option>
                         {% for p in projects %}
                         <option value="{{ p.id }}" {% if request.GET.project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
                         {% endfor %}
                     </select>
+                    {% endif %}
                     {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sprintModal"><i class="fas fa-plus me-1"></i>Nuevo Sprint</button>
                     {% endif %}

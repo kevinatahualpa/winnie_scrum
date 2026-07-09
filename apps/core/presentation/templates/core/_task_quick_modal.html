@@ -15,7 +15,7 @@
                         <div class="col-6">
                             <select name="project" class="form-select form-select-sm" required>
                                 <option value="">Proyecto</option>
-                                {% for p in projects %}
+                                {% for p in quick_task_projects %}
                                 <option value="{{ p.id }}">{{ p.name }}</option>
                                 {% endfor %}
                             </select>
@@ -23,7 +23,7 @@
                         <div class="col-6">
                             <select name="assignee" class="form-select form-select-sm">
                                 <option value="">Asignar a...</option>
-                                {% for u in assignees %}
+                                {% for u in quick_task_assignees %}
                                 <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }}</option>
                                 {% endfor %}
                             </select>

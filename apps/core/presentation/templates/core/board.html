@@ -3,6 +3,7 @@
 {% load static %}
 {% block title %}Tablero - Winnie{% endblock %}
 {% block page_title %}Tablero Scrum{% endblock %}
+{% block body_class %}{% if request.GET.embed %}embed-mode{% endif %}{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
@@ -55,12 +56,14 @@
                     </select>
                 </div>
                 {% if filters.area or filters.sprint or filters.assignee %}
-                <a href="{% url 'ver_tablero' %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
+                <a href="{% url 'ver_tablero' %}?{% if request.GET.project %}project={{ request.GET.project }}&{% endif %}{% if request.GET.embed %}embed=1{% endif %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
                 {% endif %}
                 {% if active_sprint %}
+                {% if not request.GET.embed %}
                 <a href="{% url 'ver_detalle_proyecto' active_sprint.project.id %}" class="btn btn-sm btn-secondary" title="Ir al proyecto">
                     <i class="fas fa-external-link-alt me-1"></i>Ver Proyecto
                 </a>
+                {% endif %}
                 {% endif %}
                 {% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
                 <button class="btn btn-sm btn-primary" onclick="openTaskDrawer()" aria-label="Crear nueva tarea">
@@ -78,7 +81,7 @@
                 <div class="row g-3">
                     {% for s in active_sprints %}
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <a href="?sprint={{ s.id }}{% if filters.area %}&area={{ filters.area }}{% endif %}"
+                        <a href="?sprint={{ s.id }}{% if filters.area %}&area={{ filters.area }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.embed %}&embed=1{% endif %}"
                            class="text-decoration-none">
                             <div class="card sprint-card h-100">
                                 <div class="card-body">

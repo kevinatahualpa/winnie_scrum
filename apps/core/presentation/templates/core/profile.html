@@ -13,7 +13,7 @@
                         {% if profile.avatar %}
                         <img src="{{ profile.avatar.url }}" alt="Avatar" class="rounded-3" style="width:64px;height:64px;object-fit:cover;">
                         {% else %}
-                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white fw-bold" style="width:64px;height:64px;background:{{ profile.color|default:'#22c55e' }};font-size:1.5rem;">{{ profile.initials }}</div>
+                        <div class="rounded-3 d-flex align-items-center justify-content-center text-white fw-bold" style="width:64px;height:64px;background:{{ profile.color|default:'#b45309' }};font-size:1.5rem;">{{ profile.initials }}</div>
                         {% endif %}
                         <div>
                             <h5 class="fw-bold mb-1 text-primary">{{ user.get_full_name|default:user.username }}</h5>

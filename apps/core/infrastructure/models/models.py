@@ -508,6 +508,7 @@ class Task(models.Model):
     required_specialty = models.ForeignKey(Specialty, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='TODO', db_index=True)
     position = models.IntegerField(default=0, db_index=True)
+    due_date = models.DateField(null=True, blank=True, db_index=True)
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name='tasks')
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -538,6 +539,9 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['project', 'created_at'], name='comment_project_idx'),
+        ]
 
     def __str__(self):
         target = self.task or self.project
@@ -674,6 +678,10 @@ class Message(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Mensaje'
         verbose_name_plural = 'Mensajes'
+        indexes = [
+            models.Index(fields=['sender', 'receiver', 'created_at'], name='msg_conv_idx'),
+            models.Index(fields=['receiver', 'read'], name='msg_unread_idx'),
+        ]
 
     def __str__(self):
         return f'{self.sender} -> {self.receiver}: {self.subject}'

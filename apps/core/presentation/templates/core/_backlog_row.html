@@ -1,0 +1,33 @@
+{% load static %}
+<div class="bl-row" data-task-id="{{ task.pk }}" data-status="{{ task.status }}" draggable="true">
+    <span class="bl-drag"><i class="fas fa-grip-vertical"></i></span>
+    <input type="checkbox" class="bl-check" aria-label="Seleccionar tarea">
+    <span class="bl-code">{{ task.project.name|slice:":4"|upper }}-{{ task.pk }}</span>
+    <span class="bl-type-dot badge-type-{{ task.type }}" title="{{ task.get_type_display }}"></span>
+    <span class="bl-title" title="{{ task.title }}">{{ task.title }}</span>
+    <span class="bl-spacer"></span>
+    <select class="bl-status bl-status-{{ task.status }}" data-task-id="{{ task.pk }}" aria-label="Estado">
+        <option value="TODO" {% if task.status == 'TODO' %}selected{% endif %}>Por hacer</option>
+        <option value="PROG" {% if task.status == 'PROG' %}selected{% endif %}>En progreso</option>
+        <option value="TEST" {% if task.status == 'TEST' %}selected{% endif %}>En testing</option>
+        <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>Completado</option>
+    </select>
+    <span class="bl-points" title="Puntos de estimacion">{{ task.points }}</span>
+    {% if task.due_date %}
+    <span class="bl-due {% if task.due_date < today %}bl-due-over{% endif %}" title="Fecha de vencimiento"><i class="far fa-calendar"></i> {{ task.due_date|date:"d M" }}</span>
+    {% endif %}
+    <div class="bl-assignee" data-task-id="{{ task.pk }}">
+        {% if task.assignee %}
+        <span class="bl-avatar" style="background:{{ task.assignee.profile.color|default:'#3b82f6' }}" title="{{ task.assignee.get_full_name|default:task.assignee.username }}">{{ task.assignee.profile.initials|default:task.assignee.username|slice:":2"|upper }}</span>
+        {% else %}
+        <span class="bl-avatar bl-avatar-empty" title="Sin asignar"><i class="fas fa-user"></i></span>
+        {% endif %}
+    </div>
+    <div class="bl-row-menu-wrap">
+        <button type="button" class="bl-row-menu-btn btn btn-sm btn-ghost" title="Mas opciones"><i class="fas fa-ellipsis-h"></i></button>
+        <div class="bl-row-menu" role="menu">
+            <button type="button" class="bl-menu-item" data-action="edit-task" data-task-id="{{ task.pk }}"><i class="fas fa-pen"></i> Editar Tarea</button>
+            <button type="button" class="bl-menu-item bl-menu-danger" data-action="delete-task" data-task-id="{{ task.pk }}" data-task-title="{{ task.title|escapejs }}"><i class="fas fa-trash"></i> Eliminar Tarea</button>
+        </div>
+    </div>
+</div>

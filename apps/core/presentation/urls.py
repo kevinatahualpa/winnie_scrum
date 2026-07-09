@@ -7,7 +7,7 @@ from .views import (
     ver_reportes, ver_auditoria, ver_perfil, actualizar_estado_tarea, crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea,
     ver_backlog, ver_sprints, ver_documentos, ver_tiempo, ver_calendario,
     ver_pendientes, ver_configuracion, crear_sprint, iniciar_sprint,
-    completar_sprint, seleccionar_tareas_sprint, editar_sprint, registrar_tiempo, subir_documento,
+    completar_sprint, seleccionar_tareas_sprint, editar_sprint, eliminar_sprint, registrar_tiempo, subir_documento,
     crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto,
     registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_usuarios_desactivados,
     crear_area, editar_area, eliminar_area,
@@ -26,7 +26,7 @@ from .views import (
     ver_portal_cliente, ver_detalle_proyecto_cliente, crear_solicitud_cliente,
     gestionar_miembros_proyecto,
     ver_archivados, restaurar,
-    reordenar_backlog, task_json, sprints_por_proyecto,
+    reordenar_backlog, task_json, sprints_por_proyecto, asignar_tarea_sprint,
 )
 from .views.wizard_views import (
     registro_paso1, registro_paso2, registro_paso3, registro_cancelar,
@@ -96,6 +96,7 @@ urlpatterns = [
     path('ver_especialidades/<int:pk>/edit/', editar_especialidad, name='editar_especialidad'),
     path('ver_especialidades/<int:pk>/delete/', eliminar_especialidad, name='eliminar_especialidad'),
     path('backlog/reorder/', reordenar_backlog, name='reordenar_backlog'),
+    path('backlog/assign-sprint/', asignar_tarea_sprint, name='asignar_tarea_sprint'),
     path('ver_tecnologias/', ver_tecnologias, name='ver_tecnologias'),
     path('ver_tecnologias/create/', crear_tecnologia, name='crear_tecnologia'),
     path('ver_tecnologias/<int:pk>/edit/', editar_tecnologia, name='editar_tecnologia'),
@@ -131,6 +132,7 @@ urlpatterns = [
     path('sprint/<int:pk>/select/', seleccionar_tareas_sprint, name='seleccionar_tareas_sprint'),
     path('sprint/<int:pk>/start/', iniciar_sprint, name='iniciar_sprint'),
     path('sprint/<int:pk>/edit/', editar_sprint, name='editar_sprint'),
+    path('sprint/<int:pk>/delete/', eliminar_sprint, name='eliminar_sprint'),
     path('sprint/<int:pk>/complete/', completar_sprint, name='completar_sprint'),
     path('time-entry/create/', registrar_tiempo, name='registrar_tiempo'),
     path('document/upload/', subir_documento, name='subir_documento'),

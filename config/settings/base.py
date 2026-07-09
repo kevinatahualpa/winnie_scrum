@@ -53,6 +53,8 @@ TEMPLATES = [
                     'django.contrib.auth.context_processors.auth',
                     'django.contrib.messages.context_processors.messages',
                     'apps.core.presentation.context_processors.unread_notifications',
+                    'apps.core.presentation.context_processors.sidebar_projects',
+                    'apps.core.presentation.context_processors.quick_task_data',
                 ],
             },
     },

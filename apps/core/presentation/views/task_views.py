@@ -145,13 +145,20 @@ def editar_tarea(request, pk):
 @login_required
 def eliminar_tarea(request, pk):
     """Delete a task. Requires task management permission for the specific task."""
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     task = get_object_or_404(Task, pk=pk)
+    title = task.title
     success, error = TaskService.eliminar_tarea(request.user, task)
+
+    if is_ajax:
+        if success:
+            return JsonResponse({'success': True, 'message': f'Tarea "{title}" eliminada'})
+        return JsonResponse({'success': False, 'error': error}, status=400)
 
     if not success:
         messages.error(request, error)
     else:
-        messages.success(request, f'Tarea "{task.title}" eliminada')
+        messages.success(request, f'Tarea "{title}" eliminada')
 
     return redirect('ver_tablero')
 
@@ -180,6 +187,24 @@ def crear_tarea_rapida(request):
 
     project = get_object_or_404(Project, pk=project_id)
 
+    # Optional inline-required fields (Jira-style inline create)
+    require_meta = data.get('require_meta') in ('1', 1, True, 'true')
+    assignee_val = data.get('assignee') or None
+    due_val = data.get('due_date') or None
+    if require_meta:
+        if not assignee_val:
+            return JsonResponse({'success': False, 'error': 'Debes asignar un responsable'}, status=400)
+        if not due_val:
+            return JsonResponse({'success': False, 'error': 'Debes seleccionar una fecha de vencimiento'}, status=400)
+
+    due_date = None
+    if due_val:
+        from datetime import date
+        try:
+            due_date = date.fromisoformat(due_val)
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Fecha inválida'}, status=400)
+
     task, error = TaskService.crear_tarea(
         user=user,
         project=project,
@@ -189,10 +214,11 @@ def crear_tarea_rapida(request):
         points=int(data.get('points', 1)),
         status=data.get('status', 'TODO'),
         description=data.get('description', ''),
-        assignee_id=data.get('assignee') or None,
+        assignee_id=assignee_val,
         sprint_id=data.get('sprint') or None,
         required_specialty_id=None,
         tags='',
+        due_date=due_date,
     )
 
     if error:
@@ -270,6 +296,12 @@ def actualizar_estado_tarea(request, pk):
         return JsonResponse({'success': False, 'error': 'No permission'}, status=403)
 
     new_status = request.POST.get('status')
+    if not new_status:
+        import json as _json
+        try:
+            new_status = _json.loads(request.body).get('status')
+        except (ValueError, AttributeError):
+            new_status = None
     success, error = TaskService.actualizar_estado(request.user, task, new_status)
 
     if success:

@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
 {% load role_tags %}
+{% load static %}
 {% block title %}Mensajes - Winnie{% endblock %}
 {% block body %}
 <div class="app-layout" style="grid-template-columns: auto 1fr;">
@@ -38,13 +39,11 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
-                         hx-get="{% url 'ver_conversacion_fragment' partner.id %}?t={% now 'U' %}"
-                         hx-trigger="every 5s"
-                         hx-swap="innerHTML"
-                         hx-indicator=".msg-loader">
+                         data-chat-poll-url="{% url 'ver_conversacion_fragment' partner.id %}"
+                         data-chat-current-user="{{ request.user.id }}">
                         {% include 'core/chat_messages_partial.html' %}
                     </div>
-                    <div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+                    <div class="msg-loader text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
                         <i class="fas fa-spinner fa-pulse"></i> Actualizando...
                     </div>
                     <div class="border-top p-2" style="background: var(--surface-1);">
@@ -73,13 +72,11 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 overflow-auto p-3" id="chatMessages"
-                         hx-get="{% url 'ver_conversacion_proyecto_fragment' project_chat.id %}?t={% now 'U' %}"
-                         hx-trigger="every 5s"
-                         hx-swap="innerHTML"
-                         hx-indicator=".msg-loader">
+                         data-chat-poll-url="{% url 'ver_conversacion_proyecto_fragment' project_chat.id %}"
+                         data-chat-current-user="{{ request.user.id }}">
                         {% include 'core/chat_messages_partial.html' %}
                     </div>
-                    <div class="msg-loader htmx-indicator text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
+                    <div class="msg-loader text-center py-1" style="display:none;font-size:0.6rem;color:var(--text-muted);">
                         <i class="fas fa-spinner fa-pulse"></i> Actualizando...
                     </div>
                     <div class="border-top p-2" style="background: var(--surface-1);">
@@ -129,6 +126,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/chat_poll.js' %}?v=1"></script>
+<script>window.initChatPoll && window.initChatPoll();</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var chatDiv = document.getElementById('chatMessages');
@@ -141,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
             evt.target.scrollTop = evt.target.scrollHeight;
             var textarea = document.querySelector('#chatPanel textarea');
             if (textarea) textarea.value = '';
+            if (window.initChatPoll) window.initChatPoll();
         }
     });
 

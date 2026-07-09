@@ -3,7 +3,7 @@ from .archived_views import ver_archivados, restaurar
 from .dashboard_views import ver_dashboard
 from .project_views import ver_proyectos, ver_detalle_proyecto, crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto
 from .task_views import crear_tarea, crear_tarea_rapida, actualizar_campo_tarea, editar_tarea, eliminar_tarea, actualizar_estado_tarea, comentar_tarea, task_json, sprints_por_proyecto
-from .sprint_views import ver_sprints, crear_sprint, iniciar_sprint, completar_sprint, seleccionar_tareas_sprint, editar_sprint
+from .sprint_views import ver_sprints, crear_sprint, iniciar_sprint, completar_sprint, seleccionar_tareas_sprint, editar_sprint, eliminar_sprint
 from .team_views import ver_usuarios, registrar_usuario, editar_usuario, desactivar_usuario, reactivar_usuario, ver_usuarios_desactivados
 from .area_views import ver_areas, crear_area, editar_area, eliminar_area
 from .specialty_views import ver_especialidades, crear_especialidad, editar_especialidad, eliminar_especialidad
@@ -11,7 +11,7 @@ from .technology_views import ver_tecnologias, crear_tecnologia, editar_tecnolog
 from .client_views import ver_clientes, crear_cliente, editar_cliente, eliminar_cliente
 from .service_views import ver_servicios, crear_servicio, editar_servicio, eliminar_servicio
 from .board_views import ver_tablero, ver_tablero_fragment
-from .backlog_views import ver_backlog, reordenar_backlog
+from .backlog_views import ver_backlog, reordenar_backlog, asignar_tarea_sprint
 from .document_views import ver_documentos, subir_documento, eliminar_documento, subir_documento_proyecto, eliminar_documento_proyecto
 from .time_tracking_views import ver_tiempo, registrar_tiempo
 from .calendar_views import ver_calendario
@@ -34,7 +34,7 @@ __all__ = [
     'ver_dashboard',
     'ver_proyectos', 'ver_detalle_proyecto', 'crear_proyecto', 'editar_proyecto', 'eliminar_proyecto', 'comentar_proyecto',
     'crear_tarea', 'crear_tarea_rapida', 'actualizar_campo_tarea', 'editar_tarea', 'eliminar_tarea', 'actualizar_estado_tarea', 'comentar_tarea', 'task_json', 'sprints_por_proyecto',
-    'ver_sprints', 'crear_sprint', 'iniciar_sprint', 'completar_sprint', 'seleccionar_tareas_sprint', 'editar_sprint',
+    'ver_sprints', 'crear_sprint', 'iniciar_sprint', 'completar_sprint', 'seleccionar_tareas_sprint', 'editar_sprint', 'eliminar_sprint',
     'ver_usuarios', 'registrar_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'ver_usuarios_desactivados',
     'ver_areas', 'crear_area', 'editar_area', 'eliminar_area',
     'ver_especialidades', 'crear_especialidad', 'editar_especialidad', 'eliminar_especialidad',
@@ -42,7 +42,7 @@ __all__ = [
     'ver_clientes', 'crear_cliente', 'editar_cliente', 'eliminar_cliente',
     'ver_servicios', 'crear_servicio', 'editar_servicio', 'eliminar_servicio',
     'ver_tablero',
-    'ver_backlog', 'reordenar_backlog',
+    'ver_backlog', 'reordenar_backlog', 'asignar_tarea_sprint',
     'ver_documentos', 'subir_documento', 'eliminar_documento', 'subir_documento_proyecto', 'eliminar_documento_proyecto',
     'ver_tiempo', 'registrar_tiempo',
     'ver_calendario',

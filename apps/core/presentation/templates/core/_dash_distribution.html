@@ -1,0 +1,24 @@
+{% load role_tags %}
+<div class="dash-card">
+    <div class="dash-card-header"><h6>Distribución de Tareas</h6><a href="{% url 'ver_tablero' %}">Ver Tablero &rarr;</a></div>
+    {% if total_tasks > 0 %}
+    <div class="d-flex align-items-center gap-3 p-3">
+        <svg viewBox="0 0 120 120" width="112" height="112" style="flex-shrink:0;">
+            <circle cx="60" cy="60" r="46" class="donut-ring" stroke-width="11"/>
+            <circle cx="60" cy="60" r="46" stroke="#16a34a" stroke-width="11" fill="none" stroke-linecap="round"
+                    stroke-dasharray="{% widthratio done_tasks total_tasks 289 %} 289" stroke-dashoffset="0"
+                    transform="rotate(-90 60 60)" style="transition:stroke-dasharray 0.6s;"/>
+            <text x="60" y="57" text-anchor="middle" fill="var(--text-primary)" font-size="20" font-weight="700" font-family="Inter,sans-serif">{{ total_tasks }}</text>
+            <text x="60" y="73" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Inter,sans-serif">tareas</text>
+        </svg>
+        <div style="flex:1;min-width:0;">
+            <div class="dist-row" style="padding:6px 0;"><div class="dist-dot" style="background:#d97706;"></div><span class="dist-name">Por Hacer</span><span class="dist-count">{{ todo_tasks }}</span><span class="dist-pct">{% widthratio todo_tasks total_tasks 100 %}%</span></div>
+            <div class="dist-row" style="padding:6px 0;"><div class="dist-dot" style="background:#2563eb;"></div><span class="dist-name">En Progreso</span><span class="dist-count">{{ in_progress_tasks }}</span><span class="dist-pct">{% widthratio in_progress_tasks total_tasks 100 %}%</span></div>
+            <div class="dist-row" style="padding:6px 0;"><div class="dist-dot" style="background:#16a34a;"></div><span class="dist-name">Completadas</span><span class="dist-count">{{ done_tasks }}</span><span class="dist-pct">{% widthratio done_tasks total_tasks 100 %}%</span></div>
+            <div class="dist-row" style="padding:6px 0;"><div class="dist-dot" style="background:#dc2626;"></div><span class="dist-name">Bugs</span><span class="dist-count">{{ bugs }}</span><span class="dist-pct">{% widthratio bugs total_tasks 100 %}%</span></div>
+        </div>
+    </div>
+    {% else %}
+    <div class="dash-empty">Sin tareas registradas</div>
+    {% endif %}
+</div>

@@ -64,7 +64,10 @@ def ver_detalle_proyecto(request, pk):
     """
     user = request.user
     role = get_user_role(user)
-    project = get_object_or_404(Project, pk=pk)
+    project = get_object_or_404(
+        Project.objects.select_related('lead__profile__specialty', 'area', 'client'),
+        pk=pk,
+    )
 
     if role == 'miembro':
         if not (project.lead == user or project.members.filter(id=user.id).exists()):
@@ -80,7 +83,7 @@ def ver_detalle_proyecto(request, pk):
 
     project_members = list(User.objects.filter(
         Q(led_projects=project) | Q(projects=project)
-    ).exclude(id=user.id).distinct().select_related('profile'))
+    ).exclude(id=user.id).distinct().select_related('profile', 'profile__specialty'))
 
     dm_user = None
     dm_messages = None

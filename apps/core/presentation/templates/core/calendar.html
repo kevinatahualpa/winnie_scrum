@@ -1,18 +1,19 @@
 {% extends 'core/base.html' %}
 {% load static %}
 {% block title %}Calendario - Winnie{% endblock %}
+{% block body_class %}{% if request.GET.embed %}embed-mode{% endif %}{% endblock %}
 {% block body %}
 <div class="app-layout">
     {% include 'core/sidebar.html' %}
     <div class="main-area">
         {% include 'core/topbar.html' %}
         <div class="page-content density-high">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <h4 class="mb-0"><i class="fas fa-calendar-alt me-2" style="color:var(--accent);"></i>{{ month_name }} {{ year }}</h4>
                 <div class="d-flex gap-2">
-                    <a href="?year={% if month == 1 %}{{ year|add:"-1" }}{% else %}{{ year }}{% endif %}&month={% if month == 1 %}12{% else %}{{ month|add:"-1" }}{% endif %}" class="btn btn-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
-                    <a href="?year={% if month == 12 %}{{ year|add:"1" }}{% else %}{{ year }}{% endif %}&month={% if month == 12 %}1{% else %}{{ month|add:"1" }}{% endif %}" class="btn btn-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
-                    <a href="?" class="btn btn-secondary btn-sm" title="Ir a hoy">Hoy</a>
+                    <a href="?year={% if month == 1 %}{{ year|add:"-1" }}{% else %}{{ year }}{% endif %}&month={% if month == 1 %}12{% else %}{{ month|add:"-1" }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.embed %}&embed=1{% endif %}" class="btn btn-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
+                    <a href="?year={% if month == 12 %}{{ year|add:"1" }}{% else %}{{ year }}{% endif %}&month={% if month == 12 %}1{% else %}{{ month|add:"1" }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.embed %}&embed=1{% endif %}" class="btn btn-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+                    <a href="?{% if request.GET.project %}project={{ request.GET.project }}&{% endif %}{% if request.GET.embed %}embed=1{% endif %}" class="btn btn-secondary btn-sm" title="Ir a hoy">Hoy</a>
                 </div>
             </div>
 
@@ -66,5 +67,5 @@ window.calendarEvents = JSON.parse(document.getElementById('calendar-events-data
 window.calendarYear = {{ year }};
 window.calendarMonth = {{ month }};
 </script>
-<script src="{% static 'js/calendar.js' %}"></script>
+<script src="{% static 'js/calendar.js' %}?v=2"></script>
 {% endblock %}

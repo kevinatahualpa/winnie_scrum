@@ -1,6 +1,6 @@
 {% if messages_list %}
     {% for msg in messages_list %}
-    <div class="d-flex mb-2 {% if msg.sender == request.user %}justify-content-end{% endif %}">
+    <div class="d-flex mb-2 {% if msg.sender == request.user %}justify-content-end{% endif %}"{% if msg.id %} data-msg-id="{{ msg.id }}"{% endif %}>
         <div class="message-bubble {% if msg.sender == request.user %}sent{% else %}received{% endif %}" style="max-width: 70%;">
             <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
                 <small class="fw-bold msg-sender-{% if msg.sender == request.user %}self{% else %}other{% endif %}">

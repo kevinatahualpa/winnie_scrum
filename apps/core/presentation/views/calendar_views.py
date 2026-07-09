@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, F
 from django.utils import timezone
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.core.infrastructure.models.models import Sprint, Project, Substitution
 from apps.core.domain.services.permission_service import get_user_role
@@ -38,6 +39,7 @@ EVENT_LABELS = {
 
 
 @login_required
+@xframe_options_sameorigin
 def ver_calendario(request):
     user = request.user
     profile = getattr(user, 'profile', None)
@@ -58,6 +60,19 @@ def ver_calendario(request):
                 Q(lead=user) | Q(members=user)
             ).values_list('id', flat=True)
         )
+
+    # Scope to a single project when opened from a project (embed tab).
+    filter_project_id = request.GET.get('project')
+    if filter_project_id:
+        try:
+            pid = int(filter_project_id)
+        except (TypeError, ValueError):
+            pid = None
+        if pid is not None:
+            if project_ids is None:
+                project_ids = {pid}
+            else:
+                project_ids = project_ids & {pid}
 
     events = []
 
@@ -129,6 +144,8 @@ def ver_calendario(request):
         Q(start_date__year=year, start_date__month=month) |
         Q(end_date__year=year, end_date__month=month)
     ).select_related('original_user', 'substitute_user')
+    if filter_project_id:
+        suplencias = suplencias.none()
 
     for sup in suplencias:
         events.append({
