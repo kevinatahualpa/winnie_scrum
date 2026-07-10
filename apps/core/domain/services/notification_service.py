@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 from django.contrib.auth.models import User
 from apps.core.infrastructure.models.models import Notification, AuditLog
+from apps.core.domain.services.email_service import send_email
 
 
 def create_notification(
@@ -9,9 +10,21 @@ def create_notification(
     title: str,
     message: str,
     icon: str = 'fa-bell',
+    email: bool = False,
 ) -> Notification:
-    """Create a notification for a user"""
-    return Notification.objects.create(user=user, type=type, title=title, message=message, icon=icon)
+    """Create a notification for a user.
+
+    Si email=True y el usuario tiene correo, tambien envia una notificacion
+    por email (best-effort, no bloquea si falla).
+    """
+    notif = Notification.objects.create(user=user, type=type, title=title, message=message, icon=icon)
+    if email and getattr(user, 'email', ''):
+        send_email(
+            subject=f'Winnie · {title}',
+            message=f'{message}\n\n—\nEste es un mensaje automatico de Winnie.',
+            recipient_list=[user.email],
+        )
+    return notif
 
 
 def create_audit_log(
@@ -52,6 +65,7 @@ def notify_project_assignment(project, assigner: User, lead: User) -> None:
             'Proyecto asignado',
             f'Fuiste asignado como jefe del proyecto "{project.name}"',
             'fa-folder',
+            email=True,
         )
 
 
@@ -64,6 +78,7 @@ def notify_project_membership(project, assigner: User, member: User) -> None:
             'Agregado a proyecto',
             f'Fuiste agregado al proyecto "{project.name}"',
             'fa-users',
+            email=True,
         )
 
 

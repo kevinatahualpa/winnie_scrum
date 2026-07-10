@@ -77,6 +77,9 @@ def can_manage_project(user: User, project: Optional[Project] = None) -> bool:
     role = get_user_role(user)
     if is_admin(user):
         return True
+    # El lider gestiona su propio proyecto, sea cual sea su rol global.
+    if project is not None and project.lead_id == user.id:
+        return True
     if role == 'jefe-area':
         profile = getattr(user, 'profile', None)
         if profile and profile.area:
@@ -101,6 +104,9 @@ def can_manage_task(user: User, task: Optional[Task] = None) -> bool:
     """
     role = get_user_role(user)
     if is_admin(user):
+        return True
+    # El lider gestiona las tareas de su propio proyecto.
+    if task is not None and task.project.lead_id == user.id:
         return True
     if role == 'jefe-area':
         profile = getattr(user, 'profile', None)
@@ -155,6 +161,9 @@ def can_assign_to_project(user: User, project: Project) -> bool:
         return False
     role = get_user_role(user)
     if is_admin(user):
+        return True
+    # El lider puede gestionar los miembros de su propio proyecto.
+    if project.lead_id == user.id:
         return True
     if role == 'jefe-area':
         profile = getattr(user, 'profile', None)
@@ -218,15 +227,17 @@ def can_deactivate_user(user: User, target_user: User) -> bool:
 
 
 def can_view_audit_log(user: User) -> bool:
-    """Can the user view the audit log at all."""
-    return is_admin(user)
+    """Can the user view the audit log.
+
+    Only super-admin. La auditoria es exclusiva del super-admin.
+    """
+    return is_super_admin(user)
 
 
 def can_view_all_audit_log(user: User) -> bool:
     """Can the user see audit log entries from other users.
 
-    - super-admin: all entries
-    - admin: only their own actions
+    Only super-admin (sees all entries).
     """
     return is_super_admin(user)
 
@@ -319,7 +330,8 @@ def filter_queryset_by_role(
         if model_type == 'project':
             return queryset.filter(Q(lead=user) | Q(members=user)).distinct()
         elif model_type == 'task':
-            return queryset.filter(assignee=user)
+            led_ids = list(Project.objects.filter(lead=user).values_list('id', flat=True))
+            return queryset.filter(Q(assignee=user) | Q(project_id__in=led_ids))
         elif model_type in ('sprint', 'document', 'comment'):
             project_ids = list(Project.objects.filter(Q(lead=user) | Q(members=user)).distinct().values_list('id', flat=True))
             return queryset.filter(project_id__in=project_ids)

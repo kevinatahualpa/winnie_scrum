@@ -82,11 +82,11 @@ class TaskServiceTest(TestCase):
 
     def test_update_status_success(self):
         task = Task.objects.create(project=self.project, title='Status Test')
-        success, error = TaskService.actualizar_estado(self.admin, task, 'todo')
+        success, error = TaskService.actualizar_estado(self.admin, task, 'PROG')
         self.assertTrue(success)
         self.assertIsNone(error)
         task.refresh_from_db()
-        self.assertEqual(task.status, 'todo')
+        self.assertEqual(task.status, 'PROG')
 
     def test_update_status_invalid(self):
         task = Task.objects.create(project=self.project, title='Status Test')

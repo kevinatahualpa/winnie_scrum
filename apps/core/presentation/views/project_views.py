@@ -17,6 +17,9 @@ from apps.core.domain.services.permission_service import (
 from apps.core.domain.services.project_service import ProjectService
 from apps.core.domain.services.notification_service import create_audit_log, create_notification
 from apps.core.presentation.forms import ProjectForm
+from apps.core.presentation.upload_validators import (
+    validate_upload, CHAT_EXTENSIONS, MB,
+)
 
 
 @login_required
@@ -30,7 +33,10 @@ def ver_proyectos(request):
     role = get_user_role(user)
     area_id = request.GET.get('area')
 
-    queryset = Project.objects.select_related('area', 'lead', 'client').prefetch_related('members')
+    queryset = Project.objects.select_related('area', 'lead', 'client').prefetch_related('members').annotate(
+        _task_total=Count('tasks', distinct=True),
+        _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
+    )
 
     if role in ('jefe-area', 'jefe-proyecto', 'miembro'):
         queryset = filter_queryset_by_role(queryset, user, role, model_type='project')
@@ -293,6 +299,12 @@ def comentar_proyecto(request, pk):
                 ],
             })
         return _redirect_after_comment(request, next_url, pk)
+
+    if uploaded_file:
+        error = validate_upload(uploaded_file, max_bytes=10 * MB, allowed_extensions=CHAT_EXTENSIONS)
+        if error:
+            messages.error(request, error)
+            return _redirect_after_comment(request, next_url, pk)
 
     comment = Comment.objects.create(
         project=project,

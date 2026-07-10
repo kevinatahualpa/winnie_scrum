@@ -3,11 +3,33 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.sessions.models import Session
+from django.utils import timezone
 
 from apps.core.infrastructure.models.models import Area, Specialty, UserProfile
 from apps.core.domain.services.notification_service import create_audit_log, create_notification
 from apps.core.domain.services.permission_service import get_user_role
 from apps.core.domain.services.user_service import UserService
+
+
+def _enforce_single_session(request, user):
+    """Deja solo la sesion actual activa para el usuario.
+
+    Borra de la BD cualquier otra sesion del usuario y guarda la nueva
+    session key en su perfil para que el middleware invalide las demas.
+    """
+    profile = getattr(user, 'profile', None)
+    if profile is None:
+        return
+    new_key = request.session.session_key
+    # Borrar sesiones anteriores de este usuario (excepto la nueva)
+    for s in Session.objects.filter(expire_date__gte=timezone.now()):
+        data = s.get_decoded()
+        if str(data.get('_auth_user_id')) == str(user.pk) and s.session_key != new_key:
+            s.delete()
+    UserProfile.objects.filter(pk=profile.pk).update(
+        active_session_key=new_key or '', last_seen=timezone.now()
+    )
 
 
 def iniciar_sesion(request):
@@ -35,6 +57,7 @@ def iniciar_sesion(request):
                 messages.error(request, 'Cuenta desactivada')
                 return render(request, 'core/login.html')
             login(request, user)
+            _enforce_single_session(request, user)
             create_audit_log(user, 'LOGIN', 'user', details='Inicio de sesion exitoso')
             if profile and profile.role == 'cliente':
                 return redirect('ver_portal_cliente')
@@ -47,6 +70,9 @@ def iniciar_sesion(request):
 def cerrar_sesion(request):
     """Log out the current user and create an audit log entry."""
     create_audit_log(request.user, 'LOGOUT', 'user')
+    profile = getattr(request.user, 'profile', None)
+    if profile is not None:
+        UserProfile.objects.filter(pk=profile.pk).update(active_session_key='', last_seen=None)
     logout(request)
     return redirect('iniciar_sesion')
 

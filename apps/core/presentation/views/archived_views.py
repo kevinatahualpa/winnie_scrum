@@ -33,24 +33,42 @@ def _can_restore(user):
     return is_admin(user)
 
 
-def _archive_info(entity_type, entity_id):
-    """Busca la ultima accion de archivado en audit log.
+def _bulk_archive_info(entity_type, entities):
+    """Trae en UNA sola query la ultima accion de archivado para varios items.
 
-    Retorna tupla (user, timestamp) o (None, None) si no hay registro.
+    Retorna dict {entity_id (int): (user, timestamp)} con la accion mas
+    reciente por cada item. Evita el N+1 de consultar audit log por item.
     """
     actions = ARCHIVE_ACTIONS.get(entity_type, [])
-    if not actions:
-        return None, None
-    log = (
+    if not actions or not entities:
+        return {}
+    ids = [str(e.id) for e in entities]
+    logs = (
         AuditLog.objects
-        .filter(entity=entity_type, entity_id=str(entity_id), action__in=actions)
+        .filter(entity=entity_type, entity_id__in=ids, action__in=actions)
         .select_related('user')
         .order_by('-created_at')
-        .first()
     )
-    if log:
-        return log.user, log.created_at
-    return None, None
+    info = {}
+    for log in logs:
+        try:
+            eid = int(log.entity_id)
+        except (TypeError, ValueError):
+            continue
+        if eid not in info:  # primer visto = mas reciente (order_by -created_at)
+            info[eid] = (log.user, log.created_at)
+    return info
+
+
+def _apply_archive_info(entity_type, entities, fallback_attr=None):
+    """Anota archived_by/archived_at en cada item usando la info en lote."""
+    info = _bulk_archive_info(entity_type, entities)
+    for e in entities:
+        user, ts = info.get(e.id, (None, None))
+        e.archived_by = user
+        if ts is None and fallback_attr:
+            ts = getattr(e, fallback_attr, None)
+        e.archived_at = ts
 
 
 @login_required
@@ -94,38 +112,14 @@ def ver_archivados(request):
         .select_related('user', 'area', 'specialty').order_by('-created_at')
     )
 
-    for p in cancelled_projects:
-        user, ts = _archive_info('project', p.id)
-        p.archived_by = user
-        p.archived_at = ts
-    for a in inactive_areas:
-        user, ts = _archive_info('area', a.id)
-        a.archived_by = user
-        a.archived_at = ts
-    for c in archived_clients:
-        user, ts = _archive_info('client', c.id)
-        c.archived_by = user
-        c.archived_at = ts
-    for s in inactive_specialties:
-        user, ts = _archive_info('specialty', s.id)
-        s.archived_by = user
-        s.archived_at = ts
-    for t in inactive_technologies:
-        user, ts = _archive_info('technology', t.id)
-        t.archived_by = user
-        t.archived_at = ts
-    for sr in cancelled_service_requests:
-        user, ts = _archive_info('service_request', sr.id)
-        sr.archived_by = user
-        sr.archived_at = ts
-    for d in archived_documents:
-        user, ts = _archive_info('document', d.id)
-        d.archived_by = user
-        d.archived_at = ts or d.deleted_at
-    for u in dismissed_users:
-        user, ts = _archive_info('user', u.id)
-        u.archived_by = user
-        u.archived_at = ts
+    _apply_archive_info('project', cancelled_projects)
+    _apply_archive_info('area', inactive_areas)
+    _apply_archive_info('client', archived_clients)
+    _apply_archive_info('specialty', inactive_specialties)
+    _apply_archive_info('technology', inactive_technologies)
+    _apply_archive_info('service_request', cancelled_service_requests)
+    _apply_archive_info('document', archived_documents, fallback_attr='deleted_at')
+    _apply_archive_info('user', dismissed_users)
 
     context = {
         'cancelled_projects': cancelled_projects,

@@ -136,6 +136,9 @@ def client_detail(request, pk):
 
     projects = Project.objects.filter(client=client).select_related(
         'area', 'lead', 'lead__profile',
+    ).annotate(
+        _task_total=Count('tasks', distinct=True),
+        _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
     ).order_by('-created_at')
 
     return render(request, 'core/client_detail.html', {

@@ -68,7 +68,7 @@ class SprintSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    progress = serializers.IntegerField(read_only=True)
+    progress = serializers.SerializerMethodField()
     area_name = serializers.CharField(source='area.name', read_only=True)
     lead_name = serializers.CharField(source='lead.get_full_name', read_only=True)
     client_name = serializers.CharField(source='client.name', read_only=True)
@@ -90,6 +90,15 @@ class ProjectSerializer(serializers.ModelSerializer):
             {'id': u.id, 'name': u.get_full_name() or u.email}
             for u in obj.members.all()
         ]
+
+    def get_progress(self, obj):
+        total = getattr(obj, '_task_total', None)
+        if total is None:
+            return obj.progress
+        if total == 0:
+            return 0
+        done = getattr(obj, '_task_done', 0)
+        return round((done / total) * 100)
 
 
 class TaskSerializer(serializers.ModelSerializer):

@@ -8,7 +8,7 @@ from django.urls import reverse
 from urllib.parse import urlencode
 
 from apps.core.infrastructure.models.models import Task, Project, User, Specialty, Sprint, UserProfile
-from apps.core.domain.services.permission_service import get_user_role, can_manage_task
+from apps.core.domain.services.permission_service import get_user_role, can_manage_task, can_manage_project
 from apps.core.domain.services.task_service import TaskService
 from apps.core.presentation.forms import TaskForm
 
@@ -171,9 +171,6 @@ def crear_tarea_rapida(request):
     user = request.user
     role = get_user_role(user)
 
-    if role == 'miembro' or not can_manage_task(user):
-        return JsonResponse({'success': False, 'error': 'No tienes permiso para crear tareas'}, status=403)
-
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, AttributeError):
@@ -186,6 +183,9 @@ def crear_tarea_rapida(request):
         return JsonResponse({'success': False, 'error': 'Título y proyecto son requeridos'}, status=400)
 
     project = get_object_or_404(Project, pk=project_id)
+
+    if not can_manage_project(user, project):
+        return JsonResponse({'success': False, 'error': 'No tienes permiso para crear tareas'}, status=403)
 
     # Optional inline-required fields (Jira-style inline create)
     require_meta = data.get('require_meta') in ('1', 1, True, 'true')

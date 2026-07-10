@@ -80,28 +80,14 @@ class AuthViewsTest(TestCase):
         response = self.client.get(reverse('cerrar_sesion'))
         self.assertRedirects(response, reverse('iniciar_sesion'))
 
-    def test_register_page_loads(self):
+    def test_solicitar_acceso_redirects_to_wizard(self):
         response = self.client.get(reverse('solicitar_acceso'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'core/login.html')
-        self.assertContains(response, 'Solicitar Acceso')
+        self.assertRedirects(response, reverse('registro_paso1'))
 
-    def test_register_success(self):
-        response = self.client.post(reverse('registrarse'), {
-            'first_name': 'New',
-            'last_name': 'User',
-            'email': 'newuser@test.com',
-            'password': 'newpass123',
-        })
-        self.assertRedirects(response, reverse('iniciar_sesion'))
-        self.assertTrue(User.objects.filter(username='newuser@test.com').exists())
+    def test_registrarse_redirects_to_wizard(self):
+        response = self.client.get(reverse('registrarse'))
+        self.assertRedirects(response, reverse('registro_paso1'))
 
-    def test_register_duplicate_email(self):
-        response = self.client.post(reverse('registrarse'), {
-            'first_name': 'Dup',
-            'last_name': 'User',
-            'email': 'test@test.com',
-            'password': 'somepass123',
-        })
+    def test_wizard_step1_loads(self):
+        response = self.client.get(reverse('registro_paso1'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Email ya registrado')

@@ -22,6 +22,7 @@
                 {% endif %}
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
+                {% if not embed %}
                 {% if not active_sprint %}
                     {% if areas.exists %}
                     <div class="board-filter-wrap">
@@ -56,25 +57,24 @@
                     </select>
                 </div>
                 {% if filters.area or filters.sprint or filters.assignee %}
-                <a href="{% url 'ver_tablero' %}?{% if request.GET.project %}project={{ request.GET.project }}&{% endif %}{% if request.GET.embed %}embed=1{% endif %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
+                <a href="{% url 'ver_tablero' %}?{% if request.GET.project %}project={{ request.GET.project }}&{% endif %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
                 {% endif %}
                 {% if active_sprint %}
-                {% if not request.GET.embed %}
                 <a href="{% url 'ver_detalle_proyecto' active_sprint.project.id %}" class="btn btn-sm btn-secondary" title="Ir al proyecto">
                     <i class="fas fa-external-link-alt me-1"></i>Ver Proyecto
                 </a>
-                {% endif %}
                 {% endif %}
                 {% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
                 <button class="btn btn-sm btn-primary" onclick="openTaskDrawer()" aria-label="Crear nueva tarea">
                     <i class="fas fa-plus me-1"></i>Nueva Tarea
                 </button>
                 {% endif %}
+                {% endif %}
             </div>
         </div>
 
         <div class="page-content density-high" id="main-content" role="main">
-            {% if not active_sprint %}
+            {% if not active_sprint and not embed %}
             <div class="mb-3">
                 <h5 class="text-primary mb-3"><i class="fas fa-running me-2" style="color:var(--accent);"></i>Sprints Activos</h5>
                 {% if active_sprints %}
@@ -108,11 +108,16 @@
                 {% else %}
                 <div class="text-center py-5 text-secondary">
                     <i class="fas fa-clipboard-list d-block mb-2" style="font-size:2.5rem;opacity:0.15;"></i>
-                    <p>No hay sprints activos. <a href="{% url 'ver_sprints' %}">Ir a Sprints</a> para activar uno.</p>
+                    <p>No hay sprints activos.</p>
+                    <div class="d-flex gap-2 justify-content-center mt-2">
+                        <a href="{% url 'ver_sprints' %}" class="btn btn-sm btn-outline-secondary">Ir a Sprints</a>
+                        <a href="{% url 'ver_backlog' %}{% if request.GET.project %}?project={{ request.GET.project }}{% endif %}" class="btn btn-sm btn-primary"><i class="fas fa-layer-group me-1"></i>Ir al Backlog</a>
+                    </div>
                 </div>
                 {% endif %}
             </div>
             {% else %}
+            {% if active_sprint %}
             <div id="board"
                  hx-get="{% url 'ver_tablero_fragment' %}?sprint={{ active_sprint.id }}&assignee={{ filters.assignee|default:'' }}"
                  hx-trigger="boardRefresh from:body"
@@ -125,6 +130,11 @@
             <div id="boardLoader" class="htmx-indicator text-center py-4" style="display:none;">
                 <span class="spinner-border spinner-border-sm me-2" style="color:var(--accent);"></span>Cargando...
             </div>
+            {% else %}
+            <div id="board" class="row g-3 flex-nowrap overflow-auto pb-2" role="list" aria-label="Columnas del tablero">
+                {% include 'core/board_columns.html' %}
+            </div>
+            {% endif %}
             {% endif %}
         </div>
     </div>
@@ -161,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+{% if not embed %}
 {% if role != 'miembro' and role in 'super-admin,admin,jefe-area,jefe-proyecto' %}
 <script src="{% static 'js/crud_drawer.js' %}"></script>
 <script>
@@ -257,5 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+{% endif %}
 {% endif %}
 {% endblock %}

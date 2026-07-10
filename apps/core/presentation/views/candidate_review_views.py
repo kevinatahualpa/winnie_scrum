@@ -14,6 +14,7 @@ import mimetypes
 import os
 
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import (
     FileResponse, HttpResponseBadRequest, JsonResponse,
 )
@@ -252,22 +253,24 @@ def candidato_decidir(request, pk):
         profile.role = requested_role
         profile.area_id = area_id
         profile.specialty_id = specialty_id
-        profile.save()
 
-        candidate.reviewed_at = timezone.now()
-        candidate.save(update_fields=['reviewed_at'])
+        with transaction.atomic():
+            profile.save()
 
-        create_notification(
-            profile.user, 'registration_approved', 'Cuenta aprobada',
-            f'Tu registro fue aprobado por {request.user.get_full_name()} '
-            f'como {profile.get_role_display()}. Score del revisor: {score}/{total}.',
-            'fa-check-circle',
-        )
-        create_audit_log(
-            request.user, 'USER_APPROVE', 'user', profile.user.id,
-            f'Usuario aprobado: {profile.user.get_full_name()}, rol: {requested_role}, '
-            f'score checklist: {score}/{total}',
-        )
+            candidate.reviewed_at = timezone.now()
+            candidate.save(update_fields=['reviewed_at'])
+
+            create_notification(
+                profile.user, 'registration_approved', 'Cuenta aprobada',
+                f'Tu registro fue aprobado por {request.user.get_full_name()} '
+                f'como {profile.get_role_display()}. Score del revisor: {score}/{total}.',
+                'fa-check-circle',
+            )
+            create_audit_log(
+                request.user, 'USER_APPROVE', 'user', profile.user.id,
+                f'Usuario aprobado: {profile.user.get_full_name()}, rol: {requested_role}, '
+                f'score checklist: {score}/{total}',
+            )
     return JsonResponse({'ok': True, 'redirect': '/ver_pendientes/'})
 
 

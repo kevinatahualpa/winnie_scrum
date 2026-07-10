@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -90,7 +91,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'area', 'lead', 'client']
 
     def get_queryset(self):
-        qs = Project.objects.select_related('area', 'lead', 'client').prefetch_related('members')
+        qs = Project.objects.select_related('area', 'lead', 'client').prefetch_related('members').annotate(
+            _task_total=Count('tasks', distinct=True),
+            _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
+        )
         return filter_queryset_by_role(qs, self.request.user, model_type='project')
 
     def create(self, request, *args, **kwargs):

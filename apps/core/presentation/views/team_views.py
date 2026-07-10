@@ -58,11 +58,11 @@ def ver_usuarios(request):
         area_id = str(user.profile.area.id)
 
     project_ids = list(projects.values_list('id', flat=True))
-    all_projects = Project.objects.filter(Q(id__in=project_ids)).select_related('area')
+    all_projects = Project.objects.filter(Q(id__in=project_ids)).select_related('area').prefetch_related('members')
 
     projects_by_user = {}
     for project in all_projects:
-        member_ids = list(project.members.values_list('id', flat=True))
+        member_ids = [u.id for u in project.members.all()]
         if project.lead_id:
             member_ids.append(project.lead_id)
         for mid in member_ids:

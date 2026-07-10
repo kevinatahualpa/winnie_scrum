@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.urls import reverse
 from django.http import JsonResponse
+from django.db import transaction
 
 from apps.core.infrastructure.models.models import Sprint, Project, Task
 from apps.core.domain.services.permission_service import get_user_role, can_manage_project, filter_queryset_by_role
@@ -62,11 +63,6 @@ def crear_sprint(request):
     """Create a new sprint in a project. Requires project management permission."""
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     role = get_user_role(request.user)
-    if role == 'miembro' or not can_manage_project(request.user):
-        if is_ajax:
-            return JsonResponse({'success': False, 'error': 'No tienes permiso para crear sprints'}, status=403)
-        messages.error(request, 'No tienes permiso para crear sprints')
-        return redirect('ver_sprints')
 
     form = SprintForm(request.POST)
     if form.is_valid():
@@ -122,9 +118,10 @@ def eliminar_sprint(request, pk):
         return redirect('ver_sprints')
 
     name = sprint.name
-    Task.objects.filter(sprint=sprint).update(sprint=None, status='TODO')
-    create_audit_log(request.user, 'SPRINT_DELETE', 'sprint', sprint.pk, f'Sprint eliminado: {name}')
-    sprint.delete()
+    with transaction.atomic():
+        Task.objects.filter(sprint=sprint).update(sprint=None, status='TODO')
+        create_audit_log(request.user, 'SPRINT_DELETE', 'sprint', sprint.pk, f'Sprint eliminado: {name}')
+        sprint.delete()
 
     if is_ajax:
         return JsonResponse({'success': True, 'message': f'Sprint "{name}" eliminado'})

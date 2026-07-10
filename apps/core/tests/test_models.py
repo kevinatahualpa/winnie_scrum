@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from apps.core.infrastructure.models.models import (
     Area, Specialty, UserProfile, Project, Sprint, Task,
-    Comment, Document, ServiceRequest, TimeEntry, Notification,
+    Comment, Document, ServiceRequest, Notification,
     AuditLog, Client, Substitution
 )
 from datetime import date, timedelta
@@ -118,9 +118,9 @@ class ProjectModelTest(TestCase):
         self.assertEqual(self.project.progress, 0)
 
     def test_project_progress_with_tasks(self):
-        Task.objects.create(project=self.project, title='Task 1', status='done')
-        Task.objects.create(project=self.project, title='Task 2', status='todo')
-        Task.objects.create(project=self.project, title='Task 3', status='done')
+        Task.objects.create(project=self.project, title='Task 1', status='DONE')
+        Task.objects.create(project=self.project, title='Task 2', status='TODO')
+        Task.objects.create(project=self.project, title='Task 3', status='DONE')
         self.assertEqual(self.project.progress, 67)
 
     def test_project_default_status(self):
@@ -141,11 +141,11 @@ class SprintModelTest(TestCase):
 
     def test_sprint_creation(self):
         self.assertEqual(self.sprint.name, 'Sprint 1')
-        self.assertEqual(self.sprint.status, 'planned')
+        self.assertEqual(self.sprint.status, 'PLAN')
         self.assertEqual(str(self.sprint), 'Sprint 1 (Test Project)')
 
     def test_sprint_default_status(self):
-        self.assertEqual(self.sprint.status, 'planned')
+        self.assertEqual(self.sprint.status, 'PLAN')
 
 
 class TaskModelTest(TestCase):
@@ -158,7 +158,7 @@ class TaskModelTest(TestCase):
             type='story',
             priority='high',
             points=5,
-            status='todo',
+            status='TODO',
             assignee=self.user,
         )
 
@@ -174,7 +174,7 @@ class TaskModelTest(TestCase):
         self.assertEqual(task2.type, 'task')
         self.assertEqual(task2.priority, 'medium')
         self.assertEqual(task2.points, 1)
-        self.assertEqual(task2.status, 'backlog')
+        self.assertEqual(task2.status, 'TODO')
 
     def test_task_type_choices(self):
         types = [choice[0] for choice in Task.TYPE_CHOICES]
@@ -185,10 +185,10 @@ class TaskModelTest(TestCase):
 
     def test_task_status_choices(self):
         statuses = [choice[0] for choice in Task.STATUS_CHOICES]
-        self.assertIn('backlog', statuses)
-        self.assertIn('todo', statuses)
-        self.assertIn('in-progress', statuses)
-        self.assertIn('done', statuses)
+        self.assertIn('TODO', statuses)
+        self.assertIn('PROG', statuses)
+        self.assertIn('TEST', statuses)
+        self.assertIn('DONE', statuses)
 
 
 class CommentModelTest(TestCase):
@@ -287,25 +287,6 @@ class SubstitutionModelTest(TestCase):
         self.substitution.active = False
         self.substitution.save()
         self.assertFalse(self.substitution.is_current)
-
-
-class TimeEntryModelTest(TestCase):
-    def setUp(self):
-        self.project = Project.objects.create(name='Test Project')
-        self.user = User.objects.create_user(username='timer@test.com', email='timer@test.com', password='pass')
-        self.task = Task.objects.create(project=self.project, title='Test Task')
-        self.entry = TimeEntry.objects.create(
-            task=self.task,
-            user=self.user,
-            date=timezone.now().date(),
-            hours=4.5,
-            description='Worked on feature',
-        )
-
-    def test_time_entry_creation(self):
-        self.assertEqual(self.entry.hours, 4.5)
-        self.assertEqual(self.entry.description, 'Worked on feature')
-        self.assertIn('4.5h', str(self.entry))
 
 
 class ServiceRequestModelTest(TestCase):

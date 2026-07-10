@@ -16,7 +16,14 @@ class BoardViewsTest(TestCase):
         self.admin = User.objects.create_user(username='admin@test.com', email='admin@test.com', password='pass')
         UserProfile.objects.create(user=self.admin, role='admin', status='active')
         self.project = Project.objects.create(name='Test Project', area=self.area)
-        self.task = Task.objects.create(project=self.project, title='Board Task', status='todo')
+        self.sprint = Sprint.objects.create(
+            project=self.project, name='Sprint 1',
+            start_date=date(2026, 5, 1), end_date=date(2026, 5, 14),
+            status='ACT',
+        )
+        self.task = Task.objects.create(
+            project=self.project, sprint=self.sprint, title='Board Task', status='TODO'
+        )
 
     def test_board_requires_login(self):
         response = self.client.get(reverse('ver_tablero'))
@@ -26,7 +33,7 @@ class BoardViewsTest(TestCase):
         self.client.login(username='admin@test.com', password='pass')
         response = self.client.get(reverse('ver_tablero'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Board')
+        self.assertContains(response, 'Tablero')
 
     def test_board_filters_by_area(self):
         self.client.login(username='admin@test.com', password='pass')
@@ -45,7 +52,7 @@ class BoardViewsTest(TestCase):
 
     def test_board_shows_task_in_correct_column(self):
         self.client.login(username='admin@test.com', password='pass')
-        response = self.client.get(reverse('ver_tablero'))
+        response = self.client.get(reverse('ver_tablero'), {'project': self.project.id})
         self.assertContains(response, 'Board Task')
 
 
@@ -57,27 +64,26 @@ class BacklogViewsTest(TestCase):
         UserProfile.objects.create(user=self.admin, role='admin', status='active')
         self.project = Project.objects.create(name='Test Project', area=self.area)
         self.backlog_task = Task.objects.create(
-            project=self.project, title='Backlog Task', status='backlog', priority='high'
+            project=self.project, title='Backlog Task', status='TODO', priority='high'
         )
         self.done_task = Task.objects.create(
-            project=self.project, title='Done Task', status='done'
+            project=self.project, title='Done Task', status='DONE'
         )
 
     def test_backlog_requires_login(self):
         response = self.client.get(reverse('ver_backlog'))
         self.assertRedirects(response, f'{reverse("iniciar_sesion")}?next=/ver_backlog/')
 
-    def test_backlog_shows_only_backlog_and_todo(self):
+    def test_backlog_shows_tasks(self):
         self.client.login(username='admin@test.com', password='pass')
-        response = self.client.get(reverse('ver_backlog'))
+        response = self.client.get(reverse('ver_backlog'), {'project': self.project.id})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Backlog Task')
-        self.assertNotContains(response, 'Done Task')
 
     def test_backlog_high_priority_first(self):
-        Task.objects.create(project=self.project, title='Low Task', status='backlog', priority='low')
+        Task.objects.create(project=self.project, title='Low Task', status='TODO', priority='low')
         self.client.login(username='admin@test.com', password='pass')
-        response = self.client.get(reverse('ver_backlog'))
+        response = self.client.get(reverse('ver_backlog'), {'project': self.project.id})
         self.assertContains(response, 'Backlog Task')
         self.assertContains(response, 'Low Task')
 

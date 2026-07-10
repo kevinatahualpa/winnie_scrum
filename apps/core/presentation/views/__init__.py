@@ -1,4 +1,5 @@
 from .auth_views import iniciar_sesion, cerrar_sesion, registrarse
+from .password_views import recuperar_password, resetear_password
 from .archived_views import ver_archivados, restaurar
 from .dashboard_views import ver_dashboard
 from .project_views import ver_proyectos, ver_detalle_proyecto, crear_proyecto, editar_proyecto, eliminar_proyecto, comentar_proyecto
@@ -13,7 +14,6 @@ from .service_views import ver_servicios, crear_servicio, editar_servicio, elimi
 from .board_views import ver_tablero, ver_tablero_fragment
 from .backlog_views import ver_backlog, reordenar_backlog, asignar_tarea_sprint
 from .document_views import ver_documentos, subir_documento, eliminar_documento, subir_documento_proyecto, eliminar_documento_proyecto
-from .time_tracking_views import ver_tiempo, registrar_tiempo
 from .calendar_views import ver_calendario
 from .report_views import ver_reportes
 from .audit_views import ver_auditoria
@@ -30,6 +30,7 @@ from .project_views import gestionar_miembros_proyecto
 
 __all__ = [
     'iniciar_sesion', 'cerrar_sesion', 'registrarse',
+    'recuperar_password', 'resetear_password',
     'ver_archivados', 'restaurar',
     'ver_dashboard',
     'ver_proyectos', 'ver_detalle_proyecto', 'crear_proyecto', 'editar_proyecto', 'eliminar_proyecto', 'comentar_proyecto',
@@ -44,7 +45,6 @@ __all__ = [
     'ver_tablero',
     'ver_backlog', 'reordenar_backlog', 'asignar_tarea_sprint',
     'ver_documentos', 'subir_documento', 'eliminar_documento', 'subir_documento_proyecto', 'eliminar_documento_proyecto',
-    'ver_tiempo', 'registrar_tiempo',
     'ver_calendario',
     'ver_reportes',
     'ver_auditoria',

@@ -72,11 +72,14 @@
                             {% for member in internal_users %}
                             <tr>
                                 <td>
-                                    {% if member.avatar %}
-                                    <img src="{{ member.avatar.url }}" alt="" class="team-avatar-img">
-                                    {% else %}
-                                    <div class="team-avatar" style="background:{{ member.color }}">{{ member.initials }}</div>
-                                    {% endif %}
+                                    <div class="team-avatar-wrap">
+                                        {% if member.avatar %}
+                                        <img src="{{ member.avatar.url }}" alt="" class="team-avatar-img">
+                                        {% else %}
+                                        <div class="team-avatar" style="background:{{ member.color }}">{{ member.initials }}</div>
+                                        {% endif %}
+                                        {% if member.is_online %}<span class="online-dot" title="En linea"></span>{% endif %}
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="team-name">{{ member.user.get_full_name|default:member.user.username }}</div>
@@ -359,6 +362,13 @@
     border-radius: 7px;
     object-fit: cover;
     border: 1px solid var(--border);
+}
+.team-avatar-wrap { position: relative; display: inline-block; }
+.online-dot {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #22c55e; border: 2px solid var(--surface-1);
+    box-shadow: 0 0 0 1px rgba(34,197,94,0.35);
 }
 
 .team-name {

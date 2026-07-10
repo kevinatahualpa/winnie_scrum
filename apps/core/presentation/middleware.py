@@ -1,6 +1,12 @@
 import time
 from django.core.cache import cache
 from django.http import HttpResponse
+from django.conf import settings
+from django.contrib.auth import logout
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.utils import timezone
+from datetime import timedelta
 
 
 class RateLimitMiddleware:
@@ -37,3 +43,43 @@ class RateLimitMiddleware:
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0].strip()
         return request.META.get('REMOTE_ADDR', '127.0.0.1')
+
+
+class SingleSessionMiddleware:
+    """Fuerza una sola sesion activa por usuario y registra actividad.
+
+    - Si el usuario inicia sesion en otro dispositivo, la sesion anterior
+      queda invalidada (se cierra en su siguiente request).
+    - Actualiza `last_seen` (con throttle) para saber quien esta en linea.
+    """
+
+    LAST_SEEN_THROTTLE = 60  # segundos entre escrituras de last_seen
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, 'user', None)
+        if user is not None and user.is_authenticated:
+            profile = getattr(user, 'profile', None)
+            if profile is not None:
+                current_key = request.session.session_key
+                stored_key = profile.active_session_key
+
+                # Sesion desplazada por un login mas reciente en otro dispositivo
+                if stored_key and current_key and stored_key != current_key:
+                    logout(request)
+                    messages.error(
+                        request,
+                        'Tu sesion se cerro porque se inicio sesion en otro dispositivo.'
+                    )
+                    return redirect('iniciar_sesion')
+
+                # Registrar actividad (throttled para no escribir en cada request)
+                now = timezone.now()
+                if not profile.last_seen or profile.last_seen < now - timedelta(seconds=self.LAST_SEEN_THROTTLE):
+                    UserProfile = profile.__class__
+                    UserProfile.objects.filter(pk=profile.pk).update(last_seen=now)
+
+        return self.get_response(request)
+

@@ -58,7 +58,7 @@ class UserServiceRoleManagementTest(TestCase):
 
     def test_registrar_admin_sin_area(self):
         profile, error = UserService.registrar_usuario(
-            user_creator=self.admin,
+            user_creator=self.super_admin,
             email='admin2@empresa.com',
             first_name='Admin',
             last_name='Nuevo',

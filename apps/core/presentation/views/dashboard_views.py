@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q
 
 from apps.core.infrastructure.models.models import (
-    Area, Project, Sprint, Task, User, Notification, TimeEntry, UserProfile
+    Area, Project, Sprint, Task, User, Notification, UserProfile
 )
 from apps.core.domain.services.permission_service import get_user_role, filter_queryset_by_role
 
@@ -33,9 +32,6 @@ def ver_dashboard(request):
         'user': user,
     }
 
-    today = datetime.now().date()
-    monday = today - timedelta(days=today.weekday())
-
     if role in ('super-admin', 'admin'):
         area_id = request.GET.get('area')
         projects = Project.objects.all()
@@ -58,11 +54,10 @@ def ver_dashboard(request):
         pending_count = UserProfile.objects.filter(status='pending').count()
 
         recent_tasks = tasks.select_related('assignee', 'project').order_by('-created_at')[:8]
-        recent_projects = projects.select_related('area', 'lead', 'client').order_by('-created_at')[:5]
-
-        total_hours_week = TimeEntry.objects.filter(
-            date__gte=monday, date__lte=today
-        ).aggregate(total=Sum('hours'))['total'] or 0
+        recent_projects = projects.select_related('area', 'lead', 'client').annotate(
+            _task_total=Count('tasks', distinct=True),
+            _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
+        ).order_by('-created_at')[:5]
 
         project_stats = projects.aggregate(
             total=Count('id'),
@@ -84,7 +79,6 @@ def ver_dashboard(request):
             'total_areas': total_areas,
             'total_users': total_users,
             'pending_count': pending_count,
-            'total_hours_week': total_hours_week,
             'recent_tasks': recent_tasks,
             'recent_projects': recent_projects,
             'has_projects': project_stats['total'] > 0,
@@ -118,7 +112,11 @@ def ver_dashboard(request):
 
         area_projects_enriched = (
             area_projects
-            .annotate(_member_count=Count('members', distinct=True))
+            .annotate(
+                _member_count=Count('members', distinct=True),
+                _task_total=Count('tasks', distinct=True),
+                _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
+            )
             .select_related('area', 'lead', 'client')
             .order_by('-created_at')
         )
@@ -219,6 +217,8 @@ def ver_dashboard(request):
                 completed_task_count=Count(
                     'tasks', filter=Q(tasks__status='DONE'), distinct=True
                 ),
+                _task_total=Count('tasks', distinct=True),
+                _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
             )
             .select_related('area', 'lead', 'client')
             .order_by('-created_at')
@@ -260,10 +260,6 @@ def ver_dashboard(request):
             bugs=Count('id', filter=Q(type='bug', status__in=['TODO', 'PROG'])),
         )
 
-        time_this_week = TimeEntry.objects.filter(
-            user=user, date__gte=monday, date__lte=today
-        ).aggregate(total=Sum('hours'))['total'] or 0
-
         unread_notifications = Notification.objects.filter(
             user=user, read=False
         ).select_related().order_by('-created_at')[:5]
@@ -275,13 +271,15 @@ def ver_dashboard(request):
         ).select_related('project').order_by('end_date')[:5]
 
         context.update({
-            'my_projects': my_projects.select_related('area', 'lead').order_by('-created_at')[:6],
+            'my_projects': my_projects.select_related('area', 'lead').annotate(
+                _task_total=Count('tasks', distinct=True),
+                _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
+            ).order_by('-created_at')[:6],
             'my_project_count': my_projects.count(),
             'my_task_stats': my_task_stats,
             'my_tasks': my_tasks,
             'recent_my_tasks': recent_my_tasks,
             'my_sprints': my_sprints,
-            'time_this_week': time_this_week,
             'unread_notifications': unread_notifications,
             'has_projects': my_projects.exists(),
         })

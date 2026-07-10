@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.db.models import Q, Max
+from django.db.models import Q, Count
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST, require_GET
 
@@ -22,54 +22,68 @@ def _get_threads(user):
 
     project_ids = set(available_projects.values_list('id', flat=True))
 
-    dm_last = Message.objects.filter(
+    # --- Mensajes directos (DM) ---
+    # Una sola query trae todos los mensajes del usuario; iteramos en Python
+    # para quedarnos con el ultimo por interlocutor (evita N+1).
+    all_dms = Message.objects.filter(
         Q(sender=user) | Q(receiver=user)
-    ).values('sender', 'receiver').annotate(
-        last_msg=Max('created_at')
+    ).order_by('-created_at')
+
+    # Conteo de no leidos agrupado por remitente en una sola query.
+    unread_map = dict(
+        Message.objects.filter(receiver=user, read=False)
+        .values_list('sender_id')
+        .annotate(n=Count('id'))
     )
 
-    seen_users = set()
-    for conv in dm_last:
-        other_id = conv['receiver'] if conv['sender'] == user.id else conv['sender']
-        if other_id in seen_users:
+    latest_by_partner = {}
+    for m in all_dms:
+        other_id = m.receiver_id if m.sender_id == user.id else m.sender_id
+        if other_id not in latest_by_partner:
+            latest_by_partner[other_id] = m
+
+    # Todos los interlocutores en una sola query (con su profile).
+    partners = User.objects.select_related('profile').in_bulk(latest_by_partner.keys())
+
+    for other_id, last in latest_by_partner.items():
+        partner = partners.get(other_id)
+        if not partner:
             continue
-        seen_users.add(other_id)
-        last = Message.objects.filter(
-            Q(sender=user, receiver_id=other_id) | Q(sender_id=other_id, receiver=user)
-        ).latest('created_at')
-        unread = Message.objects.filter(sender_id=other_id, receiver=user, read=False).count()
-        partner = User.objects.select_related('profile').get(id=other_id)
         threads.append({
             'type': 'dm',
             'partner': partner,
-            'unread': unread,
+            'unread': unread_map.get(other_id, 0),
             'last_time': last.created_at,
             'last_text': last.subject,
             'last_preview': last.body[:60],
-            'is_mine': last.sender == user,
+            'is_mine': last.sender_id == user.id,
             'url_name': 'ver_conversacion',
             'url_id': partner.id,
         })
 
+    # --- Chats de proyecto ---
+    projects_by_id = {p.id: p for p in available_projects}
     project_comments = Comment.objects.filter(
         project_id__in=project_ids
-    ).values('project_id').annotate(
-        last_cm=Max('created_at')
-    )
+    ).select_related('author').order_by('-created_at')
 
-    for pc in project_comments:
-        p = available_projects.filter(id=pc['project_id']).first()
+    seen_projects = set()
+    for cm in project_comments:
+        pid = cm.project_id
+        if pid in seen_projects:
+            continue
+        seen_projects.add(pid)
+        p = projects_by_id.get(pid)
         if not p:
             continue
-        last = Comment.objects.filter(project=p).latest('created_at')
         threads.append({
             'type': 'project',
             'project': p,
             'unread': 0,
-            'last_time': last.created_at,
+            'last_time': cm.created_at,
             'last_text': p.name,
-            'last_preview': last.text[:60],
-            'is_mine': last.author == user,
+            'last_preview': cm.text[:60],
+            'is_mine': cm.author_id == user.id,
             'url_name': 'ver_conversacion_proyecto',
             'url_id': p.id,
         })

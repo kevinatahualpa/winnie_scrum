@@ -16,7 +16,7 @@ function ensureHost() {
     host.id = 'crudDrawerHost';
     host.className = 'crud-drawer-overlay';
     host.style.cssText = 'position:fixed;inset:0;z-index:99999;display:none;justify-content:flex-end;background:rgba(0,0,0,0.4);';
-    host.innerHTML = '<div class="crud-drawer-panel" style="width:480px;max-width:92vw;height:100vh;background:var(--surface-1);display:flex;flex-direction:column;overflow:hidden;"></div>';
+    host.innerHTML = '<div class="crud-drawer-panel" style="width:600px;max-width:92vw;height:100vh;background:var(--surface-1);display:flex;flex-direction:column;overflow:hidden;"></div>';
     document.body.appendChild(host);
     host.addEventListener('click', function(e) { if (e.target === host) closeCrudDrawer(); });
 }
@@ -49,7 +49,7 @@ function openCrudDrawer(entity, data) {
         } else if (f.type === 'select') {
             var opts = resolveOptions(f, data);
             var placeholder = f.emptyLabel || 'Seleccionar ' + f.label.toLowerCase();
-            h += buildSelect(f.name, opts, val, placeholder, f.required);
+            h += buildSelect(f.name, opts, val, placeholder, f.required, (f.searchable || opts.length > 6));
         } else if (f.type === 'color') {
             h += '      <div class="crud-color-row">';
             h += '        <input type="color" name="' + f.name + '" id="crudField_' + f.name + '" class="crud-input" value="' + escapeHtml(val) + '">';
@@ -105,7 +105,7 @@ function openCrudDrawer(entity, data) {
 
 /* ── Custom Select ──────────────────────────────────────── */
 
-function buildSelect(name, options, selectedValue, placeholder, required) {
+function buildSelect(name, options, selectedValue, placeholder, required, searchable) {
     var found = options.find(function(o) {
         var ov = o.value != null ? o.value : o;
         return String(ov) === String(selectedValue);
@@ -113,13 +113,17 @@ function buildSelect(name, options, selectedValue, placeholder, required) {
     var display = found ? (found.label || '') : placeholder;
     var hasSelection = !!found;
 
-    var h = '<div class="custom-select-wrapper">';
+    var h = '<div class="custom-select-wrapper' + (searchable ? ' custom-select-searchable' : '') + '">';
     h += '  <input type="hidden" name="' + name + '" id="crudField_' + name + '" class="custom-select-value" value="' + escapeHtml(selectedValue || '') + '"' + (required ? ' data-required="true"' : '') + '>';
     h += '  <button type="button" class="custom-select-trigger" tabindex="0">';
     h += '    <span class="custom-select-display' + (hasSelection ? ' selected' : '') + '">' + escapeHtml(display) + '</span>';
     h += '    <i class="fas fa-chevron-down custom-select-chevron"></i>';
     h += '  </button>';
     h += '  <div class="custom-select-dropdown">';
+    if (searchable) {
+        h += '    <input type="text" class="custom-select-search" placeholder="Buscar..." autocomplete="off">';
+    }
+    h += '    <div class="custom-select-options">';
     if (options.length === 0) {
         h += '    <div class="custom-select-option option-empty">Sin opciones</div>';
     }
@@ -127,11 +131,13 @@ function buildSelect(name, options, selectedValue, placeholder, required) {
         var ov = o.value != null ? o.value : o;
         var ol = o.label != null ? o.label : o;
         var sel = String(ov) === String(selectedValue);
-        h += '    <div class="custom-select-option' + (sel ? ' selected' : '') + '" data-value="' + escapeHtml(ov) + '">';
+        h += '    <div class="custom-select-option' + (sel ? ' selected' : '') + '" data-value="' + escapeHtml(ov) + '" tabindex="0">';
         h += '      <span>' + escapeHtml(ol) + '</span>';
         if (sel) h += '      <i class="fas fa-check option-check"></i>';
         h += '    </div>';
     });
+    h += '    </div>';
+    h += '    <div class="custom-select-noresults" style="display:none;">Sin resultados</div>';
     h += '  </div>';
     h += '</div>';
     return h;
@@ -143,17 +149,54 @@ function initSelect(wrapper) {
     var input = wrapper.querySelector('.custom-select-value');
     var dropdown = wrapper.querySelector('.custom-select-dropdown');
     var options = dropdown.querySelectorAll('.custom-select-option');
+    var search = dropdown.querySelector('.custom-select-search');
+    var noResults = dropdown.querySelector('.custom-select-noresults');
     var fieldErr = wrapper.closest('.crud-field').querySelector('.crud-error');
     wrapper._placeholder = display.textContent;
+
+    function filter(q) {
+        if (!search) return;
+        q = (q || '').toLowerCase().trim();
+        var visible = 0;
+        wrapper.querySelectorAll('.custom-select-option').forEach(function(o) {
+            if (o.classList.contains('option-empty')) return;
+            var match = o.textContent.toLowerCase().indexOf(q) > -1;
+            o.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
+    }
 
     function open() {
         closeAll();
         dropdown.style.display = 'block';
         wrapper.classList.add('open');
+        if (search) {
+            search.value = '';
+            filter('');
+            setTimeout(function() { search.focus(); }, 10);
+        }
         var sel = dropdown.querySelector('.custom-select-option.selected');
         if (sel) sel.scrollIntoView({ block: 'nearest' });
     }
     function close() { dropdown.style.display = 'none'; wrapper.classList.remove('open'); }
+
+    if (search) {
+        search.addEventListener('click', function(e) { e.stopPropagation(); });
+        search.addEventListener('input', function() { filter(this.value); });
+        search.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { e.preventDefault(); close(); trigger.focus(); }
+            else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                var first = wrapper.querySelector('.custom-select-option:not([style*="display: none"])');
+                if (first) first.focus();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                var first = wrapper.querySelector('.custom-select-option:not([style*="display: none"])');
+                if (first) first.click();
+            }
+        });
+    }
 
     trigger.addEventListener('click', function(e) {
         e.stopPropagation();

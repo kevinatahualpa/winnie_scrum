@@ -51,20 +51,21 @@ def ver_backlog(request):
         pids = list(Project.objects.filter(Q(lead=user) | Q(members=user)).values_list('id', flat=True))
         base = base.filter(project_id__in=pids)
         if role == 'miembro':
-            base = base.filter(assignee=user)
+            led = list(Project.objects.filter(lead=user).values_list('id', flat=True))
+            base = base.filter(Q(assignee=user) | Q(project_id__in=led))
 
     if project_id:
         base = base.filter(project_id=project_id)
 
     projects = filter_queryset_by_role(
-        Project.objects.filter(status='active'), user, role, model_type='project'
+        Project.objects.exclude(status__in=['completed', 'cancelled']), user, role, model_type='project'
     ).distinct()
 
     user_ids = list(UserProfile.objects.filter(status='active').values_list('user_id', flat=True))
     assignees = list(User.objects.filter(is_active=True, id__in=user_ids).select_related('profile'))
 
     proj_obj = projects.filter(pk=project_id).first() if project_id else None
-    can_manage = bool(proj_obj) and can_manage_task(user) and can_manage_project(user, proj_obj)
+    can_manage = bool(proj_obj) and can_manage_project(user, proj_obj)
 
     # Build sprint blocks (non-completed) when scoped to a project
     sprint_blocks = []

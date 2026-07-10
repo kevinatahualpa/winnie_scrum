@@ -3,7 +3,7 @@ from apps.core.infrastructure.models.models import (
     Area, Specialty, Technology, CandidateProfile, CandidateTechnology,
     UserProfile, Substitution,
     Client, Project, Sprint, Task, Tag, Comment,
-    Document, ServiceRequest, TimeEntry, Notification, AuditLog
+    Document, ServiceRequest, Notification, AuditLog
 )
 
 
@@ -64,7 +64,7 @@ class SprintRepository(DjangoRepository):
         return self.model.objects.filter(project_id=project_id)
 
     def get_active(self):
-        return self.model.objects.filter(status='active')
+        return self.model.objects.filter(status='ACT')
 
     def get_by_project_ordered(self, project_id):
         return self.model.objects.filter(project_id=project_id).order_by('-start_date')
@@ -115,19 +115,6 @@ class ServiceRequestRepository(DjangoRepository):
 
     def get_by_assigned_to(self, user_id):
         return self.model.objects.filter(assigned_to_id=user_id)
-
-
-class TimeEntryRepository(DjangoRepository):
-    model = TimeEntry
-
-    def get_by_user(self, user_id):
-        return self.model.objects.filter(user_id=user_id)
-
-    def get_by_user_and_date(self, user_id, date):
-        return self.model.objects.filter(user_id=user_id, date=date)
-
-    def get_by_user_and_date_range(self, user_id, start_date, end_date):
-        return self.model.objects.filter(user_id=user_id, date__gte=start_date, date__lte=end_date)
 
 
 class NotificationRepository(DjangoRepository):

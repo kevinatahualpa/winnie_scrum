@@ -285,9 +285,9 @@ class RoleHierarchyTest(TestCase):
         self.assertFalse(can_deactivate_user(self.admin, self.super_admin))
         self.assertFalse(can_deactivate_user(self.admin, self.admin))
 
-    def test_can_view_audit_log_for_both_admins(self):
+    def test_can_view_audit_log_only_super_admin(self):
         self.assertTrue(can_view_audit_log(self.super_admin))
-        self.assertTrue(can_view_audit_log(self.admin))
+        self.assertFalse(can_view_audit_log(self.admin))
         self.assertFalse(can_view_audit_log(self.member_user))
 
     def test_can_view_all_audit_log_only_super_admin(self):

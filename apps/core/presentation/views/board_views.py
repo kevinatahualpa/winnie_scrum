@@ -22,6 +22,7 @@ def ver_tablero(request):
     project_id = request.GET.get('project')
     sprint_id = request.GET.get('sprint')
     assignee_id = request.GET.get('assignee')
+    embed = bool(request.GET.get('embed'))
 
     # ── Areas ────────────────────────────────────────────────
     if role in ('super-admin', 'admin'):
@@ -33,7 +34,8 @@ def ver_tablero(request):
 
     # ── Projects scoped by role + area filter ────────────────
     projects = filter_queryset_by_role(
-        Project.objects.filter(status='active'), user, role, model_type='project'
+        Project.objects.exclude(status__in=['completed', 'cancelled']),
+        user, role, model_type='project'
     ).select_related('area').distinct()
     if area_id:
         projects = projects.filter(area_id=area_id)
@@ -72,6 +74,15 @@ def ver_tablero(request):
             ('TEST', 'En Testing', tasks.filter(status='TEST')),
             ('DONE', 'Completado', tasks.filter(status='DONE')),
         ]
+    elif embed and project_id:
+        # Dentro de un proyecto siempre mostramos las columnas clasicas,
+        # aunque no exista un sprint activo (vacias).
+        board_columns = [
+            ('TODO', 'Por Hacer', []),
+            ('PROG', 'En Progreso', []),
+            ('TEST', 'En Testing', []),
+            ('DONE', 'Completado', []),
+        ]
 
     # ── Assignees ────────────────────────────────────────────
     user_ids = list(UserProfile.objects.filter(status='active').values_list('user_id', flat=True))
@@ -86,6 +97,8 @@ def ver_tablero(request):
         'sprint': sprint_id, 'assignee': assignee_id,
     }
 
+    sprint_empty = not any(len(col[2]) for col in board_columns) if board_columns else False
+
     return render(request, 'core/board.html', {
         'board_columns': board_columns,
         'active_sprint': active_sprint,
@@ -95,6 +108,9 @@ def ver_tablero(request):
         'assignees': assignees,
         'filters': filters,
         'role': role,
+        'sprint_empty': sprint_empty,
+        'embed': embed,
+        'board_project_id': project_id,
     })
 
 
@@ -132,4 +148,5 @@ def ver_tablero_fragment(request):
     return render(request, 'core/board_columns.html', {
         'board_columns': board_columns,
         'active_sprint': active_sprint,
+        'sprint_empty': bool(active_sprint) and not any(len(col[2]) for col in board_columns),
     })

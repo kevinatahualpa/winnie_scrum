@@ -54,7 +54,7 @@
                             <i class="fas fa-comment-dots"></i>
                             {% if task.comment_count %}<span style="font-size:0.55rem;">{{ task.comment_count }}</span>{% endif %}
                         </button>
-                        {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                        {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" and not request.GET.embed %}
                         <div class="ms-auto d-flex gap-1">
                             <button class="btn btn-sm py-0 px-1 btn-icon" onclick="openTaskDrawer({{ task.pk }})" title="Editar" style="font-size:0.7rem"><i class="fas fa-edit"></i></button>
                             <form method="post" action="{% url 'eliminar_tarea' task.pk %}" class="d-inline" onsubmit="return confirm('Eliminar tarea?')">
@@ -78,7 +78,18 @@
                 </div>
             </div>
             {% empty %}
-            <div class="text-center text-muted py-3 small empty-msg">Sin tareas</div>
+            <div class="text-center text-muted py-3 small empty-msg">
+                {% if status_key == 'TODO' %}
+                <i class="fas fa-layer-group d-block mb-2" style="font-size:1.6rem;color:var(--accent);opacity:0.7;"></i>
+                <p class="mb-2">Aún no hay tareas aquí.<br>Ve al backlog para crear tareas e iniciar un sprint.</p>
+                <a href="{% url 'ver_backlog' %}?project={% if board_project_id %}{{ board_project_id }}{% else %}{{ active_sprint.project.id }}{% endif %}{% if request.GET.embed %}&embed=1{% endif %}"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-arrow-right me-1"></i>Ir al Backlog
+                </a>
+                {% else %}
+                Sin tareas
+                {% endif %}
+            </div>
             {% endfor %}
         </div>
     </div>

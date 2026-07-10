@@ -144,7 +144,7 @@ class TaskFormTest(TestCase):
         form = TaskForm(data={
             'project': self.project.id, 'title': 'Test Task',
             'type': 'task', 'priority': 'medium', 'points': 3,
-            'assignee': self.user.id, 'status': 'todo',
+            'assignee': self.user.id, 'status': 'TODO',
         })
         self.assertTrue(form.is_valid())
 
@@ -159,7 +159,7 @@ class TaskFormTest(TestCase):
         form = TaskForm(data={
             'project': self.project.id, 'title': 'Saved Task',
             'type': 'story', 'priority': 'high', 'points': 5,
-            'assignee': self.user.id, 'status': 'backlog',
+            'assignee': self.user.id, 'status': 'TODO',
         })
         self.assertTrue(form.is_valid())
         task = form.save()
@@ -169,7 +169,7 @@ class TaskFormTest(TestCase):
         form = TaskForm(data={
             'project': self.project.id, 'title': 'Task with tags',
             'type': 'task', 'priority': 'low', 'points': 1,
-            'assignee': self.user.id, 'status': 'backlog',
+            'assignee': self.user.id, 'status': 'TODO',
         })
         self.assertTrue(form.is_valid())
 

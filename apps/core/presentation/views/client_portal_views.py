@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Count, Q
 
 from apps.core.infrastructure.models.models import Project, Task, Sprint, Document, ServiceRequest
 from apps.core.domain.services.permission_service import get_user_role, is_read_only
@@ -26,7 +27,10 @@ def ver_portal_cliente(request):
         })
 
     client = profile.client
-    projects = Project.objects.filter(client=client).select_related('area', 'lead').order_by('-created_at')
+    projects = Project.objects.filter(client=client).select_related('area', 'lead').annotate(
+        _task_total=Count('tasks', distinct=True),
+        _task_done=Count('tasks', filter=Q(tasks__status='DONE'), distinct=True),
+    ).order_by('-created_at')
     services = ServiceRequest.objects.filter(client=client).order_by('-created_at')[:10]
 
     return render(request, 'core/client_portal.html', {

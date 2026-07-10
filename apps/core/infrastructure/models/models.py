@@ -1,9 +1,22 @@
 import uuid
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, F, Count, Sum
 from django.contrib.auth.models import User
 from django.utils import timezone
+
+
+hex_color_validator = RegexValidator(
+    regex=r'^#[0-9A-Fa-f]{6}$',
+    message='Ingrese un color hexadecimal valido de 7 caracteres, ej: #00bcd4',
+)
+
+
+def default_registration_expiry():
+    """Fecha de expiracion por defecto para solicitudes de registro (24h)."""
+    from datetime import timedelta
+    return timezone.now() + timedelta(hours=24)
 
 
 class ActiveAreaManager(models.Manager):
@@ -35,7 +48,7 @@ class Area(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    color = models.CharField(max_length=7, default='#00bcd4')
+    color = models.CharField(max_length=7, default='#00bcd4', validators=[hex_color_validator])
     status = models.CharField(max_length=20, choices=[('active', 'Activa'), ('inactive', 'Inactiva')], default='active')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -69,7 +82,7 @@ class Specialty(models.Model):
         related_name='children', help_text='Categoría padre (jerarquía)',
     )
     description = models.TextField(blank=True)
-    color = models.CharField(max_length=7, default='#00bcd4')
+    color = models.CharField(max_length=7, default='#00bcd4', validators=[hex_color_validator])
     is_active = models.BooleanField(default=True, help_text='False = archivada (soft delete)')
 
     objects = models.Manager()
@@ -111,7 +124,7 @@ class Technology(models.Model):
         ('database', 'Base de datos'), ('tool', 'Herramienta'),
         ('platform', 'Plataforma'), ('other', 'Otro'),
     ], default='other')
-    color = models.CharField(max_length=7, default='#64748b')
+    color = models.CharField(max_length=7, default='#64748b', validators=[hex_color_validator])
     is_active = models.BooleanField(default=True, help_text='La empresa sigue requiriéndola')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -231,9 +244,11 @@ class UserProfile(models.Model):
         ('pending', 'Pendiente de aprobacion'), ('active', 'Activo'), ('vacation', 'Vacaciones'),
         ('leave', 'Licencia'), ('dismissed', 'Desactivado'), ('rejected', 'Rechazado'),
     ], default='pending', db_index=True)
-    color = models.CharField(max_length=7, default='#00bcd4')
+    color = models.CharField(max_length=7, default='#00bcd4', validators=[hex_color_validator])
     avatar = models.ImageField(upload_to='avatars/%Y/%m/', null=True, blank=True)
     technologies = models.ManyToManyField(Technology, blank=True, related_name='users')
+    active_session_key = models.CharField(max_length=40, blank=True, default='', db_index=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -241,6 +256,15 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f'{self.user.get_full_name() or self.user.email} ({self.get_role_display()})'
+
+    @property
+    def is_online(self):
+        """True si el usuario tuvo actividad en los ultimos 5 minutos."""
+        if not self.last_seen:
+            return False
+        from django.utils import timezone
+        from datetime import timedelta
+        return self.last_seen >= timezone.now() - timedelta(minutes=5)
 
     @property
     def initials(self):
@@ -300,9 +324,22 @@ class Substitution(models.Model):
         ordering = ['-start_date']
         verbose_name = 'Suplencia'
         verbose_name_plural = 'Suplencias'
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(end_date__gte=F('start_date')),
+                name='substitution_end_after_start',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.substitute_user} suple a {self.original_user}'
+
+    def clean(self):
+        super().clean()
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError({
+                'end_date': 'La fecha de fin no puede ser anterior a la fecha de inicio.'
+            })
 
     @property
     def is_current(self):
@@ -373,7 +410,7 @@ class Project(models.Model):
     budget = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
-    color = models.CharField(max_length=7, default='#00bcd4')
+    color = models.CharField(max_length=7, default='#00bcd4', validators=[hex_color_validator])
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -384,10 +421,15 @@ class Project(models.Model):
 
     @property
     def progress(self):
-        total = self.tasks.count()
-        if total == 0:
+        total = getattr(self, '_task_total', None)
+        done = getattr(self, '_task_done', None)
+        if total is None or done is None:
+            total = self.tasks.count()
+            if total == 0:
+                return 0
+            done = self.tasks.filter(status='DONE').count()
+        if not total:
             return 0
-        done = self.tasks.filter(status='DONE').count()
         return round((done / total) * 100)
 
 
@@ -412,6 +454,13 @@ class Sprint(models.Model):
 
     class Meta:
         ordering = ['-start_date']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['project'],
+                condition=Q(status='ACT'),
+                name='unique_active_sprint_per_project',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.name} ({self.project.name})'
@@ -435,7 +484,7 @@ class Sprint(models.Model):
 class Tag(models.Model):
     """Tag model for categorizing tasks with colored labels."""
     name = models.CharField(max_length=50, unique=True)
-    color = models.CharField(max_length=7, default='#64748b')
+    color = models.CharField(max_length=7, default='#64748b', validators=[hex_color_validator])
 
     class Meta:
         ordering = ['name']
@@ -469,12 +518,6 @@ class TaskManager(models.Manager):
 
     def backlog(self):
         return self.filter(sprint__isnull=True)
-
-    def with_progress(self):
-        return self.annotate(
-            comment_count=Count('comments'),
-            time_logged=Count('time_entries'),
-        )
 
 
 class Task(models.Model):
@@ -541,6 +584,12 @@ class Comment(models.Model):
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['project', 'created_at'], name='comment_project_idx'),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(task__isnull=False) | Q(project__isnull=False),
+                name='comment_has_target',
+            ),
         ]
 
     def __str__(self):
@@ -612,22 +661,8 @@ class ServiceRequest(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.client.name} - {self.get_service_display()}'
-
-
-class TimeEntry(models.Model):
-    """Time entry model for tracking hours spent on tasks."""
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='time_entries')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='time_entries')
-    date = models.DateField()
-    hours = models.DecimalField(max_digits=4, decimal_places=1)
-    description = models.TextField(blank=True)
-
-    class Meta:
-        ordering = ['-date']
-
-    def __str__(self):
-        return f'{self.user} - {self.task} ({self.hours}h)'
+        client_name = self.client.name if self.client else 'Sin cliente'
+        return f'{client_name} - {self.get_service_display()}'
 
 
 class Notification(models.Model):
@@ -699,7 +734,7 @@ class RegistrationRequest(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     cv_file = models.FileField(upload_to='cv_temp/%Y/%m/', null=True, blank=True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(default=default_registration_expiry)
     status = models.CharField(
         max_length=20,
         choices=[('pending', 'Pendiente'), ('verified', 'Verificado'), ('expired', 'Expirado')],

@@ -71,9 +71,6 @@
                     <span class="pending-badge" aria-label="{{ unread_messages }} mensajes no leidos">{{ unread_messages }}</span>
                     {% endif %}
                 </a>
-                {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto,miembro" %}
-                <a href="{% url 'ver_tiempo' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_tiempo' %}active{% endif %}"><i class="fas fa-clock"></i> <span>Tiempo</span></a>
-                {% endif %}
                 <a href="{% url 'ver_calendario' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_calendario' %}active{% endif %}"><i class="fas fa-calendar"></i> <span>Calendario</span></a>
             </div>
         </div>
@@ -84,7 +81,7 @@
                 <i class="fas fa-chevron-down nav-section-caret" aria-hidden="true"></i>
             </button>
             <div class="nav-section-items">
-                {% if user|has_role:"super-admin,admin" %}
+                {% if user|has_role:"super-admin" %}
                 <a href="{% url 'ver_auditoria' %}" class="nav-link {% if request.resolver_match.url_name == 'ver_auditoria' %}active{% endif %}"><i class="fas fa-shield-alt"></i> <span>Auditoria</span></a>
                 {% endif %}
                 {% if user|has_role:"super-admin,admin" %}

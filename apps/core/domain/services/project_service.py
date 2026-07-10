@@ -1,7 +1,8 @@
 from typing import Optional, Tuple, List
+from datetime import timedelta, date
 from django.db import transaction
 from django.contrib.auth.models import User
-from apps.core.infrastructure.models.models import Project
+from apps.core.infrastructure.models.models import Project, Sprint
 from apps.core.infrastructure.repositories import ProjectRepository
 from apps.core.domain.services.permission_service import can_manage_project, can_manage_area
 from apps.core.domain.services.notification_service import (
@@ -54,7 +55,19 @@ class ProjectService:
                 notify_project_membership(project, user, member)
 
         if project.lead:
+            # El jefe de proyecto tambien es miembro del proyecto.
+            project.members.add(project.lead)
             notify_project_assignment(project, user, project.lead)
+
+        # Sprint inicial por defecto (Sprint 1) en planificacion.
+        sprint_start = project.start_date or date.today()
+        Sprint.objects.create(
+            project=project,
+            name='Sprint 1',
+            start_date=sprint_start,
+            end_date=sprint_start + timedelta(days=14),
+            status='PLAN',
+        )
 
         create_audit_log(user, 'PROJECT_CREATE', 'project', project.id, f'Proyecto creado: {project.name}')
         return project, None
@@ -83,6 +96,10 @@ class ProjectService:
         if kwargs.get('lead_id') and kwargs['lead_id'] != old_lead_id:
             lead = User.objects.get(id=kwargs['lead_id'])
             notify_project_assignment(project, user, lead)
+
+        # El jefe de proyecto siempre debe estar entre los miembros.
+        if project.lead_id:
+            project.members.add(project.lead_id)
 
         if member_ids is not None:
             new_member_ids = set(int(m) for m in member_ids)
