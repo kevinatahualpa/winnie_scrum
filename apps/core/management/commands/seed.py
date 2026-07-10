@@ -135,9 +135,9 @@ class Command(BaseCommand):
         # Assign technologies to team members
         if not any('skip_tech' in locals() for _ in [1]):
             from apps.core.infrastructure.models.models import Technology
-            tech_django = Technology.objects.get(name='Django')
-            tech_react = Technology.objects.get(name='React')
-            tech_pg = Technology.objects.get(name='PostgreSQL')
+            tech_django, _ = Technology.objects.get_or_create(name='Django')
+            tech_react, _ = Technology.objects.get_or_create(name='React')
+            tech_pg, _ = Technology.objects.get_or_create(name='PostgreSQL')
 
             tech_map = {
                 'pedro@hackthony.com': [tech_django, tech_pg],
