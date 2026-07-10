@@ -142,7 +142,7 @@ else:
     EMAIL_HOST_USER = ''
     EMAIL_HOST_PASSWORD = ''
 EMAIL_TIMEOUT = 5
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Winnie <noreply@resend.dev>')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Winnie <noreply@winniepm.xyz>')
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
