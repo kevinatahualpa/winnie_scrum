@@ -9,7 +9,26 @@ class Migration(migrations.Migration):
         ('core', '0019_remove_observer_role'),
     ]
 
+    def convert_status(apps, schema_editor):
+        Sprint = apps.get_model('core', 'Sprint')
+        Task = apps.get_model('core', 'Task')
+        sprint_map = {'planned': 'PLAN', 'active': 'ACT', 'completed': 'CMP', 'paused': 'PLAN'}
+        task_map = {
+            'backlog': 'TODO', 'todo': 'TODO', 'new': 'TODO',
+            'in-progress': 'PROG', 'in_progress': 'PROG', 'reviewing': 'PROG',
+            'done': 'DONE', 'completed': 'DONE',
+        }
+        for sprint in Sprint.objects.all():
+            new_val = sprint_map.get(sprint.status, 'PLAN')
+            if sprint.status != new_val:
+                Sprint.objects.filter(pk=sprint.pk).update(status=new_val)
+        for task in Task.objects.all():
+            new_val = task_map.get(task.status, 'TODO')
+            if task.status != new_val:
+                Task.objects.filter(pk=task.pk).update(status=new_val)
+
     operations = [
+        migrations.RunPython(convert_status, migrations.RunPython.noop),
         migrations.AlterModelOptions(
             name='task',
             options={'ordering': ['position', '-created_at']},
