@@ -29,26 +29,35 @@
             {% if role in 'super-admin,admin' and active_tab == 'equipo' or role not in 'super-admin,admin' and active_tab != 'clientes' and not show_dismissed %}
             <div class="team-filter-row">
                 {% if role in 'super-admin,admin' %}
-                <select class="form-select form-select-sm team-filter-select" id="areaFilter">
-                    <option value="">Todas las areas</option>
-                    {% for area in areas %}
-                    <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }}</option>
-                    {% endfor %}
-                </select>
+                <div class="filter-wrap">
+                    <i class="fas fa-building filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="areaFilter">
+                        <option value="">Todas las areas</option>
+                        {% for area in areas %}
+                        <option value="{{ area.id }}" {% if filters.area == area.id|stringformat:"s" %}selected{% endif %}>{{ area.code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 {% endif %}
-                <select class="form-select form-select-sm team-filter-select" id="projectFilter" {% if not filters.area and role in 'super-admin,admin' %}disabled{% endif %}>
-                    <option value="">Todos los proyectos</option>
-                    {% for project in projects %}
-                    <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
-                    {% endfor %}
-                </select>
+                <div class="filter-wrap">
+                    <i class="fas fa-folder filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="projectFilter" {% if not filters.area and role in 'super-admin,admin' %}disabled{% endif %}>
+                        <option value="">Todos los proyectos</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}" data-area="{{ project.area_id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 {% if role in 'super-admin,admin' %}
-                <select class="form-select form-select-sm team-filter-select" id="roleFilter">
-                    <option value="">Todos los roles</option>
-                    {% for r_key, r_label in role_choices %}
-                    <option value="{{ r_key }}" {% if filters.role == r_key %}selected{% endif %}>{{ r_label }}</option>
-                    {% endfor %}
-                </select>
+                <div class="filter-wrap">
+                    <i class="fas fa-user-tag filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="roleFilter">
+                        <option value="">Todos los roles</option>
+                        {% for r_key, r_label in role_choices %}
+                        <option value="{{ r_key }}" {% if filters.role == r_key %}selected{% endif %}>{{ r_label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 {% endif %}
                 {% if filters.area or filters.project or filters.role %}
                 <a href="{% url 'ver_usuarios' %}?tab=equipo" class="team-filter-clear"><i class="fas fa-times"></i></a>
@@ -113,18 +122,24 @@
 
             {% if active_tab == 'clientes' and role in 'super-admin,admin' %}
                 <div class="team-filter-row">
-                    <select class="form-select form-select-sm team-filter-select" id="clientFilter">
-                        <option value="">Todas las empresas</option>
-                        {% for client in clients %}
-                        <option value="{{ client.id }}" {% if filters.client == client.id|stringformat:"s" %}selected{% endif %}>{{ client.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <select class="form-select form-select-sm team-filter-select" id="cProjectFilter">
-                        <option value="">Todos los proyectos</option>
-                        {% for project in projects %}
-                        <option value="{{ project.id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="filter-wrap">
+                        <i class="fas fa-briefcase filter-icon" aria-hidden="true"></i>
+                        <select class="form-select form-select-sm filter-select" id="clientFilter">
+                            <option value="">Todas las empresas</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}" {% if filters.client == client.id|stringformat:"s" %}selected{% endif %}>{{ client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-wrap">
+                        <i class="fas fa-folder filter-icon" aria-hidden="true"></i>
+                        <select class="form-select form-select-sm filter-select" id="cProjectFilter">
+                            <option value="">Todos los proyectos</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" {% if filters.project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     {% if filters.client or filters.project %}
                     <a href="{% url 'ver_usuarios' %}?tab=clientes" class="team-filter-clear"><i class="fas fa-times"></i></a>
                     {% endif %}
@@ -231,25 +246,6 @@
 
 {% block extra_css %}
 <style>
-.team-btn-outline {
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    background: transparent;
-    font-size: 0.78rem;
-    font-weight: 500;
-    padding: 0.4rem 0.9rem;
-    border-radius: var(--radius);
-    transition: all 0.15s;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-}
-.team-btn-outline:hover {
-    background: var(--surface-hover);
-    border-color: var(--text-muted);
-    color: var(--text-primary);
-}
-
 .team-inline-nav {
     display: flex;
     gap: 0;
@@ -285,148 +281,6 @@
 .team-nav-item.active .team-nav-count {
     background: var(--accent-soft);
     color: var(--accent);
-}
-
-.team-filter-row {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.75rem;
-    overflow-x: auto;
-}
-.team-filter-select {
-    font-size: 0.73rem;
-    height: 30px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    border-radius: var(--radius);
-    min-width: 120px;
-    max-width: 180px;
-    padding: 0 1.5rem 0 0.6rem;
-    flex-shrink: 0;
-}
-.team-filter-select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-soft);
-}
-.team-filter-clear {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    text-decoration: none;
-    padding: 0.2rem 0.4rem;
-}
-.team-filter-clear:hover { color: var(--danger); }
-
-.team-table-wrap {
-    overflow-x: auto;
-}
-.team-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.82rem;
-}
-.team-table thead th {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    text-align: left;
-}
-.team-table tbody td {
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-}
-.team-table tbody tr:hover td {
-    background: var(--surface-hover);
-}
-.team-table-inactive tbody td {
-    opacity: 0.55;
-}
-
-.team-avatar {
-    width: 30px; height: 30px;
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    font-size: 0.65rem;
-    font-weight: 600;
-    flex-shrink: 0;
-}
-.team-avatar-img {
-    width: 30px; height: 30px;
-    border-radius: 7px;
-    object-fit: cover;
-    border: 1px solid var(--border);
-}
-.team-avatar-wrap { position: relative; display: inline-block; }
-.online-dot {
-    position: absolute; bottom: -2px; right: -2px;
-    width: 10px; height: 10px; border-radius: 50%;
-    background: #22c55e; border: 2px solid var(--surface-1);
-    box-shadow: 0 0 0 1px rgba(34,197,94,0.35);
-}
-
-.team-name {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.3;
-}
-.team-email {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    line-height: 1.3;
-}
-
-.team-area-tag {
-    font-size: 0.65rem;
-    background: var(--surface-2);
-    color: var(--text-muted);
-    padding: 1px 7px;
-    border-radius: 4px;
-    margin-left: 0.4rem;
-    border: 1px solid var(--border);
-}
-.team-area-link { text-decoration: none; }
-.team-area-link:hover { color: var(--text-primary); border-color: var(--text-muted); }
-
-.team-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.35rem;
-}
-.team-action-btn {
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: 5px;
-    color: var(--text-muted);
-    font-size: 0.72rem;
-    cursor: pointer;
-    transition: all 0.12s;
-    padding: 0;
-}
-.team-action-btn:hover {
-    background: var(--surface-hover);
-    color: var(--text-primary);
-}
-.team-action-danger:hover {
-    background: var(--danger-bg);
-    color: var(--danger);
-}
-
-.team-empty {
-    padding: 3rem 1rem;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.85rem;
 }
 </style>
 {% endblock %}

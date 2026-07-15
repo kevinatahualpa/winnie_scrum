@@ -10,10 +10,36 @@
         <div class="page-content density-high">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0 text-primary"><i class="fas fa-layer-group me-2" style="color:var(--accent);"></i>Backlog</h4>
-                {% if not current_project_id %}
-                <button class="btn btn-primary btn-sm" onclick="openCrudDrawer('task')"><i class="fas fa-plus me-1"></i>Nueva Tarea</button>
+            </div>
+
+            {% if not request.GET.embed %}
+            <!-- Filter bar -->
+            <div class="filter-bar">
+                {% if areas.exists %}
+                <div class="filter-wrap">
+                    <i class="fas fa-building filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="blAreaFilter" name="area" aria-label="Area">
+                        <option value="">Todas las areas</option>
+                        {% for a in areas %}
+                        <option value="{{ a.id }}" {% if current_area_id == a.id|stringformat:"s" %}selected{% endif %}>{{ a.code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="filter-wrap">
+                    <i class="fas fa-folder filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="blProjectFilter" name="project" aria-label="Proyecto">
+                        <option value="">Todos los proyectos</option>
+                        {% for p in projects %}
+                        <option value="{{ p.id }}" {% if current_project_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if current_area_id or current_project_id %}
+                <a href="{% url 'ver_backlog' %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
                 {% endif %}
             </div>
+            {% endif %}
 
             {% if current_project_id %}
             <div class="jira-backlog" id="jiraBacklog" data-can-manage="{% if can_manage %}1{% endif %}" data-project="{{ current_project_id }}">
@@ -107,10 +133,44 @@
 
             </div>
             {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-clipboard-list fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
-                <h6 class="text-muted">Selecciona un proyecto para ver su backlog y sprints</h6>
-                <p class="small text-muted">Entra a un proyecto y abre la pestaña Backlog.</p>
+            <div class="jira-backlog" id="jiraBacklog" data-can-manage="{% if can_manage_any %}1{% endif %}" data-project="" data-general="1">
+                {% for block in project_blocks %}
+                <section class="bl-block" data-block="project" data-project-id="{{ block.project.id }}">
+                    <header class="bl-block-head">
+                        <button type="button" class="bl-collapse" aria-expanded="true"><i class="fas fa-chevron-down"></i></button>
+                        <div class="bl-block-title">
+                            <span class="bl-block-name">{{ block.project.name }}</span>
+                            {% if block.project.area %}<span class="bl-tag bl-tag-plan">{{ block.project.area.code }}</span>{% endif %}
+                            <span class="bl-dates">{{ block.total }} ítem{{ block.total|pluralize:"es" }}</span>
+                        </div>
+                        <div class="bl-counts">
+                            <span class="bl-count bl-c-todo" title="Por hacer">{{ block.counts.todo }}</span>
+                            <span class="bl-count bl-c-prog" title="En progreso">{{ block.counts.prog }}</span>
+                            <span class="bl-count bl-c-done" title="Completado">{{ block.counts.done }}</span>
+                        </div>
+                        <div class="bl-block-actions">
+                            <a href="{% url 'ver_backlog' %}?project={{ block.project.id }}" class="btn btn-sm btn-secondary"><i class="fas fa-arrow-right me-1"></i>Abrir backlog</a>
+                        </div>
+                    </header>
+                    <div class="bl-block-body">
+                        <div class="bl-tasklist" data-project-id="{{ block.project.id }}">
+                            {% for task in block.tasks %}
+                                {% include 'core/_backlog_row.html' with task=task %}
+                            {% empty %}
+                            <div class="bl-empty">Backlog vacio</div>
+                            {% endfor %}
+                        </div>
+                        {% if block.can_manage %}
+                        <button type="button" class="bl-quick-add" data-sprint-id="" data-project-id="{{ block.project.id }}"><i class="fas fa-plus me-1"></i>Crear tarea</button>
+                        {% endif %}
+                    </div>
+                </section>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list fa-3x mb-3 d-block" style="color:var(--text-muted);opacity:0.3;"></i>
+                    <h6 class="text-muted">No hay proyectos visibles{% if current_area_id %} en esta área{% endif %}</h6>
+                </div>
+                {% endfor %}
             </div>
             {% endif %}
         </div>
@@ -172,9 +232,31 @@ window.blUrls = {
     statusBase: '/task/', // + id + /status/
     fieldBase: '/task/',  // + id + /field/
 };
-window.blProjectId = '{{ current_project_id }}';
+window.blProjectId = '{{ current_project_id|default:"" }}';
+{% if current_project_id %}
 window.taskProjectOptions = [{value:'{{ current_project_id }}', label:'{{ current_project.name|default:""|escapejs }}'}];
+{% else %}
+window.taskProjectOptions = [
+    {% for p in projects %}
+    {value:'{{ p.id }}', label:'{{ p.name|escapejs }}'}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+{% endif %}
 window.taskAssigneeOptions = window.blAssignees;
+
+document.addEventListener('DOMContentLoaded', function() {
+    function nav(param, value, alsoDelete) {
+        var u = new URL(window.location.href);
+        if (value) u.searchParams.set(param, value);
+        else u.searchParams.delete(param);
+        (alsoDelete || []).forEach(function(p) { u.searchParams.delete(p); });
+        window.location.href = u.toString();
+    }
+    var areaSel = document.getElementById('blAreaFilter');
+    var projSel = document.getElementById('blProjectFilter');
+    if (areaSel) areaSel.addEventListener('change', function() { nav('area', this.value, ['project']); });
+    if (projSel) projSel.addEventListener('change', function() { nav('project', this.value); });
+});
 </script>
-<script src="{% static 'js/backlog.js' %}?v=6"></script>
+<script src="{% static 'js/backlog.js' %}?v=9"></script>
 {% endblock %}

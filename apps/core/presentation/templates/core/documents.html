@@ -13,21 +13,38 @@
             </div>
 
             <!-- Filter bar -->
-            <div class="d-flex gap-2 align-items-center mb-3" style="overflow-x:auto;">
-                <select name="project" class="form-select form-select-sm filter-select" id="projectFilter">
-                    <option value="">Todos los proyectos</option>
-                    {% for p in projects %}
-                    <option value="{{ p.id }}" {% if selected_project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
-                    {% endfor %}
-                </select>
-                <select class="form-select form-select-sm filter-select" id="sortSelect">
-                    <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Mas recientes</option>
-                    <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Mas antiguos</option>
-                    <option value="name" {% if sort == 'name' %}selected{% endif %}>Nombre A-Z</option>
-                    <option value="-name" {% if sort == '-name' %}selected{% endif %}>Nombre Z-A</option>
-                    <option value="size" {% if sort == 'size' %}selected{% endif %}>Menor tamano</option>
-                    <option value="-size" {% if sort == '-size' %}selected{% endif %}>Mayor tamano</option>
-                </select>
+            <div class="filter-bar">
+                {% if areas.exists %}
+                <div class="filter-wrap">
+                    <i class="fas fa-building filter-icon" aria-hidden="true"></i>
+                    <select name="area" class="form-select form-select-sm filter-select" id="areaFilter">
+                        <option value="">Todas las areas</option>
+                        {% for a in areas %}
+                        <option value="{{ a.id }}" {% if current_area_id == a.id|stringformat:'s' %}selected{% endif %}>{{ a.code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="filter-wrap">
+                    <i class="fas fa-folder filter-icon" aria-hidden="true"></i>
+                    <select name="project" class="form-select form-select-sm filter-select" id="projectFilter">
+                        <option value="">Todos los proyectos</option>
+                        {% for p in projects %}
+                        <option value="{{ p.id }}" {% if selected_project == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-wrap">
+                    <i class="fas fa-sort filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="sortSelect">
+                        <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Mas recientes</option>
+                        <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Mas antiguos</option>
+                        <option value="name" {% if sort == 'name' %}selected{% endif %}>Nombre A-Z</option>
+                        <option value="-name" {% if sort == '-name' %}selected{% endif %}>Nombre Z-A</option>
+                        <option value="size" {% if sort == 'size' %}selected{% endif %}>Menor tamano</option>
+                        <option value="-size" {% if sort == '-size' %}selected{% endif %}>Mayor tamano</option>
+                    </select>
+                </div>
                 <small class="text-muted ms-auto">{{ documents.count }} archivos · {{ total_size|filesizeformat }}</small>
             </div>
 

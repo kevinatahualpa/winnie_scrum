@@ -8,22 +8,41 @@
     <div class="main-area">
         {% include 'core/topbar.html' %}
         <div class="page-content density-high">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="fas fa-running me-2" style="color:var(--accent);"></i>Sprints</h4>
-                <div class="d-flex gap-2">
-                    {% if not request.GET.embed %}
-                    <select class="form-select form-select-sm" style="width:180px;" id="projectFilterSprint" onchange="window.location.href='?project='+this.value">
+                {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sprintModal"><i class="fas fa-plus me-1"></i>Nuevo Sprint</button>
+                {% endif %}
+            </div>
+
+            {% if not request.GET.embed %}
+            <!-- Filter bar -->
+            <div class="filter-bar">
+                {% if areas.exists %}
+                <div class="filter-wrap">
+                    <i class="fas fa-building filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="areaFilterSprint">
+                        <option value="">Todas las areas</option>
+                        {% for a in areas %}
+                        <option value="{{ a.id }}" {% if current_area_id == a.id|stringformat:"s" %}selected{% endif %}>{{ a.code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="filter-wrap">
+                    <i class="fas fa-folder filter-icon" aria-hidden="true"></i>
+                    <select class="form-select form-select-sm filter-select" id="projectFilterSprint">
                         <option value="">Todos los proyectos</option>
                         {% for p in projects %}
                         <option value="{{ p.id }}" {% if request.GET.project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
                         {% endfor %}
                     </select>
-                    {% endif %}
-                    {% if user|has_role:"super-admin,admin,jefe-area,jefe-proyecto" %}
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#sprintModal"><i class="fas fa-plus me-1"></i>Nuevo Sprint</button>
-                    {% endif %}
                 </div>
+                {% if current_area_id or request.GET.project %}
+                <a href="{% url 'ver_sprints' %}" class="btn btn-sm board-filter-clear" aria-label="Limpiar filtros" title="Limpiar filtros"><i class="fas fa-times" aria-hidden="true"></i></a>
+                {% endif %}
             </div>
+            {% endif %}
 
             {% regroup sprints by project as project_groups %}
             {% for group in project_groups %}
@@ -163,6 +182,20 @@
 
 {% block extra_js %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    function navSprint(param, value, alsoDelete) {
+        var u = new URL(window.location.href);
+        if (value) u.searchParams.set(param, value);
+        else u.searchParams.delete(param);
+        (alsoDelete || []).forEach(function(p) { u.searchParams.delete(p); });
+        window.location.href = u.toString();
+    }
+    var areaSel = document.getElementById('areaFilterSprint');
+    var projSel = document.getElementById('projectFilterSprint');
+    if (areaSel) areaSel.addEventListener('change', function() { navSprint('area', this.value, ['project']); });
+    if (projSel) projSel.addEventListener('change', function() { navSprint('project', this.value); });
+});
+
 var sprintDrawerOverlay = null;
 
 function abrirDrawerSprint(sprintId) {

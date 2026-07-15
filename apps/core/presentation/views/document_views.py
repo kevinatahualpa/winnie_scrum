@@ -5,7 +5,7 @@ from django.db.models import Sum
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 
-from apps.core.infrastructure.models.models import Document, Project
+from apps.core.infrastructure.models.models import Document, Project, Area
 from apps.core.domain.services.permission_service import get_user_role, can_manage_project, filter_queryset_by_role
 
 
@@ -20,14 +20,25 @@ def ver_documentos(request):
     to see them (only for admin/super-admin).
     """
     user = request.user
+    profile = getattr(user, 'profile', None)
     role = get_user_role(user)
     project_id = request.GET.get('project')
+    area_id = request.GET.get('area')
     sort = request.GET.get('sort', '-created_at')
     show_archived = request.GET.get('archived') == '1' and role in ('super-admin', 'admin')
 
-    docs = Document.objects.select_related('project', 'uploaded_by')
+    if role in ('super-admin', 'admin'):
+        areas = Area.objects.filter(status='active')
+    elif role == 'jefe-area' and profile and profile.area:
+        areas = Area.objects.filter(pk=profile.area_id, status='active')
+    else:
+        areas = Area.objects.none()
+
+    docs = Document.objects.select_related('project', 'project__area', 'uploaded_by')
     if not show_archived:
         docs = docs.filter(is_active=True)
+    if area_id:
+        docs = docs.filter(project__area_id=area_id)
     if project_id:
         docs = docs.filter(project_id=project_id)
     docs = filter_queryset_by_role(docs, user, role, model_type='document')
@@ -43,12 +54,16 @@ def ver_documentos(request):
     documents = paginator.get_page(page)
 
     projects = filter_queryset_by_role(Project.objects.all(), user, role, model_type='project')
+    if area_id:
+        projects = projects.filter(area_id=area_id)
     active_docs = Document.objects.filter(is_active=True, project_id__in=projects.values_list('id', flat=True))
     total_size = active_docs.aggregate(total=Sum('size'))['total'] or 0
 
     return render(request, 'core/documents.html', {
         'documents': documents, 'projects': projects,
+        'areas': areas,
         'selected_project': project_id, 'sort': sort,
+        'current_area_id': area_id,
         'total_size': total_size,
         'show_archived': show_archived,
     })

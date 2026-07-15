@@ -7,7 +7,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.db.models import Q
 from django.core.paginator import Paginator
 
-from apps.core.infrastructure.models.models import Task, Project, User, UserProfile, Sprint
+from apps.core.infrastructure.models.models import Task, Project, Area, User, UserProfile, Sprint
 from apps.core.domain.services.permission_service import (
     get_user_role, filter_queryset_by_role, can_manage_task, can_manage_project,
 )
@@ -39,6 +39,15 @@ def ver_backlog(request):
     profile = getattr(user, 'profile', None)
     role = get_user_role(user)
     project_id = request.GET.get('project')
+    area_id = request.GET.get('area')
+
+    # Areas available for the filter (cascade: area -> project)
+    if role in ('super-admin', 'admin'):
+        areas = Area.objects.filter(status='active')
+    elif role == 'jefe-area' and profile and profile.area:
+        areas = Area.objects.filter(pk=profile.area_id, status='active')
+    else:
+        areas = Area.objects.none()
 
     # Base queryset scoped by role
     base = Task.objects.select_related('assignee', 'assignee__profile', 'project', 'sprint')
@@ -54,12 +63,16 @@ def ver_backlog(request):
             led = list(Project.objects.filter(lead=user).values_list('id', flat=True))
             base = base.filter(Q(assignee=user) | Q(project_id__in=led))
 
+    if area_id:
+        base = base.filter(project__area_id=area_id)
     if project_id:
         base = base.filter(project_id=project_id)
 
     projects = filter_queryset_by_role(
         Project.objects.exclude(status__in=['completed', 'cancelled']), user, role, model_type='project'
-    ).distinct()
+    ).select_related('area').distinct()
+    if area_id:
+        projects = projects.filter(area_id=area_id)
 
     user_ids = list(UserProfile.objects.filter(status='active').values_list('user_id', flat=True))
     assignees = list(User.objects.filter(is_active=True, id__in=user_ids).select_related('profile'))
@@ -92,14 +105,34 @@ def ver_backlog(request):
         'total': len(backlog_tasks),
     }
 
+    # General view (no project selected): group backlog tasks by project
+    project_blocks = []
+    if not project_id:
+        by_project = {}
+        for t in backlog_tasks:
+            by_project.setdefault(t.project_id, []).append(t)
+        for proj in projects:
+            p_tasks = by_project.get(proj.id, [])
+            project_blocks.append({
+                'project': proj,
+                'tasks': p_tasks,
+                'counts': _status_counts(p_tasks),
+                'total': len(p_tasks),
+                'can_manage': can_manage_project(user, proj),
+            })
+
     return render(request, 'core/backlog.html', {
         'projects': projects,
+        'areas': areas,
         'assignees': assignees,
         'sprint_blocks': sprint_blocks,
         'backlog_block': backlog_block,
+        'project_blocks': project_blocks,
         'current_project_id': project_id,
         'current_project': proj_obj,
+        'current_area_id': area_id,
         'can_manage': can_manage,
+        'can_manage_any': can_manage_task(user),
         'today': __import__('datetime').date.today(),
     })
 

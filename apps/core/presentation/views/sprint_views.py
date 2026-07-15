@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.db import transaction
 
-from apps.core.infrastructure.models.models import Sprint, Project, Task
+from apps.core.infrastructure.models.models import Sprint, Project, Task, Area
 from apps.core.domain.services.permission_service import get_user_role, can_manage_project, filter_queryset_by_role
 from apps.core.domain.services.sprint_service import SprintService
 from apps.core.domain.services.notification_service import create_audit_log
@@ -23,15 +23,26 @@ def ver_sprints(request):
     Shows done/total tasks per sprint. Filterable by project.
     """
     user = request.user
+    profile = getattr(user, 'profile', None)
     role = get_user_role(user)
     project_id = request.GET.get('project')
+    area_id = request.GET.get('area')
 
-    sprints_qs = Sprint.objects.select_related('project').annotate(
+    if role in ('super-admin', 'admin'):
+        areas = Area.objects.filter(status='active')
+    elif role == 'jefe-area' and profile and profile.area:
+        areas = Area.objects.filter(pk=profile.area_id, status='active')
+    else:
+        areas = Area.objects.none()
+
+    sprints_qs = Sprint.objects.select_related('project', 'project__area').annotate(
         tasks_finished=Count('tasks', filter=Q(tasks__status='DONE')),
         tasks_total=Count('tasks'),
     ).order_by('project__name', '-start_date')
     sprints_qs = filter_queryset_by_role(sprints_qs, user, role, model_type='sprint')
 
+    if area_id:
+        sprints_qs = sprints_qs.filter(project__area_id=area_id)
     if project_id:
         sprints_qs = sprints_qs.filter(project_id=project_id)
 
@@ -47,12 +58,16 @@ def ver_sprints(request):
     projects = filter_queryset_by_role(
         Project.objects.filter(status='active'), user, role, model_type='project'
     )
+    if area_id:
+        projects = projects.filter(area_id=area_id)
 
     return render(request, 'core/sprints.html', {
         'sprints': sprints_qs,
         'active_sprint': active_sprint,
         'active_sprint_data': active_sprint_data,
         'projects': projects,
+        'areas': areas,
+        'current_area_id': area_id,
         'sprint_form': SprintForm(),
     })
 

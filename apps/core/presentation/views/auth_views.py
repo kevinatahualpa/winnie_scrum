@@ -57,6 +57,10 @@ def iniciar_sesion(request):
                 messages.error(request, 'Cuenta desactivada')
                 return render(request, 'core/login.html')
             login(request, user)
+            if request.POST.get('remember'):
+                request.session.set_expiry(1209600)  # 14 dias
+            else:
+                request.session.set_expiry(0)  # expira al cerrar el navegador
             _enforce_single_session(request, user)
             create_audit_log(user, 'LOGIN', 'user', details='Inicio de sesion exitoso')
             if profile and profile.role == 'cliente':

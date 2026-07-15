@@ -6,6 +6,7 @@
 
     var canManage = root.dataset.canManage === '1';
     var projectId = root.dataset.project || '';
+    var isGeneral = root.dataset.general === '1';
     var U = window.blUrls || {};
 
     function csrf() {
@@ -67,7 +68,7 @@
         });
     }
 
-    if (canManage) {
+    if (canManage && !isGeneral) {
         root.querySelectorAll('.bl-row').forEach(bindRow);
 
         root.querySelectorAll('.bl-tasklist').forEach(function (list) {
@@ -385,7 +386,7 @@
             submit.disabled = true;
             var body = new URLSearchParams();
             body.set('title', input.value.trim());
-            body.set('project', projectId);
+            body.set('project', form.dataset.project || projectId);
             body.set('type', form.dataset.type);
             body.set('priority', 'medium');
             body.set('points', '1');
@@ -435,6 +436,7 @@
                 return;
             }
             var form = buildInlineForm(sprintId);
+            form.dataset.project = btn.dataset.projectId || projectId;
             btn.parentNode.insertBefore(form, btn);
             btn.style.display = 'none';
             wireInlineForm(form, sprintId, block, btn);
@@ -646,21 +648,25 @@
     };
 
     if (typeof initCrudDrawer === 'function') {
+        var drawerFields = [
+            { name: 'title', label: 'Titulo', type: 'text', required: true },
+            { name: 'assignee', label: 'Asignado a', type: 'select', optionsData: 'taskAssigneeOptions' },
+            { name: 'type', label: 'Tipo', type: 'select', options: [
+                { value: 'task', label: 'Tarea' }, { value: 'story', label: 'Historia' },
+                { value: 'bug', label: 'Bug' }, { value: 'epic', label: 'Epic' } ], default: 'task' },
+            { name: 'priority', label: 'Prioridad', type: 'select', options: [
+                { value: 'medium', label: 'Media' }, { value: 'high', label: 'Alta' }, { value: 'low', label: 'Baja' } ], default: 'medium' },
+            { name: 'points', label: 'Puntos', type: 'select', options: [
+                { value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' },
+                { value: '5', label: '5' }, { value: '8', label: '8' }, { value: '13', label: '13' } ], default: '1' },
+            { name: 'description', label: 'Descripcion', type: 'textarea', rows: 3 }
+        ];
+        if (!projectId) {
+            drawerFields.splice(1, 0, { name: 'project', label: 'Proyecto', type: 'select', optionsData: 'taskProjectOptions', required: true });
+        }
         initCrudDrawer({
             entity: 'task', label: 'Tarea',
-            fields: [
-                { name: 'title', label: 'Titulo', type: 'text', required: true },
-                { name: 'assignee', label: 'Asignado a', type: 'select', optionsData: 'taskAssigneeOptions' },
-                { name: 'type', label: 'Tipo', type: 'select', options: [
-                    { value: 'task', label: 'Tarea' }, { value: 'story', label: 'Historia' },
-                    { value: 'bug', label: 'Bug' }, { value: 'epic', label: 'Epic' } ], default: 'task' },
-                { name: 'priority', label: 'Prioridad', type: 'select', options: [
-                    { value: 'medium', label: 'Media' }, { value: 'high', label: 'Alta' }, { value: 'low', label: 'Baja' } ], default: 'medium' },
-                { name: 'points', label: 'Puntos', type: 'select', options: [
-                    { value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' },
-                    { value: '5', label: '5' }, { value: '8', label: '8' }, { value: '13', label: '13' } ], default: '1' },
-                { name: 'description', label: 'Descripcion', type: 'textarea', rows: 3 }
-            ],
+            fields: drawerFields,
             createUrl: U.quickCreate, editUrl: '/task/'
         });
     }

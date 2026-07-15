@@ -1,0 +1,386 @@
+================================================================================
+                        WINNIE PM — MANUAL DE USUARIO
+================================================================================
+
+  Producto     : Winnie PM — Plataforma de Gestion de Proyectos Scrum
+  Empresa      : Hackthony Peru S.A.C.
+  Autor        : Kevin Atahualpa Palomino
+  Version      : 1.0
+  Sitio        : https://winniepm.xyz
+
+================================================================================
+1. PRESENTACION
+================================================================================
+
+Winnie PM es la plataforma de gestion colaborativa de proyectos desarrollada
+por Hackthony Peru S.A.C., pensada para consultoras y equipos de desarrollo
+de software que trabajan con metodologias agiles (Scrum / Kanban).
+
+Winnie PM centraliza en un solo lugar:
+
+  - La planificacion de proyectos por areas de la empresa.
+  - El trabajo diario del equipo (tablero Kanban, sprints y backlog).
+  - La gestion de personas (roles jerarquicos, reclutamiento con IA,
+    suplencias).
+  - La relacion con clientes (portal de clientes, solicitudes de servicio).
+  - La colaboracion (mensajeria interna, comentarios, notificaciones,
+    documentos).
+  - Un asistente de inteligencia artificial (DeepSeek) integrado.
+
+--------------------------------------------------------------------------------
+1.1 Sobre Hackthony Peru S.A.C.
+--------------------------------------------------------------------------------
+
+Hackthony Peru S.A.C. es una empresa peruana de tecnologia dedicada al
+desarrollo de software a medida y a la consultoria TI. Entre sus servicios:
+
+  - Desarrollo de software y paginas web / e-commerce
+  - Consultoria TI y mesa de ayuda
+  - Cloud computing, hosting y VPS
+  - Seguridad informatica y videovigilancia
+  - Marketing digital y community management
+  - Capacitacion (Learning Center)
+
+Winnie PM nace como la herramienta interna de la empresa para ordenar sus
+proyectos y equipos, y hoy es el producto con el que gestiona el trabajo de
+todas sus areas y clientes.
+
+================================================================================
+2. REQUISITOS Y ACCESO
+================================================================================
+
+  - Navegador recomendado: Google Chrome / Microsoft Edge (actualizado).
+  - Acceso via web: https://winniepm.xyz
+  - Cada usuario ingresa con su email y contrasena.
+
+--------------------------------------------------------------------------------
+2.1 Iniciar sesion
+--------------------------------------------------------------------------------
+
+  1. Entra a la direccion de Winnie PM.
+  2. Escribe tu email y contrasena.
+  3. (Opcional) Marca "Recordarme".
+  4. Pulsa "Iniciar Sesion".
+
+  Nota: Winnie permite UNA sola sesion activa por usuario. Si inicias sesion
+  en otro dispositivo, la sesion anterior se cierra automaticamente.
+
+--------------------------------------------------------------------------------
+2.2 Recuperar contrasena
+--------------------------------------------------------------------------------
+
+  1. En la pantalla de inicio de sesion pulsa "Olvidaste tu contrasena?".
+  2. Escribe tu email y pulsa "Enviar instrucciones".
+  3. Revisa tu correo (y la carpeta de spam) y sigue el enlace para crear
+     una nueva contrasena. El enlace tiene tiempo de expiracion.
+
+--------------------------------------------------------------------------------
+2.3 Solicitar acceso (registro de postulantes)
+--------------------------------------------------------------------------------
+
+Las personas que desean unirse al equipo se registran mediante un asistente
+de 3 pasos ("Solicitar acceso" en la pantalla de login):
+
+  Paso 1 - Datos      : nombre, apellido, email y contrasena.
+  Paso 2 - Perfil     : anos de experiencia, portfolio, LinkedIn, GitHub,
+                        bio y especialidad.
+  Paso 3 - Skills+CV  : tecnologias que domina (con nivel: basico,
+                        intermedio, avanzado, experto) y CV en PDF/DOC.
+
+Al finalizar se envia un correo de verificacion. Una vez verificado, la
+solicitud queda PENDIENTE hasta que un administrador la revise y apruebe.
+
+--------------------------------------------------------------------------------
+2.4 Tema claro / oscuro
+--------------------------------------------------------------------------------
+
+Desde el menu de usuario (arriba a la derecha) puedes elegir el tema:
+Sistema, Claro u Oscuro. Tu eleccion se recuerda en el navegador y se
+mantiene incluso en la pantalla de inicio de sesion.
+
+================================================================================
+3. ROLES DE USUARIO
+================================================================================
+
+  SUPER ADMIN     : Control total del sistema. Unico que puede asignar
+                    roles de administrador y editar cualquier elemento.
+  ADMIN           : Gestiona todas las areas, proyectos, usuarios,
+                    registros pendientes y configuracion.
+  JEFE DE AREA    : Gestiona los proyectos y miembros de SU area.
+  JEFE DE PROYECTO: Gestiona los proyectos que lidera (sprints, backlog,
+                    tareas, miembros y documentos del proyecto).
+  MIEMBRO         : Trabaja en las tareas que tiene asignadas; ve los
+                    proyectos donde participa.
+  CLIENTE         : Accede al Portal del Cliente: ve sus proyectos, crea
+                    solicitudes de servicio y descarga documentos.
+
+Cada rol ve en la barra lateral solo las opciones que le corresponden.
+
+================================================================================
+4. NAVEGACION GENERAL
+================================================================================
+
+La pantalla se divide en:
+
+  - BARRA LATERAL (izquierda): acceso a todos los modulos.
+  - BARRA SUPERIOR: busqueda, notificaciones, mensajes y menu de usuario.
+  - AREA DE CONTENIDO: la pagina del modulo activo.
+
+Atajos utiles:
+  - Ctrl + K : abre/cierra el asistente de IA.
+  - Esc      : cierra paneles y ventanas emergentes.
+
+Filtros estandar: las paginas de listado (Tablero, Backlog, Sprints,
+Documentos, Usuarios) tienen una barra de filtros a la izquierda con el
+mismo formato: primero AREA, luego PROYECTO (en cascada) y filtros
+especificos de cada pagina. El boton "X" limpia los filtros.
+
+================================================================================
+5. MODULOS
+================================================================================
+
+--------------------------------------------------------------------------------
+5.1 Dashboard
+--------------------------------------------------------------------------------
+
+Vista resumen al ingresar: totales de proyectos, tareas y su distribucion
+por estado, proyectos activos y actividad reciente. Los administradores ven
+metricas globales; los demas roles, las de sus proyectos.
+
+--------------------------------------------------------------------------------
+5.2 Proyectos
+--------------------------------------------------------------------------------
+
+Listado de proyectos con estado (Activo, Planificado, Completado, Pausado,
+Cancelado), area, lider, presupuesto y fechas.
+
+Detalle del proyecto (pestanas):
+  - Backlog    : backlog y sprints del proyecto (ver 5.4).
+  - Tablero    : Kanban del sprint activo (ver 5.3).
+  - Documentos : archivos del proyecto.
+  - Chat       : conversacion grupal del proyecto y mensajes directos.
+  - Calendario : sprints en el calendario.
+
+Crear un proyecto (admin / jefe de area):
+  1. Proyectos > Nuevo Proyecto.
+  2. Completa nombre, area, lider, miembros, cliente (opcional),
+     presupuesto y fechas.
+  3. Guarda. El lider ya puede crear sprints y tareas.
+
+--------------------------------------------------------------------------------
+5.3 Tablero (Kanban)
+--------------------------------------------------------------------------------
+
+Columnas: Por Hacer / En Progreso / Testing / Completado.
+
+  - Arrastra y suelta las tarjetas para cambiar su estado.
+  - Filtra por area, sprint activo y asignado.
+  - Cada tarjeta muestra tipo (tarea, historia, bug, epic), prioridad,
+    puntos y responsable.
+  - "Nueva Tarea" crea una tarea sin salir del tablero.
+
+--------------------------------------------------------------------------------
+5.4 Backlog
+--------------------------------------------------------------------------------
+
+Vista estilo Jira con bloques desplegables:
+
+  Vista general (sin proyecto seleccionado):
+    - Muestra el backlog de TODOS tus proyectos, agrupado por proyecto,
+      con contadores de estado y creacion rapida de tareas por bloque.
+    - Filtra por area y proyecto.
+
+  Vista de proyecto:
+    - Bloques por sprint (activo y futuros) + bloque Product Backlog.
+    - Arrastra tareas entre backlog y sprints.
+    - Crea tareas en linea ("Crear tarea"): titulo, tipo, responsable y
+      fecha limite.
+    - Crea, edita, inicia y completa sprints desde la misma pantalla.
+
+--------------------------------------------------------------------------------
+5.5 Sprints
+--------------------------------------------------------------------------------
+
+Listado de sprints agrupados por proyecto con barra de progreso
+(tareas completadas / totales).
+
+  - Solo puede haber UN sprint activo por proyecto.
+  - Iniciar sprint: selecciona las tareas del backlog que entraran.
+  - Completar sprint: las tareas no terminadas vuelven al Product Backlog
+    automaticamente; las completadas conservan su historial.
+
+--------------------------------------------------------------------------------
+5.6 Documentos
+--------------------------------------------------------------------------------
+
+Repositorio de archivos por proyecto (PDF, Word, Excel, imagenes; maximo
+10 MB por archivo).
+
+  - Filtra por area, proyecto y ordena por fecha, nombre o tamano.
+  - Subir Archivo: elige proyecto + archivo.
+  - Descarga o elimina desde la misma tabla.
+
+--------------------------------------------------------------------------------
+5.7 Usuarios (Equipo)
+--------------------------------------------------------------------------------
+
+  - Pestanas: Equipo / Portal Clientes / Inactivos.
+  - Filtros: area, proyecto y rol.
+  - Cada fila muestra avatar, estado en linea, rol y area.
+  - Acciones: enviar mensaje, editar usuario, desactivar (queda inactivo,
+    no se borra).
+
+--------------------------------------------------------------------------------
+5.8 Registros (Solicitudes pendientes) — con IA
+--------------------------------------------------------------------------------
+
+Aqui el administrador revisa a los postulantes del wizard de registro:
+
+  1. Registros > lista de candidatos pendientes (especialidad, skills, CV).
+  2. Pulsa "Revisar": se abre un panel con el CV embebido y un checklist
+     de validacion de 4 puntos (CV coherente, experiencia plausible,
+     nivel tecnico creible, documentacion valida).
+  3. Boton "IA": el asistente analiza el perfil y el CV, sugiere el
+     checklist, resume fortalezas y senala discrepancias entre lo
+     declarado y el CV.
+  4. Para aprobar se requieren al menos 3 de 4 checks. Al aprobar se
+     asigna rol, area y especialidad. Tambien se puede rechazar con nota.
+
+El candidato recibe una notificacion con el resultado.
+
+--------------------------------------------------------------------------------
+5.9 Clientes y Portal del Cliente
+--------------------------------------------------------------------------------
+
+  - Clientes (admin): registro de empresas cliente y creacion de usuarios
+    de portal para cada una.
+  - Portal del Cliente (rol cliente): ve sus proyectos activos, el estado
+    de sus solicitudes de servicio, crea nuevas solicitudes (con tipo de
+    servicio y prioridad) y descarga documentos de sus proyectos.
+
+--------------------------------------------------------------------------------
+5.10 Mensajes y Chat
+--------------------------------------------------------------------------------
+
+  - Mensajes directos entre miembros del equipo.
+  - Chat grupal por proyecto (pestana Chat del proyecto).
+  - Notificaciones de asignaciones, comentarios y menciones en la campana
+    de la barra superior.
+
+--------------------------------------------------------------------------------
+5.11 Calendario
+--------------------------------------------------------------------------------
+
+Vista mensual con los sprints y sus fechas de inicio/fin, filtrable por
+proyecto.
+
+--------------------------------------------------------------------------------
+5.12 Reportes
+--------------------------------------------------------------------------------
+
+Graficas por estado, prioridad y tipo de tarea, y distribucion de carga por
+responsable. Utiles para las ceremonias de revision y retrospectiva.
+
+--------------------------------------------------------------------------------
+5.13 Areas, Especialidades y Tecnologias (catalogos)
+--------------------------------------------------------------------------------
+
+  - Areas          : divisiones de la empresa (ej. Desarrollo, Innovacion).
+                     Todo proyecto pertenece a un area.
+  - Especialidades : perfiles profesionales (Backend, Frontend, QA, etc.).
+  - Tecnologias    : catalogo de tecnologias que dominan los miembros y
+                     que declaran los postulantes.
+
+Solo administradores gestionan estos catalogos.
+
+--------------------------------------------------------------------------------
+5.14 Suplencias
+--------------------------------------------------------------------------------
+
+Permite delegar temporalmente responsabilidades de un miembro a otro
+(por vacaciones o licencia), con fecha de inicio y fin.
+
+--------------------------------------------------------------------------------
+5.15 Auditoria y Archivados
+--------------------------------------------------------------------------------
+
+  - Auditoria : registro de acciones importantes (quien hizo que y cuando):
+                aprobaciones, cambios de estado, eliminaciones, etc.
+  - Archivados: elementos inactivos (proyectos, areas, documentos) que se
+                conservan para consulta y pueden reactivarse.
+
+--------------------------------------------------------------------------------
+5.16 Winnie AI Assistant
+--------------------------------------------------------------------------------
+
+Asistente de inteligencia artificial (DeepSeek) integrado:
+
+  - Abrelo con el boton de robot o con Ctrl + K.
+  - Preguntale sobre gestion de proyectos, Scrum, uso de la plataforma,
+    redaccion de tareas, etc.
+  - Responde en espanol y mantiene el contexto de la conversacion.
+
+--------------------------------------------------------------------------------
+5.17 Mi Perfil
+--------------------------------------------------------------------------------
+
+Desde el menu de usuario > Mi Perfil puedes actualizar tu foto, datos de
+contacto, tecnologias y estado (activo / vacaciones / licencia).
+
+================================================================================
+6. FLUJO DE TRABAJO RECOMENDADO (SCRUM EN WINNIE)
+================================================================================
+
+  1. El ADMIN crea el area (si no existe) y el proyecto, asignando lider
+     y miembros.
+  2. El JEFE DE PROYECTO llena el Product Backlog con tareas priorizadas.
+  3. Crea un sprint (nombre, fechas, objetivo) y lo inicia seleccionando
+     las tareas del backlog que entran al sprint.
+  4. El EQUIPO trabaja en el Tablero moviendo tarjetas:
+     Por Hacer -> En Progreso -> Testing -> Completado.
+  5. Al terminar el periodo, el jefe COMPLETA el sprint: lo pendiente
+     regresa al backlog para replanificarse.
+  6. Se revisan Reportes y se repite el ciclo con el siguiente sprint.
+
+================================================================================
+7. PREGUNTAS FRECUENTES
+================================================================================
+
+P: No puedo iniciar sesion, dice que mi sesion se cerro.
+R: Winnie permite una sola sesion activa. Vuelve a ingresar; la sesion del
+   otro dispositivo quedara cerrada.
+
+P: No veo un proyecto en mis listas.
+R: Solo ves proyectos donde eres lider o miembro (o de tu area si eres
+   jefe de area). Pide al administrador que te agregue.
+
+P: No puedo arrastrar tareas en el Backlog general.
+R: El arrastre entre sprints funciona dentro de un proyecto. Abre el
+   proyecto (boton "Abrir backlog") para planificar sus sprints.
+
+P: Por que no puedo aprobar a un candidato?
+R: El checklist de revision exige minimo 3 de 4 puntos marcados.
+
+P: El asistente de IA no responde.
+R: Verifica tu conexion. Si el problema persiste, contacta al
+   administrador (puede ser un problema de configuracion del servicio).
+
+P: Subi un archivo y no aparece.
+R: Verifica que pese menos de 10 MB y que elegiste el proyecto correcto.
+   Usa el filtro de proyecto para ubicarlo.
+
+================================================================================
+8. SOPORTE
+================================================================================
+
+  Empresa : Hackthony Peru S.A.C.
+  Producto: Winnie PM v1.0
+  Web     : https://winniepm.xyz
+
+  Para incidencias o consultas, contacta al administrador del sistema o al
+  area de TI de Hackthony Peru S.A.C.
+
+--------------------------------------------------------------------------------
+  Documento elaborado por Kevin Atahualpa Palomino — Hackthony Peru S.A.C.
+  Todos los derechos reservados.
+--------------------------------------------------------------------------------
